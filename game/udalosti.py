@@ -37,7 +37,7 @@ def spust_nahodnou_udalost(hra):
     ]
 
     udalost = random.choice(udalosti)
-    print(f"\n{Udalost['nazev']}: {udalost['popis']}")
+    print(f"\n{udalost['nazev']}: {udalost['popis']}")
     udalost["efekt"](hra)
 
 def prepadeni(hra):
