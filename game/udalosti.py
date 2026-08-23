@@ -34,6 +34,11 @@ def spust_nahodnou_udalost(hra):
             "popis": "Bohatý kupec chce koupit otrokyni.",
             "efekt": lambda h: kupec(h)
         },
+        {
+            "nazev": "Setkání s NPC",
+            "popis": "Na cestě tě oslovila neznámá postava.",
+            "efekt": lambda h: setkani_npc(h)
+        },
     ]
 
     udalost = random.choice(udalosti)
@@ -82,3 +87,54 @@ def kupec(hra):
         hra.hrac.gold += cena
         hra.harem.odstranit(o.jmeno)
         tisk_ok(f"Prodal jsi {o.jmeno} za {cena} zlaťáků.")
+
+def setkani_npc(hra):
+    npc = random.choice([
+        {
+            "jmeno": "Mira, potulná léčitelka",
+            "popis": "Nabízí ošetření za 30 zlaťáků.",
+            "akce": "lecitelka",
+        },
+        {
+            "jmeno": "Radan, pašerák",
+            "popis": "Prodá ti tajnou zásobu za 40 zlaťáků.",
+            "akce": "paserak",
+        },
+        {
+            "jmeno": "Elian, městský informátor",
+            "popis": "Za 20 zlaťáků prozradí, co se děje ve městě.",
+            "akce": "informator",
+        },
+    ])
+
+    print(f"\n{npc['jmeno']}: {npc['popis']}")
+    volba = input("Přijmout nabídku? (a/n): ").strip().lower()
+    if volba not in ("a", "ano"):
+        tisk_info("Nabídku jsi odmítl.")
+        return
+
+    hrac = hra.hrac
+    if npc["akce"] == "lecitelka":
+        cena = 30
+        if hrac.gold < cena:
+            tisk_chyba("Nemáš dost zlata.")
+            return
+        hrac.gold -= cena
+        hrac.hp = min(hrac.max_hp, hrac.hp + 35)
+        tisk_ok(f"{npc['jmeno']} tě ošetřila. HP: {hrac.hp}.")
+    elif npc["akce"] == "paserak":
+        cena = 40
+        if hrac.gold < cena:
+            tisk_chyba("Nemáš dost zlata.")
+            return
+        hrac.gold -= cena
+        hrac.dark_energy = min(100, hrac.dark_energy + 15)
+        tisk_ok("Pašerák ti předal zakázanou zásobu. Temná energie +15.")
+    else:
+        cena = 20
+        if hrac.gold < cena:
+            tisk_chyba("Nemáš dost zlata.")
+            return
+        hrac.gold -= cena
+        hrac.reputace_mesta += 3
+        tisk_ok("Informátor ti předal cenné zprávy. Reputace města +3.")
