@@ -1,5 +1,5 @@
 from data.osudy import OSUDY, OSUDY_PORADI
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok
 
 
 def vyber_osud(otrok):
@@ -110,6 +110,7 @@ class OsudySystem:
             clear()
             osud = self._osud(otrok)
             krok = self.dalsi_krok(otrok)
+            terminalni_obrazek("osudy")
             print(f"--- Osud: {osud['nazev']} ({otrok.jmeno}) ---")
             print(osud["popis"])
             print(f"Stav: {otrok.osud_krok}/{len(osud['kroky'])} rozhodnutí")

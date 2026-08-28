@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok
 
 LOKACE = {
     "pevnost": {
@@ -133,7 +133,8 @@ class SvetSystem:
         while True:
             clear()
             lokace = LOKACE[self.aktualni_lokace]
-            print(f"--- Mapa a vztahy ---\n")
+            terminalni_obrazek("mapa")
+            print("\n--- Mapa a vztahy ---\n")
             print(f"Pozice: {lokace['nazev']}")
             print(lokace["popis"])
             print("\nDostupné lokace:")

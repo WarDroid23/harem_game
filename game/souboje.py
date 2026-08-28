@@ -1,6 +1,6 @@
 # game/souboje.py
 import random
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info
 from config import GOLD, GREEN, RED, CYAN, NC
 from game.predmety import PREDMETY
 
@@ -50,6 +50,7 @@ class Souboj:
             self.generuj_nepritele(self.hrac.level)
 
         nepritel = self.nepritel
+        terminalni_obrazek("souboj")
         print(f"\n{NC}⚔️  Boj proti: {nepritel.jmeno} (HP {nepritel.hp}/{nepritel.max_hp})")
         print(f"Tvé HP: {self.hrac.hp}/{self.hrac.max_hp}\n")
 

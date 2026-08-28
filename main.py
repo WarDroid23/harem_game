@@ -22,7 +22,10 @@ from game.souboje import Souboj
 from game.alchymie import AlchymieSystem
 from game.crafting import CraftingSystem
 from game.harem_interakce import menu_haremu
-from utils.vypis import clear, ascii_art, tisk_ok, tisk_chyba, tisk_info, ukazatel
+from utils.vypis import (
+    clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
+    ukazatel,
+)
 from data.jmena import JMENA
 from data.charaktery import CHARAKTERY
 from data.degradace import Faze
@@ -38,6 +41,7 @@ def hlavni_menu(hra: Hra):
     while True:
         clear()
         ascii_art()
+        terminalni_obrazek("menu")
         print(f"{GOLD}{BOLD}Den: {hra.hrac.den} | {GREEN}Zlato: {hra.hrac.gold} 🪙{NC}")
         print(
             f"{CYAN}Energie {ukazatel(hra.hrac.sex_energy, 100)} | "
