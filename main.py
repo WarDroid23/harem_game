@@ -12,6 +12,7 @@ from game.vyzkum import VyzkumSystem, VYZKUM
 from game.subky_domestikace import SubkyDomestikace
 from game.lov import lov_otrokyn
 from game.odpocinek import odpocinek
+from game.energie import zobraz_menu as menu_energie
 from game.obchod import obchod
 from game.questy import QuestSystem
 from game.drazba import drazba_otrokyn
@@ -75,6 +76,7 @@ def hlavni_menu(hra: Hra):
         print(f"{CYAN}20) 📋 Rychlý přehled")
         print(f"{GREEN}23) 🤝 Harem: péče, role a osudy")
         print(f"{YELLOW}24) 🛠️ Předměty a crafting")
+        print(f"{CYAN}25) ⚡ Dobít energie")
         print(f"{GREEN}21) 💾 Uložit hru")
         print(f"{CYAN}22) 📂 Načíst hru")
         print(f"{RED}0) 🚪 Konec")
@@ -253,6 +255,9 @@ def hlavni_menu(hra: Hra):
 
         elif volba == "24":
             crafting.menu(hra)
+
+        elif volba == "25":
+            menu_energie(hra)
 
         elif volba == "0":
             uloz_hru(hra)

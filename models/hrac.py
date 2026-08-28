@@ -38,6 +38,7 @@ class Hrac:
     max_agentu: int = 1
     zpravodajska_uroven: int = 1
     aukcni_bonus: int = 0
+    dobiti_dnes: dict = field(default_factory=dict)
     inventar: Inventory = field(default_factory=Inventory)
 
     def pridej_xp(self, m):
@@ -74,4 +75,6 @@ class Hrac:
             h.agenti = [Agent.from_dict(a) for a in agenti_data if isinstance(a, dict)]
         if not isinstance(h.skilly, dict):
             h.skilly = cls().skilly
+        if not isinstance(h.dobiti_dnes, dict):
+            h.dobiti_dnes = {}
         return h

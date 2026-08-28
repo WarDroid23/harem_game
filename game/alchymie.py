@@ -30,6 +30,16 @@ RECEPTY = {
         "efekt": lambda h: setattr(h, 'dark_energy', min(100, h.dark_energy + 20)),
         "hodnota": 60
     },
+    "lektvar_rovnovahy": {
+        "nazev": "Lektvar rovnováhy",
+        "popis": "Doplní 18 sexuální i temné energie.",
+        "suroviny": {"bylina_mesicni": 1, "esence_temna": 1},
+        "efekt": lambda h: (
+            setattr(h, 'sex_energy', min(100, h.sex_energy + 18)),
+            setattr(h, 'dark_energy', min(100, h.dark_energy + 18))
+        ),
+        "hodnota": 75
+    },
     "lektvar_zdravi": {
         "nazev": "Lektvar zdraví",
         "popis": "Obnoví 50 HP.",

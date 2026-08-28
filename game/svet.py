@@ -12,13 +12,16 @@ LOKACE = {
     "trh": {
         "nazev": "Starý trh",
         "popis": "Obchodníci, překupníci a lidé, kteří slyší víc, než říkají.",
-        "sousedni": ["pevnost", "pristav", "ctvrt_remeselniku"],
+        "sousedni": [
+            "pevnost", "pristav", "ctvrt_remeselniku", "hostinec", "lazne",
+            "akademie"
+        ],
         "uroven": 1,
     },
     "les": {
         "nazev": "Mlžný les",
         "popis": "Zkratka k hranici, kde se ztrácejí karavany.",
-        "sousedni": ["pevnost", "hranice"],
+        "sousedni": ["pevnost", "hranice", "haj_soumraku"],
         "uroven": 2,
     },
     "pristav": {
@@ -36,10 +39,38 @@ LOKACE = {
     "ctvrt_remeselniku": {
         "nazev": "Čtvrť řemeslníků",
         "popis": "Dílny, cechy a lidé, kteří umí proměnit suroviny v užitečné vybavení.",
-        "sousedni": ["trh"],
+        "sousedni": ["trh", "akademie"],
+        "uroven": 2,
+    },
+    "hostinec": {
+        "nazev": "Hostinec U Tří svící",
+        "popis": "Rušný hostinec, kde se najíš, vyspíš a zaslechneš nové zvěsti.",
+        "sousedni": ["trh", "lazne"],
+        "uroven": 1,
+    },
+    "lazne": {
+        "nazev": "Městské lázně",
+        "popis": "Teplé prameny obnovují sílu poutníkům i vládcům.",
+        "sousedni": ["trh", "hostinec", "haj_soumraku"],
+        "uroven": 1,
+    },
+    "haj_soumraku": {
+        "nazev": "Háj soumraku",
+        "popis": "Tiché místo mezi lesem a prameny, vhodné k meditaci a temným rituálům.",
+        "sousedni": ["les", "lazne"],
+        "uroven": 2,
+    },
+    "akademie": {
+        "nazev": "Alchymistická akademie",
+        "popis": "Učenci zde zkoumají esence a vyměňují je za vzácné suroviny.",
+        "sousedni": ["ctvrt_remeselniku", "trh"],
         "uroven": 2,
     },
 }
+
+VYCHOZI_ODHALENE = [
+    "pevnost", "trh", "les", "hostinec", "lazne", "haj_soumraku", "akademie"
+]
 
 NPC = {
     "mira": {
@@ -57,28 +88,62 @@ NPC = {
         "popis": "Vyměňuje zprávy za laskavosti a opatrnost.",
         "lokace": "trh",
     },
+    "borin": {
+        "jmeno": "Borin, hostinský",
+        "popis": "Dobrosrdečný hostinský, který pozná poutníka podle kroku.",
+        "lokace": "hostinec",
+    },
+    "velena": {
+        "jmeno": "Velena, správkyně lázní",
+        "popis": "Pečuje o prameny a nabízí léčivou proceduru za rozumnou cenu.",
+        "lokace": "lazne",
+    },
+    "sava": {
+        "jmeno": "Sava, strážkyně háje",
+        "popis": "Mlčenlivá strážkyně, která učí soustředění a zná sílu nočního stínu.",
+        "lokace": "haj_soumraku",
+    },
+    "nela": {
+        "jmeno": "Nela, mladá alchymistka",
+        "popis": "Hledá pomocníky pro své pokusy a odměňuje je užitečnými esencemi.",
+        "lokace": "akademie",
+    },
 }
 
 
 @dataclass
 class SvetSystem:
     aktualni_lokace: str = "pevnost"
-    odhalene_lokace: list = field(default_factory=lambda: ["pevnost", "trh", "les"])
+    odhalene_lokace: list = field(default_factory=lambda: list(VYCHOZI_ODHALENE))
     navstiveno: dict = field(default_factory=dict)
     vztahy_npc: dict = field(default_factory=lambda: {k: 0 for k in NPC})
 
     def __post_init__(self):
-        if self.aktualni_lokace not in LOKACE:
+        if not isinstance(self.aktualni_lokace, str) or self.aktualni_lokace not in LOKACE:
             self.aktualni_lokace = "pevnost"
+        puvodni_lokace = self.odhalene_lokace
+        if not isinstance(puvodni_lokace, list):
+            puvodni_lokace = []
         self.odhalene_lokace = [
-            k for k in self.odhalene_lokace if k in LOKACE
-        ] or ["pevnost"]
+            k for k in puvodni_lokace if k in LOKACE
+        ]
+        # Nové lokace se přidají i do starších savů, které mapu ještě neměly.
+        for lokace in VYCHOZI_ODHALENE:
+            if lokace not in self.odhalene_lokace:
+                self.odhalene_lokace.append(lokace)
+        if not self.odhalene_lokace:
+            self.odhalene_lokace = ["pevnost"]
         if "pevnost" not in self.odhalene_lokace:
             self.odhalene_lokace.insert(0, "pevnost")
-        self.vztahy_npc = {
-            k: max(-100, min(100, int(self.vztahy_npc.get(k, 0))))
-            for k in NPC
-        }
+        puvodni_vztahy = self.vztahy_npc if isinstance(self.vztahy_npc, dict) else {}
+        vztahy = {}
+        for npc_id in NPC:
+            try:
+                hodnota = int(puvodni_vztahy.get(npc_id, 0))
+            except (TypeError, ValueError):
+                hodnota = 0
+            vztahy[npc_id] = max(-100, min(100, hodnota))
+        self.vztahy_npc = vztahy
 
     def odhal_lokaci(self, lokace):
         if lokace in LOKACE and lokace not in self.odhalene_lokace:
@@ -124,7 +189,7 @@ class SvetSystem:
             return cls()
         return cls(
             aktualni_lokace=data.get("aktualni_lokace", "pevnost"),
-            odhalene_lokace=data.get("odhalene_lokace", ["pevnost", "trh", "les"]),
+            odhalene_lokace=data.get("odhalene_lokace", VYCHOZI_ODHALENE),
             navstiveno=data.get("navstiveno", {}) if isinstance(data.get("navstiveno", {}), dict) else {},
             vztahy_npc=data.get("vztahy_npc", {}) if isinstance(data.get("vztahy_npc", {}), dict) else {},
         )
@@ -151,12 +216,16 @@ class SvetSystem:
                     print(f"  {npc['jmeno']} (vztah {self.vztahy_npc[npc_id]:+d})")
             else:
                 print("  Nikdo známý.")
-            print("\n1-9) Cestovat  |  N) setkat se s NPC  |  0) Zpět")
+            print("\n1-9) Cestovat  |  N) setkat se s NPC  |  E) dobít energii  |  0) Zpět")
             volba = input("> ").strip().lower()
             if volba == "0":
                 return
             if volba == "n":
                 self.menu_npc(hra)
+                continue
+            if volba == "e":
+                from game.energie import zobraz_menu as menu_energie
+                menu_energie(hra)
                 continue
             try:
                 index = int(volba) - 1
@@ -210,18 +279,46 @@ class SvetSystem:
                 hra.alchymie.pridat_surovinu("nocni_stin", 1)
                 self.zmen_vztah(npc_id, 3)
                 tisk_ok("Radan ti předal Noční stín. Vztah +3.")
-            else:
+            elif npc_id == "elian":
                 hra.hrac.vliv_inkvizice = max(0, hra.hrac.vliv_inkvizice - 3)
                 self.zmen_vztah(npc_id, 3)
                 tisk_ok("Elian odvedl pozornost stráží. Vliv inkvizice -3.")
+            elif npc_id == "borin":
+                from game.energie import hostinec
+                if hostinec(hra):
+                    self.zmen_vztah(npc_id, 3)
+            elif npc_id == "velena":
+                from game.energie import lazne
+                if lazne(hra):
+                    self.zmen_vztah(npc_id, 3)
+            elif npc_id == "sava":
+                from game.energie import meditace
+                if meditace(hra):
+                    self.zmen_vztah(npc_id, 3)
+            elif npc_id == "nela":
+                if hra.alchymie.pridat_surovinu("esence_temna", 1):
+                    self.zmen_vztah(npc_id, 3)
+                    tisk_ok("Nela ti svěřila lahvičku temné esence. Vztah +3.")
+                else:
+                    tisk_chyba("Nela dnes nemá vhodnou surovinu.")
         elif akce == "3":
             if vztah < -20:
                 self.zmen_vztah(npc_id, -4)
                 tisk_chyba("NPC ti nevěří a nabídku odmítl.")
             else:
-                hra.hrac.gold += 30
-                self.zmen_vztah(npc_id, 6)
-                tisk_ok("Pomohl jsi NPC s její prací. Získal jsi 30 zlata, vztah +6.")
+                if npc_id == "sava":
+                    hra.alchymie.pridat_surovinu("nocni_stin", 1)
+                    self.zmen_vztah(npc_id, 6)
+                    tisk_ok("Pomohl jsi Savě očistit háj. Získal jsi Noční stín, vztah +6.")
+                elif npc_id == "nela":
+                    hra.hrac.gold += 35
+                    hra.alchymie.pridat_surovinu("koren_mandragory", 1)
+                    self.zmen_vztah(npc_id, 6)
+                    tisk_ok("Pomohl jsi Nele s destilací. Získal jsi 35 zlata a kořen mandragory.")
+                else:
+                    hra.hrac.gold += 30
+                    self.zmen_vztah(npc_id, 6)
+                    tisk_ok("Pomohl jsi NPC s její prací. Získal jsi 30 zlata, vztah +6.")
         else:
             tisk_chyba("Neplatná volba.")
         input("Enter...")
