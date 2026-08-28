@@ -3,7 +3,7 @@
 import random
 from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, NC
 from game.save_load import Hra, uloz_hru, nacti_hru
-from game.interakce import zobraz_interakce
+from game.interakce import zobraz_interakce, zobraz_hromadne_interakce
 from game.ekonomika import najem_otrokyně
 from game.mafie import spravovat_mafii
 from game.vyvoj import zobraz_vyvoj
@@ -100,8 +100,13 @@ def hlavni_menu(hra: Hra):
                         f"{i}) {o.jmeno} [{char_nazev}, {faze_nazev}, věk {o.vek}] "
                         f"(loajalita:{o.loajalita}% | osud: {o.popis_osudu()})"
                     )
+                print("@) Vybrat všechny aktivní otrokyně")
                 try:
-                    idx = int(input("> ")) - 1
+                    volba_otrokyn = input("> ").strip()
+                    if volba_otrokyn == "@":
+                        zobraz_hromadne_interakce(aktivni, hra.hrac)
+                        continue
+                    idx = int(volba_otrokyn) - 1
                     if 0 <= idx < len(aktivni):
                         zobraz_interakce(aktivni[idx], hra.hrac)
                     else:

@@ -94,3 +94,51 @@ def zobraz_interakce(otrok, hrac):
             except ValueError:
                 tisk_chyba("Zadej číslo.")
         input("Enter...")
+
+def zobraz_hromadne_interakce(otrokyne, hrac):
+    """Provede stejnou bezpečnou interakci na všech vybraných postavách."""
+    if not otrokyne:
+        tisk_chyba("Nemáš žádné aktivní postavy.")
+        return
+
+    while True:
+        clear()
+        print("--- Hromadná interakce se všemi otrokyněmi ---")
+        print(f"Počet postav: {len(otrokyne)}")
+        for i, akce in enumerate(INTERAKCE, 1):
+            print(
+                f"{i}) {akce['nazev']} "
+                f"(E:{akce.get('cena_energie', 0)} "
+                f"T:{akce.get('cena_temnoty', 0)} za osobu)"
+            )
+        print("0) Zpět")
+        volba = input("> ").strip()
+        if volba == "0":
+            return
+        try:
+            index = int(volba) - 1
+        except ValueError:
+            tisk_chyba("Zadej číslo.")
+            input("Enter...")
+            continue
+        if not 0 <= index < len(INTERAKCE):
+            tisk_chyba("Špatná volba.")
+            input("Enter...")
+            continue
+
+        akce = INTERAKCE[index]
+        cena_energie = akce.get("cena_energie", 0) * len(otrokyne)
+        cena_temnoty = akce.get("cena_temnoty", 0) * len(otrokyne)
+        if hrac.sex_energy < cena_energie or hrac.dark_energy < cena_temnoty:
+            tisk_chyba(
+                f"Nemáš dost energie pro všechny. Potřebuješ "
+                f"E:{cena_energie}, T:{cena_temnoty}."
+            )
+            input("Enter...")
+            continue
+
+        for otrok in otrokyne:
+            proved_interakci(otrok, hrac, akce["id"])
+        tisk_ok(f"Interakce „{akce['nazev']}“ proběhla u všech postav.")
+        input("Enter...")
+        return
