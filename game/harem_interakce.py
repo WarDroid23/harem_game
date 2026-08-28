@@ -48,14 +48,8 @@ def _osobni_akce(hra, otrok):
         otrok.zaznamenej_volbu("péče", "Rozhovor o minulosti", hra.hrac.den)
         tisk_ok(f"{otrok.jmeno} ti svěřila část své minulosti.")
     elif volba == "2":
-        if hra.hrac.gold < 20:
+        if not proved_peci(hra, otrok):
             tisk_chyba("Nemáš dost zlata na péči.")
-        else:
-            hra.hrac.gold -= 20
-            otrok.zvysit_stat("hp", 25)
-            otrok.zvysit_stat("duvera", 3)
-            otrok.zaznamenej_volbu("péče", "Péče a zotavení", hra.hrac.den)
-            tisk_ok(f"{otrok.jmeno} si odpočinula. HP +25, důvěra +3.")
     elif volba == "3":
         role = input("Role (stráž/řemesla/vyjednávání/zpravodajství): ").strip().lower()
         role_map = {
@@ -168,17 +162,40 @@ def _osobni_akce(hra, otrok):
 
 
 def porada_haremu(hra):
-    aktivni = hra.harem.vsechny_aktivni()
-    if not aktivni:
+    if not proved_poradu(hra):
         tisk_chyba("Nemáš nikoho, kdo by se porady účastnil.")
-        input("Enter...")
-        return
+    input("Enter...")
+
+
+def proved_peci(hra, otrok, respektuj_najem=False):
+    if (
+        otrok.hp <= 0
+        or hra.hrac.gold < 20
+        or (respektuj_najem and otrok.na_najmu)
+    ):
+        return False
+    hra.hrac.gold -= 20
+    otrok.zvysit_stat("hp", 25)
+    otrok.zaznamenej_volbu("péče", "Péče a zotavení", hra.hrac.den)
+    tisk_ok(f"{otrok.jmeno} si odpočinula. HP +25, důvěra +3.")
+    otrok.zvysit_stat("duvera", 3)
+    return True
+
+
+def proved_poradu(hra, postavy=None):
+    aktivni = (
+        hra.harem.vsechny_aktivni()
+        if postavy is None
+        else [o for o in postavy if o in hra.harem.vsechny_aktivni() and not o.na_najmu]
+    )
+    if not aktivni:
+        return False
     for otrok in aktivni:
         otrok.zvysit_stat("loajalita", 2)
         otrok.zvysit_stat("duvera", 1)
     hra.hrac.reputace_mesta += 1
     tisk_ok("Porada proběhla. Loajalita všech +2, reputace města +1.")
-    input("Enter...")
+    return True
 
 
 def zobraz_profil(otrok):

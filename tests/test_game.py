@@ -7,6 +7,11 @@ from unittest.mock import patch
 
 import config
 from game.balance import profil_obtiznosti
+from game.automaticky_tah import (
+    MIN_ZLATO_REZERVA,
+    naplanuj_automaticky_tah,
+    proved_automaticky_tah,
+)
 from game.energie import meditace
 from game.save_load import Hra, nacti_slot, uloz_slot
 from game.settings import NastaveniHry
@@ -102,6 +107,33 @@ class HraTesty(unittest.TestCase):
             self.assertIn("\033[", barva("test", config.GREEN))
         finally:
             config.set_colors_enabled(puvodni)
+
+    def test_automaticky_tah_planuje_bez_vstupu_a_chrani_najem(self):
+        hra = Hra()
+        hra.harem.pridat(Otrokyně("Na nájmu"))
+        hra.harem.pridat(Otrokyně("Volná"))
+        hra.harem.otrokyne[0].na_najmu = True
+        hra.harem.otrokyne[0].najem_zbyva_dni = 1
+        hra.hrac.sex_energy = 0
+        hra.hrac.dark_energy = 0
+
+        plan = naplanuj_automaticky_tah(hra)
+
+        self.assertTrue(plan.akce)
+        self.assertTrue(any("Meditace" == akce.nazev for akce in plan.akce))
+        self.assertTrue(any("Volná" == akce.cil for akce in plan.akce))
+        self.assertFalse(any("Na nájmu" == akce.cil for akce in plan.akce))
+
+    def test_automaticky_tah_neutrati_zlatou_rezervu(self):
+        hra = Hra()
+        hra.hrac.gold = 1_000
+        hra.harem.pridat(Otrokyně("Alena"))
+        plan = naplanuj_automaticky_tah(hra)
+
+        vysledek = proved_automaticky_tah(hra, plan)
+
+        self.assertGreaterEqual(hra.hrac.gold, MIN_ZLATO_REZERVA)
+        self.assertEqual(vysledek.zlato_po, hra.hrac.gold)
 
 
 if __name__ == "__main__":

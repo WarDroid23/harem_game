@@ -2,6 +2,43 @@
 from models.mafie import Mafie, Uzemi
 from utils.vypis import clear, tisk_ok, tisk_chyba
 
+DOSTUPNA_UZEMI = (
+    ("Přístav", 100, 0, 5),
+    ("Tržiště", 80, 0, 3),
+    ("Čtvrť bohatých", 150, 0, 10),
+)
+
+
+def dostupna_uzemi(mafie: Mafie):
+    vlastni = {u.nazev for u in mafie.uzemi}
+    return [
+        Uzemi(nazev, prijem, kontrola, riziko)
+        for nazev, prijem, kontrola, riziko in DOSTUPNA_UZEMI
+        if nazev not in vlastni
+    ]
+
+
+def koupit_uzemi(hrac, mafie: Mafie, nazev: str):
+    """Koupí konkrétní dostupné území bez vstupu z menu."""
+    uzemi = next((u for u in dostupna_uzemi(mafie) if u.nazev == nazev), None)
+    cena = 500 + len(mafie.uzemi) * 200
+    if uzemi is None or hrac.gold < cena:
+        return False
+    hrac.gold -= cena
+    mafie.uzemi.append(uzemi)
+    tisk_ok(f"Koupeno území {uzemi.nazev}.")
+    return True
+
+
+def najmout_vojaka(hrac, mafie: Mafie, cena=50):
+    if hrac.gold < cena:
+        return False
+    hrac.gold -= cena
+    mafie.vojaci += 1
+    tisk_ok("Najat voják.")
+    return True
+
+
 def spravovat_mafii(hrac, mafie: Mafie):
     clear()
     print("--- Mafie / Sex impérium ---")
@@ -22,22 +59,13 @@ def spravovat_mafii(hrac, mafie: Mafie):
     volba = input("> ")
     if volba == "1":
         print("Dostupná území:")
-        dostupna = [
-            Uzemi("Přístav", 100, 0, 5),
-            Uzemi("Tržiště", 80, 0, 3),
-            Uzemi("Čtvrť bohatých", 150, 0, 10),
-        ]
+        dostupna = dostupna_uzemi(mafie)
         for i, u in enumerate(dostupna, 1):
             print(f"{i}) {u.nazev} - příjem {u.prijem}, riziko {u.riziko_inkvizice}")
         try:
             idx = int(input("Vyber území: ")) - 1
             if 0 <= idx < len(dostupna):
-                cena = 500 + len(mafie.uzemi) * 200
-                if hrac.gold >= cena:
-                    hrac.gold -= cena
-                    mafie.uzemi.append(dostupna[idx])
-                    tisk_ok(f"Koupeno území {dostupna[idx].nazev}.")
-                else:
+                if not koupit_uzemi(hrac, mafie, dostupna[idx].nazev):
                     tisk_chyba("Nedostatek zlata.")
         except ValueError:
             tisk_chyba("Špatná volba.")
@@ -60,12 +88,7 @@ def spravovat_mafii(hrac, mafie: Mafie):
             except ValueError:
                 tisk_chyba("Špatná volba.")
     elif volba == "3":
-        cena = 50
-        if hrac.gold >= cena:
-            hrac.gold -= cena
-            mafie.vojaci += 1
-            tisk_ok("Najat voják.")
-        else:
+        if not najmout_vojaka(hrac, mafie):
             tisk_chyba("Nedostatek zlata.")
     elif volba == "4":
         cena = 200

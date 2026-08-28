@@ -3,6 +3,19 @@ from utils.vypis import clear, tisk_ok, tisk_chyba
 from config import GOLD, GREEN, RED, NC
 from models.building import Building
 
+
+def vylepsit_budovu(hrac, harem, typ):
+    """Vylepší budovu bez menu, pokud je typ a cena dostupná."""
+    budova = harem.budovy.get(typ)
+    if budova is None or hrac.gold < budova.cena:
+        return False
+    cena = budova.cena
+    hrac.gold -= cena
+    budova.vylepsi()
+    tisk_ok(f"Budova {typ} vylepšena na úroveň {budova.uroven}.")
+    return True
+
+
 def spravovat_budovy(hrac, harem):
     clear()
     print(f"{GOLD}--- Vylepšení harému ---{NC}\n")
@@ -42,11 +55,7 @@ def spravovat_budovy(hrac, harem):
         typ = input("Zadej typ budovy: ").strip().lower()
         if typ in harem.budovy:
             budova = harem.budovy[typ]
-            if hrac.gold >= budova.cena:
-                hrac.gold -= budova.cena
-                budova.vylepsi()
-                tisk_ok(f"Budova {typ} vylepšena na úroveň {budova.uroven}.")
-            else:
+            if not vylepsit_budovu(hrac, harem, typ):
                 tisk_chyba("Nedostatek zlata.")
         else:
             tisk_chyba("Neplatný typ budovy.")

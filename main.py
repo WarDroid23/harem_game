@@ -26,6 +26,7 @@ from game.alchymie import AlchymieSystem
 from game.crafting import CraftingSystem
 from game.harem_interakce import menu_haremu
 from game.settings import NastaveniHry, aplikuj_nastaveni
+from game.automaticky_tah import obsluz_automaticky_tah
 from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel,
@@ -170,6 +171,7 @@ def hlavni_menu(hra: Hra):
         print(f"{GREEN}23) 🤝 Harem: péče, role a osudy")
         print(f"{YELLOW}24) 🛠️ Předměty a crafting")
         print(f"{CYAN}25) ⚡ Dobít energie")
+        print(f"{GREEN}A) 🤖 Automatický bezpečný tah")
         print(f"{GREEN}21) 💾 Uložit hru")
         print(f"{CYAN}22) 📂 Načíst hru")
         print(f"{YELLOW}26) 🏠 Hlavní menu")
@@ -182,9 +184,16 @@ def hlavni_menu(hra: Hra):
             return
 
         # Klávesové zkratky usnadňují návrat do menu i práci v terminálu.
-        volba = {"s": "21", "l": "22", "q": "0"}.get(volba, volba)
+        volba = {"s": "21", "l": "22", "q": "0", "a": "auto"}.get(volba, volba)
 
-        if volba == "1":
+        if volba == "auto":
+            obsluz_automaticky_tah(hra)
+            try:
+                input("Enter...")
+            except EOFError:
+                pass
+
+        elif volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
                 print("\nVyber otrokyni:")

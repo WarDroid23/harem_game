@@ -26,6 +26,59 @@ def pridej_vernost_xp(hrac, klient_id, xp=15):
         v["level"] += 1
         print(f"★ Věrnost klienta vzrostla na úroveň {v['level']}!")
 
+
+def spocitej_cenu_najmu(hrac: Hrac, otrok: Otrokyně, klient_id: str, obtiznost="normalni"):
+    """Vrátí odměnu za jeden den nájmu bez změny herního stavu."""
+    klient = KLIENTI.get(klient_id)
+    if klient is None:
+        return None
+    zaklad = 20 + otrok.submisivita + otrok.poslusnost
+    cena = int(zaklad * klient["multi"] * (1 + hrac.aukcni_bonus / 100))
+    if hrac.reputace_mesta < 0:
+        cena = int(cena * 0.9)
+    multi, sleva = vernostni_bonus(hrac, klient_id)
+    cena = int(cena * multi * (1 - sleva / 100))
+    return uprav_odmenu(cena, obtiznost)
+
+
+def proved_najem_otrokyně(
+    hrac: Hrac,
+    otrok: Otrokyně,
+    klient_id: str,
+    doba_volba: str = "kratka",
+    obtiznost="normalni",
+):
+    """Provede nájem bez menu; určeno pro automatiku a další systémové akce."""
+    klient = KLIENTI.get(klient_id)
+    if klient is None or doba_volba not in AUKCNI_DOBA:
+        return False
+    if otrok.hp <= 0 or otrok.na_najmu:
+        return False
+
+    cena = spocitej_cenu_najmu(hrac, otrok, klient_id, obtiznost)
+    dny = random.randint(*AUKCNI_DOBA[doba_volba])
+    otrok.na_najmu = True
+    otrok.klient = klient_id
+    otrok.typ_najmu = doba_volba
+    otrok.dny_na_najmu = 0
+    otrok.najem_zbyva_dni = dny
+    otrok.najem_prijem_celkem = cena * dny
+    hrac.gold += otrok.najem_prijem_celkem
+
+    for stat, hodnota in klient["efekty"].items():
+        otrok.zvysit_stat(stat, hodnota)
+    hrac.reputace_mesta += 1
+    pridej_vernost_xp(hrac, klient_id)
+    if random.random() < klient.get("riziko", 0):
+        hrac.vliv_inkvizice = min(100, hrac.vliv_inkvizice + 2)
+        tisk_chyba("Rizikový klient přitáhl pozornost inkvizice (+2 vliv).")
+    tisk_ok(
+        f"Otrokyně {otrok.jmeno} pronajata klientovi {klient['jmeno']} "
+        f"na {dny} dní za {otrok.najem_prijem_celkem} zlaťáků."
+    )
+    return True
+
+
 def najem_otrokyně(hrac: Hrac, otrok: Otrokyně, obtiznost="normalni"):
     clear()
     print("Dostupní klienti:")
@@ -44,43 +97,18 @@ def najem_otrokyně(hrac: Hrac, otrok: Otrokyně, obtiznost="normalni"):
         tisk_chyba("Otrokyně je již na najmu.")
         return False
 
-    zaklad = 20 + otrok.submisivita + otrok.poslusnost
-    cena = int(zaklad * klient["multi"] * (1 + hrac.aukcni_bonus / 100))
-    if hrac.reputace_mesta < 0:
-        cena = int(cena * 0.9)
-
-    multi, sleva = vernostni_bonus(hrac, volba)
-    cena = int(cena * multi * (1 - sleva / 100))
-    cena = uprav_odmenu(cena, obtiznost)
-
     doba_volba = input("Doba najmu (kratka/stredni/dlouha): ").strip().lower()
     if doba_volba not in AUKCNI_DOBA:
         tisk_chyba("Neplatná doba.")
         return
-    dny = random.randint(*AUKCNI_DOBA[doba_volba])
-
-    otrok.na_najmu = True
-    otrok.klient = volba
-    otrok.typ_najmu = doba_volba
-    otrok.dny_na_najmu = 0
-    otrok.najem_zbyva_dni = dny
-    otrok.najem_prijem_celkem = cena * dny
-
-    hrac.gold += otrok.najem_prijem_celkem
-
-    for stat, hodnota in klient["efekty"].items():
-        otrok.zvysit_stat(stat, hodnota)
-
-    hrac.reputace_mesta += 1
-
-    pridej_vernost_xp(hrac, volba)
-    if random.random() < klient.get("riziko", 0):
-        hrac.vliv_inkvizice = min(100, hrac.vliv_inkvizice + 2)
-        tisk_chyba("Rizikový klient přitáhl pozornost inkvizice (+2 vliv).")
-
-    tisk_ok(f"Otrokyně {otrok.jmeno} pronajata klientovi {klient['jmeno']} na {dny} dní za {otrok.najem_prijem_celkem} zlaťáků.")
+    uspech = proved_najem_otrokyně(
+        hrac, otrok, volba, doba_volba, obtiznost
+    )
     try:
         input("Enter...")
     except EOFError:
         pass
-    return True
+    return uspech
+
+
+proved_najem_otrokyn = proved_najem_otrokyně
