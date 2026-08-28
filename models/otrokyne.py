@@ -45,6 +45,11 @@ class Otrokyně:
     predavkovani: bool = False
     faze_zkazenosti: int = 0
     vek: int = 18
+    role: str = "členka harému"
+    osud_id: str = ""
+    osud_krok: int = 0
+    osud_volby: list = field(default_factory=list)
+    osud_dokonceno: bool = False
 
     def __post_init__(self):
         if self.charakter == "subka" and random.random() < 0.7:
@@ -71,6 +76,13 @@ class Otrokyně:
 
     def je_broken(self):
         return self.broken >= 85 or self.mindbreak >= 90
+
+    def popis_osudu(self):
+        if not self.osud_id:
+            return "Osud zatím neznámý"
+        from data.osudy import OSUDY
+        osud = OSUDY.get(self.osud_id)
+        return osud["nazev"] if osud else "Osud zatím neznámý"
 
     def to_dict(self):
         return asdict(self)

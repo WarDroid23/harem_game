@@ -12,6 +12,9 @@ from models.mafie import Mafie
 from game.vyzkum import VyzkumSystem
 from game.questy import QuestSystem
 from game.alchymie import AlchymieSystem
+from game.svet import SvetSystem
+from game.kampan import KampanSystem
+from game.osudy import zajisti_osudy
 
 class Hra:
     def __init__(self):
@@ -22,6 +25,8 @@ class Hra:
         self.vyzkum = VyzkumSystem()
         self.questy = QuestSystem()
         self.alchymie = AlchymieSystem()
+        self.svet = SvetSystem()
+        self.kampan = KampanSystem()
 
     def to_dict(self):
         return {
@@ -33,6 +38,8 @@ class Hra:
             "vyzkum": self.vyzkum.to_dict(),
             "questy": self.questy.to_dict(),
             "alchymie": self.alchymie.to_dict(),
+            "svet": self.svet.to_dict(),
+            "kampan": self.kampan.to_dict(),
         }
 
     @classmethod
@@ -49,12 +56,17 @@ class Hra:
         hra.harem = Harem.from_dict(sekce["harem"])
         hra.frakce = FrakcniSystem.from_dict(sekce["frakce"])
         hra.mafie = Mafie.from_dict(sekce["mafie"])
+        zajisti_osudy(hra.harem)
         if isinstance(data.get("vyzkum"), dict):
             hra.vyzkum = VyzkumSystem.from_dict(data["vyzkum"])
         if isinstance(data.get("questy"), dict):
             hra.questy = QuestSystem.from_dict(data["questy"])
         if isinstance(data.get("alchymie"), dict):
             hra.alchymie = AlchymieSystem.from_dict(data["alchymie"])
+        if isinstance(data.get("svet"), dict):
+            hra.svet = SvetSystem.from_dict(data["svet"])
+        if isinstance(data.get("kampan"), dict):
+            hra.kampan = KampanSystem.from_dict(data["kampan"])
         return hra
 
 def uloz_hru(hra: Hra, soubor=SAVE_FILE):

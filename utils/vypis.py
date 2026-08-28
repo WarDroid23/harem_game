@@ -32,6 +32,18 @@ def tisk_magenta(text):
 def tisk_cyan(text):
     print(barva(f"💠 {text}", CYAN))
 
+def ukazatel(hodnota, maximum, sirka=18):
+    """Vrátí krátký ASCII ukazatel použitelný i v terminálu bez barev."""
+    maximum = max(1, maximum)
+    hodnota = max(0, min(maximum, hodnota))
+    plno = int(sirka * hodnota / maximum)
+    return "[" + "#" * plno + "-" * (sirka - plno) + f"] {hodnota}/{maximum}"
+
+def hlavicka(stitek, podtitulek=""):
+    print(f"{BOLD}{GOLD}=== {stitek} ==={NC}")
+    if podtitulek:
+        print(f"{DIM}{podtitulek}{NC}")
+
 def ascii_art():
     print(r"""
     ██████╗  █████╗ ██████╗ ██╗  ██╗    ██████╗  ██████╗ ███╗   ███╗██╗███╗   ██╗██╗ ██████╗ ███╗   ██╗
@@ -41,5 +53,5 @@ def ascii_art():
     ██████╔╝██║  ██║██║  ██║██║  ██╗    ██████╔╝╚██████╔╝██║ ╚═╝ ██║██║██║ ╚████║██║╚██████╔╝██║ ╚████║
     ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝    ╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝
     """)
-    print(f"{GOLD}{BOLD}               DARK DOMINION COMPLETE v18.0{NC}")
-    print(f"{MAGENTA}  👾 Nájmy • Aukce • Věrnost • Inkvizice • Špióni • Manipulace • Tresty • Odměny 🍓{NC}\n")
+    print(f"{GOLD}{BOLD}               DARK DOMINION COMPLETE v19.0{NC}")
+    print(f"{MAGENTA}  👾 Kampaň • Mapa • Vztahy • Osudy • Crafting • Souboje • Harém{NC}\n")

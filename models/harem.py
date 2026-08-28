@@ -17,6 +17,9 @@ class Harem:
     def pridat(self, otrokyne):
         if not isinstance(otrokyne, Otrokyně):
             raise TypeError("Do harému lze přidat pouze otrokyni.")
+        if not getattr(otrokyne, "osud_id", ""):
+            from game.osudy import vyber_osud
+            otrokyne.osud_id = vyber_osud(otrokyne)
         self.otrokyne.append(otrokyne)
         self.harem_exp += 12
         while self.harem_exp >= self.harem_max_exp:
@@ -54,6 +57,8 @@ class Harem:
         h.otrokyne = [
             Otrokyně.from_dict(o) for o in otrokyne if isinstance(o, dict)
         ] if isinstance(otrokyne, list) else []
+        from game.osudy import zajisti_osudy
+        zajisti_osudy(h)
         h.harem_level = max(1, int(data.get("harem_level", 1)))
         h.harem_exp = max(0, int(data.get("harem_exp", 0)))
         h.harem_max_exp = max(1, int(data.get("harem_max_exp", 100)))

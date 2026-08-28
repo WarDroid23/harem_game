@@ -26,6 +26,62 @@ class Inventory:
     def pridej_zbran(self, zbran: Zbran):
         self.zbrane.append(zbran)
 
+    def pridej_predmet(self, predmet_id, mnozstvi=1):
+        if mnozstvi <= 0:
+            return
+        for predmet in self.predmety:
+            if isinstance(predmet, dict) and predmet.get("id") == predmet_id:
+                predmet["mnozstvi"] = max(1, int(predmet.get("mnozstvi", 0))) + mnozstvi
+                return
+        self.predmety.append({"id": predmet_id, "mnozstvi": mnozstvi})
+
+    def pocet_predmetu(self, predmet_id):
+        celkem = 0
+        for predmet in self.predmety:
+            if isinstance(predmet, str) and predmet == predmet_id:
+                celkem += 1
+            elif isinstance(predmet, dict) and predmet.get("id") == predmet_id:
+                celkem += max(0, int(predmet.get("mnozstvi", 1)))
+        return celkem
+
+    def odeber_predmet(self, predmet_id, mnozstvi=1):
+        if self.pocet_predmetu(predmet_id) < mnozstvi:
+            return False
+        nove = []
+        zbyva = mnozstvi
+        for predmet in self.predmety:
+            if zbyva and isinstance(predmet, str) and predmet == predmet_id:
+                zbyva -= 1
+                continue
+            if zbyva and isinstance(predmet, dict) and predmet.get("id") == predmet_id:
+                pocet = max(0, int(predmet.get("mnozstvi", 1)))
+                odebrat = min(pocet, zbyva)
+                zbyva -= odebrat
+                pocet -= odebrat
+                if pocet:
+                    predmet = dict(predmet)
+                    predmet["mnozstvi"] = pocet
+                else:
+                    continue
+            nove.append(predmet)
+        self.predmety = nove
+        return True
+
+    def seznam_predmetu(self):
+        from game.predmety import PREDMETY
+        seznam = []
+        for predmet in self.predmety:
+            if isinstance(predmet, str):
+                predmet_id, mnozstvi = predmet, 1
+            elif isinstance(predmet, dict):
+                predmet_id = predmet.get("id")
+                mnozstvi = max(1, int(predmet.get("mnozstvi", 1)))
+            else:
+                continue
+            nazev = PREDMETY.get(predmet_id, {}).get("nazev", predmet_id)
+            seznam.append(f"{nazev} x{mnozstvi}")
+        return seznam
+
     def odeber_zbran(self, nazev):
         self.zbrane = [z for z in self.zbrane if z.nazev != nazev]
 

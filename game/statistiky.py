@@ -43,6 +43,16 @@ def zobraz_statistiky(hra):
 
     print(f"{CYAN}Quest systém:{NC}")
     print(f"  Dokončeno questů: {hra.questy.dokonceno if hasattr(hra, 'questy') else 0}")
+    print(f"  Aktivní lokace: {hra.svet.aktualni_lokace}")
+    print(
+        f"  Kampaň: kapitola {hra.kampan.kapitola + 1}"
+        if hra.kampan.aktualni()
+        else "  Kampaň: dokončena"
+    )
+    dokoncene_osudy = sum(
+        1 for otrok in hra.harem.otrokyne if otrok.osud_dokonceno
+    )
+    print(f"  Uzavřené osobní osudy: {dokoncene_osudy}/{len(hra.harem.otrokyne)}")
     print()
 
     tisk_info("Stiskni Enter...")

@@ -20,7 +20,9 @@ from game.udalosti import spust_nahodnou_udalost
 from game.statistiky import zobraz_statistiky
 from game.souboje import Souboj
 from game.alchymie import AlchymieSystem
-from utils.vypis import clear, ascii_art, tisk_ok, tisk_chyba, tisk_info
+from game.crafting import CraftingSystem
+from game.harem_interakce import menu_haremu
+from utils.vypis import clear, ascii_art, tisk_ok, tisk_chyba, tisk_info, ukazatel
 from data.jmena import JMENA
 from data.charaktery import CHARAKTERY
 from data.degradace import Faze
@@ -31,13 +33,21 @@ def hlavni_menu(hra: Hra):
     vyzkum = hra.vyzkum
     subky = SubkyDomestikace()
     souboj = Souboj(hra.hrac, hra.mafie)
+    crafting = CraftingSystem()
 
     while True:
         clear()
         ascii_art()
-        print(f"{GOLD}{BOLD}Den: {hra.hrac.den} | {GREEN}Zlato: {hra.hrac.gold} 🪙 | {CYAN}Energie: {hra.hrac.sex_energy} ⚡ | {MAGENTA}Temná energie: {hra.hrac.dark_energy} 🌑{NC}")
+        print(f"{GOLD}{BOLD}Den: {hra.hrac.den} | {GREEN}Zlato: {hra.hrac.gold} 🪙{NC}")
+        print(
+            f"{CYAN}Energie {ukazatel(hra.hrac.sex_energy, 100)} | "
+            f"Temná energie {ukazatel(hra.hrac.dark_energy, 100)}{NC}"
+        )
         print(f"{RED}Reputace: {hra.hrac.reputace_mesta} | {BLUE}Vliv inkvizice: {hra.hrac.vliv_inkvizice}{NC}")
-        print(f"{YELLOW}Otrokyně: {hra.harem.pocet()} 👩 | {MAGENTA}Území: {len(hra.mafie.uzemi)} 🏰{NC}")
+        kapitola = hra.kampan.aktualni()
+        kapitola_text = kapitola["nazev"] if kapitola else "Kampaň dokončena"
+        print(f"{YELLOW}Harém: {hra.harem.pocet()} | {MAGENTA}Území: {len(hra.mafie.uzemi)} 🏰{NC}")
+        print(f"{CYAN}Místo: {hra.svet.aktualni_lokace} | Kampaň: {kapitola_text}{NC}")
         print("\n")
         print(f"{GREEN}1) 👉 Interakce s otrokyněmi")
         print(f"{CYAN}2) 💰 Nájem otrokyně")
@@ -46,6 +56,8 @@ def hlavni_menu(hra: Hra):
         print(f"{BLUE}5) 🤝 Diplomacie")
         print(f"{GOLD}6) 🔬 Výzkum")
         print(f"{RED}7) 🧠 Subky / Domestikace")
+        print(f"{CYAN}8) 🗺️ Mapa a lokace")
+        print(f"{GOLD}9) 📖 Příběhová kampaň")
         print(f"{MAGENTA}10) ➕ Přidat otrokyni (test)")
         print(f"{YELLOW}11) 🎯 Lov otrokyň")
         print(f"{BLUE}12) 🛌 Odpočinek")
@@ -57,6 +69,8 @@ def hlavni_menu(hra: Hra):
         print(f"{YELLOW}18) ⚔️ Souboj")
         print(f"{BLUE}19) 🧪 Alchymie")
         print(f"{CYAN}20) 📋 Rychlý přehled")
+        print(f"{GREEN}23) 🤝 Harem: péče, role a osudy")
+        print(f"{YELLOW}24) 🛠️ Předměty a crafting")
         print(f"{GREEN}21) 💾 Uložit hru")
         print(f"{CYAN}22) 📂 Načíst hru")
         print(f"{RED}0) 🚪 Konec")
@@ -76,7 +90,10 @@ def hlavni_menu(hra: Hra):
                 for i, o in enumerate(aktivni, 1):
                     faze_nazev = Faze[o.faze_zkazenosti]["nazev"]
                     char_nazev = CHARAKTERY[o.charakter]["nazev"]
-                    print(f"{i}) {o.jmeno} [{char_nazev}, {faze_nazev}, věk {o.vek}] (subm:{o.submisivita}% broken:{o.broken}%)")
+                    print(
+                        f"{i}) {o.jmeno} [{char_nazev}, {faze_nazev}, věk {o.vek}] "
+                        f"(loajalita:{o.loajalita}% | osud: {o.popis_osudu()})"
+                    )
                 try:
                     idx = int(input("> ")) - 1
                     if 0 <= idx < len(aktivni):
@@ -156,6 +173,13 @@ def hlavni_menu(hra: Hra):
                 tisk_chyba("Nemáš otrokyně.")
                 input("Enter...")
 
+        elif volba == "8":
+            hra.svet.menu(hra)
+            hra.kampan.zkontroluj_postup(hra)
+
+        elif volba == "9":
+            hra.kampan.menu(hra)
+
         elif volba == "21":
             uloz_hru(hra)
             input("Enter...")
@@ -168,6 +192,7 @@ def hlavni_menu(hra: Hra):
                 vyzkum = hra.vyzkum
                 subky = SubkyDomestikace()
                 souboj = Souboj(hra.hrac, hra.mafie)
+                crafting = CraftingSystem()
                 tisk_ok("Hra načtena.")
             else:
                 tisk_chyba("Nepodařilo se načíst hru.")
@@ -198,9 +223,9 @@ def hlavni_menu(hra: Hra):
             questy = hra.questy
             volba_q = questy.zobraz_questy()
             if volba_q == "1":
-                questy.generuj_quest(hra.hrac)
+                questy.generuj_quest(hra.hrac, hra)
             elif volba_q == "2":
-                questy.proved_quest(hra.hrac, hra.harem, hra.mafie)
+                questy.proved_quest(hra.hrac, hra.harem, hra.mafie, hra)
             input("Enter...")
 
         elif volba == "15":
@@ -219,6 +244,12 @@ def hlavni_menu(hra: Hra):
         elif volba == "19":
             hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
 
+        elif volba == "23":
+            menu_haremu(hra)
+
+        elif volba == "24":
+            crafting.menu(hra)
+
         elif volba == "0":
             uloz_hru(hra)
             print("Hra uložena. Konec hry.")
@@ -231,6 +262,10 @@ def hlavni_menu(hra: Hra):
                 f"HP {hra.hrac.hp}/{hra.hrac.max_hp} | "
                 f"Energie {hra.hrac.sex_energy}/100 | "
                 f"Temno {hra.hrac.dark_energy}/100"
+            )
+            print(
+                f"Místo: {hra.svet.aktualni_lokace} | "
+                f"Kampaň: {hra.kampan.kapitola + 1 if hra.kampan.aktualni() else 'hotová'}"
             )
             najmy = [
                 f"{o.jmeno} ({o.najem_zbyva_dni} dní)"

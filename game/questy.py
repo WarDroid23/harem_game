@@ -39,6 +39,29 @@ QUESTY = [
         "odmena_zlato": 100,
         "riziko": 0.1,
         "doba_trvani": 1
+    },
+    {
+        "nazev": "Zpráva pro Miru",
+        "popis": "Doruč léčitelce zprávu o bezpečné cestě pro její pacienty.",
+        "typ": "npc",
+        "lokace": "trh",
+        "npc_id": "mira",
+        "narocnost": 2,
+        "odmena_zlato": 90,
+        "odmena_predmet": "zdravotni_balicek",
+        "riziko": 0.1,
+        "doba_trvani": 1
+    },
+    {
+        "nazev": "Pomoc na hranici",
+        "popis": "Dovez zásoby do hraniční vesnice dřív, než dorazí další nájezdníci.",
+        "typ": "pomoc",
+        "lokace": "hranice",
+        "narocnost": 5,
+        "odmena_zlato": 260,
+        "odmena_predmet": "signalni_roh",
+        "riziko": 0.25,
+        "doba_trvani": 2
     }
 ]
 
@@ -48,12 +71,18 @@ class QuestSystem:
         self.dny_zbyva = 0
         self.dokonceno = 0
 
-    def generuj_quest(self, hrac):
+    def generuj_quest(self, hrac, hra=None):
         if self.aktivni_quest is not None:
             return
-        vhodne = [q for q in QUESTY if q["narocnost"] <= hrac.level + 1]
+        dostupne = QUESTY
+        if hra is not None and hasattr(hra, "svet"):
+            dostupne = [
+                q for q in QUESTY
+                if not q.get("lokace") or q["lokace"] in hra.svet.odhalene_lokace
+            ]
+        vhodne = [q for q in dostupne if q["narocnost"] <= hrac.level + 1]
         if not vhodne:
-            vhodne = QUESTY
+            vhodne = dostupne or QUESTY
         quest = random.choice(vhodne)
         self.aktivni_quest = quest
         self.dny_zbyva = quest["doba_trvani"]
@@ -61,12 +90,16 @@ class QuestSystem:
         print(f"Popis: {quest['popis']}")
         print(f"Odměna: {quest['odmena_zlato']} zlaťáků, riziko: {int(quest['riziko']*100)}%")
 
-    def proved_quest(self, hrac, harem, mafie):
+    def proved_quest(self, hrac, harem, mafie, hra=None):
         if self.aktivni_quest is None:
             tisk_chyba("Nemáš aktivní quest.")
             return
 
         quest = self.aktivni_quest
+        lokace = quest.get("lokace")
+        if lokace and hra is not None and hra.svet.aktualni_lokace != lokace:
+            tisk_chyba("Quest musíš plnit v lokaci: " + lokace)
+            return
         self.dny_zbyva -= 1
 
         if self.dny_zbyva > 0:
@@ -89,6 +122,10 @@ class QuestSystem:
                 )
                 harem.pridat(otrok)
                 print(f"{GREEN}Získal jsi otrokyni {otrok.jmeno}!{NC}")
+            if quest.get("odmena_predmet"):
+                hrac.inventar.pridej_predmet(quest["odmena_predmet"])
+            if quest.get("npc_id") and hra is not None and hasattr(hra, "svet"):
+                hra.svet.zmen_vztah(quest["npc_id"], 8)
             tisk_ok(f"Quest '{quest['nazev']}' dokončen! Odměna: {quest['odmena_zlato']} zlaťáků, +20 XP.")
         else:
             pokuta = int(quest["odmena_zlato"] * 0.5)
@@ -127,7 +164,9 @@ class QuestSystem:
     @classmethod
     def from_dict(cls, data):
         q = cls()
-        q.aktivni_quest = data.get("aktivni_quest")
-        q.dny_zbyva = data.get("dny_zbyva", 0)
-        q.dokonceno = data.get("dokonceno", 0)
+        if not isinstance(data, dict):
+            return q
+        q.aktivni_quest = data.get("aktivni_quest") if isinstance(data.get("aktivni_quest"), dict) else None
+        q.dny_zbyva = max(0, int(data.get("dny_zbyva", 0)))
+        q.dokonceno = max(0, int(data.get("dokonceno", 0)))
         return q
