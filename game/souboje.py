@@ -3,6 +3,54 @@ import random
 from utils.vypis import clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info
 from config import GOLD, GREEN, RED, CYAN, NC
 from game.predmety import PREDMETY
+from game.balance import profil_obtiznosti, uprav_odmenu, uprav_xp
+
+BOSSOVE = {
+    "strazce_hvezdne_brany": {
+        "jmeno": "Strážce hvězdné brány",
+        "lokace": "observator",
+        "hp": 145,
+        "utok": 15,
+        "obrana": 10,
+        "zlato": 420,
+        "xp": 140,
+    },
+    "kapitan_zeleznich_flotily": {
+        "jmeno": "Kapitán železné flotily",
+        "lokace": "molo_mesicniho_pristavu",
+        "hp": 185,
+        "utok": 19,
+        "obrana": 13,
+        "zlato": 560,
+        "xp": 190,
+    },
+    "inkvizitor_cerne_peceti": {
+        "jmeno": "Inkvizitor Černé pečeti",
+        "lokace": "hranice",
+        "hp": 165,
+        "utok": 22,
+        "obrana": 15,
+        "zlato": 600,
+        "xp": 210,
+    },
+}
+
+
+def dostupni_bossove(hra):
+    """Vrátí bossy dostupné v aktuální lokaci a podle postupu kampaně."""
+    porazeni = set(getattr(hra.kampan, "boss_porazeni", []))
+    kapitola = getattr(hra.kampan, "kapitola", 0)
+    lokace = hra.svet.aktualni_lokace
+    dostupni = []
+    for boss_id, data in BOSSOVE.items():
+        if data["lokace"] != lokace or boss_id in porazeni:
+            continue
+        if boss_id == "kapitan_zeleznich_flotily" and "strazce_hvezdne_brany" not in porazeni:
+            continue
+        if boss_id == "inkvizitor_cerne_peceti" and kapitola < 2:
+            continue
+        dostupni.append((boss_id, data))
+    return dostupni
 
 class Nepritel:
     def __init__(self, jmeno, hp, utok, obrana, odmena_zlato, odmena_xp, boss=False, boss_id=""):
@@ -34,21 +82,39 @@ class Souboj:
             {"jmeno": "Konkurenční otrokář", "hp": 70 + uroven * 10, "utok": 12 + uroven * 3, "obrana": 6 + uroven, "zlato": 120 + uroven * 25, "xp": 45 + uroven * 12},
         ]
         data = random.choice(typy)
-        self.nepritel = Nepritel(data["jmeno"], data["hp"], data["utok"], data["obrana"], data["zlato"], data["xp"])
+        obtiznost = self._obtiznost()
+        koeficient = profil_obtiznosti(obtiznost)["nepritel"]
+        self.nepritel = Nepritel(
+            data["jmeno"],
+            max(1, int(data["hp"] * koeficient)),
+            max(1, int(data["utok"] * koeficient)),
+            max(0, int(data["obrana"] * koeficient)),
+            uprav_odmenu(data["zlato"], obtiznost),
+            uprav_xp(data["xp"], obtiznost),
+        )
         return self.nepritel
 
-    def generuj_bosse(self, uroven):
-        """Příběhový střet, který se odemyká návštěvou observatoře."""
+    def _obtiznost(self):
+        nastaveni = getattr(self.hra, "nastaveni", None)
+        return getattr(nastaveni, "obtiznost", "normalni")
+
+    def generuj_bosse(self, uroven, boss_id="strazce_hvezdne_brany"):
+        """Vytvoří konkrétního příběhového bosse, zpětně kompatibilně s původním voláním."""
+        if boss_id not in BOSSOVE:
+            raise ValueError("Neznámý boss.")
+        data = BOSSOVE[boss_id]
         sila = max(1, uroven)
+        obtiznost = self._obtiznost()
+        koeficient = profil_obtiznosti(obtiznost)["nepritel"]
         self.nepritel = Nepritel(
-            "Strážce hvězdné brány",
-            145 + sila * 18,
-            15 + sila * 2,
-            10 + sila,
-            420 + sila * 35,
-            140 + sila * 18,
+            data["jmeno"],
+            max(1, int((data["hp"] + sila * 18) * koeficient)),
+            max(1, int((data["utok"] + sila * 2) * koeficient)),
+            max(0, int((data["obrana"] + sila) * koeficient)),
+            uprav_odmenu(data["zlato"] + sila * 35, obtiznost),
+            uprav_xp(data["xp"] + sila * 18, obtiznost),
             boss=True,
-            boss_id="strazce_hvezdne_brany",
+            boss_id=boss_id,
         )
         return self.nepritel
 
@@ -145,6 +211,10 @@ class Souboj:
             utok_nepr = nepritel.utok
             obrana_hrac = self.hracova_obrana() + obranny_bonus
             poskozeni = max(1, utok_nepr - obrana_hrac + random.randint(-2, 2))
+            poskozeni = max(
+                1,
+                int(poskozeni * profil_obtiznosti(self._obtiznost())["poskozeni"]),
+            )
             self.hrac.hp -= poskozeni
             print(f"{RED}Nepřítel útočí: {poskozeni} zranění. Tvé HP: {max(0, self.hrac.hp)}/{self.hrac.max_hp}{NC}")
 
@@ -160,8 +230,19 @@ class Souboj:
                 porazeni = self.hra.kampan.boss_porazeni
                 if nepritel.boss_id not in porazeni:
                     porazeni.append(nepritel.boss_id)
-                    self.hra.svet.odhal_lokaci("molo_mesicniho_pristavu")
-                    tisk_ok("Strážce padl. Na mapě se objevilo Molo Měsíčního přístavu.")
+                    if nepritel.boss_id == "strazce_hvezdne_brany":
+                        self.hra.svet.odhal_lokaci("molo_mesicniho_pristavu")
+                        tisk_ok("Strážce padl. Na mapě se objevilo Molo Měsíčního přístavu.")
+                    elif nepritel.boss_id == "kapitan_zeleznich_flotily":
+                        self.hra.svet.zmen_vztah("tereza", 12)
+                        self.hra.hrac.reputace_mesta += 5
+                        tisk_ok("Kapitán padl. Tereza uznala tvou pomoc a reputace vzrostla.")
+                    elif nepritel.boss_id == "inkvizitor_cerne_peceti":
+                        self.hra.hrac.vliv_inkvizice = max(
+                            0, self.hra.hrac.vliv_inkvizice - 15
+                        )
+                        self.hra.hrac.reputace_mesta += 8
+                        tisk_ok("Inkvizitor padl. Jeho pečeť oslabila vliv inkvizice.")
             self.nepritel = None
             vysledek = True
         else:

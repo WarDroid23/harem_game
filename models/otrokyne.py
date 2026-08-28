@@ -54,6 +54,7 @@ class Otrokyně:
     romance_stav: str = "otevřená možnost"
     romance_volby: list = field(default_factory=list)
     souhlas_romance: bool = False
+    historie_voleb: list = field(default_factory=list)
 
     def __post_init__(self):
         if self.charakter == "subka" and random.random() < 0.7:
@@ -92,6 +93,13 @@ class Otrokyně:
         osud = OSUDY.get(self.osud_id)
         return osud["nazev"] if osud else "Osud zatím neznámý"
 
+    def zaznamenej_volbu(self, typ, text, den=None):
+        """Uloží stručnou historii rozhodnutí pro profil postavy."""
+        zaznam = {"typ": str(typ), "volba": str(text)}
+        if den is not None:
+            zaznam["den"] = den
+        self.historie_voleb.append(zaznam)
+
     def to_dict(self):
         return asdict(self)
 
@@ -112,6 +120,8 @@ class Otrokyně:
             otrok.vek = 18
         if not isinstance(otrok.romance_volby, list):
             otrok.romance_volby = []
+        if not isinstance(otrok.historie_voleb, list):
+            otrok.historie_voleb = []
         if not isinstance(otrok.romance_stav, str):
             otrok.romance_stav = "otevřená možnost"
         try:

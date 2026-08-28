@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # main.py
 import random
-from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, NC
-from game.save_load import Hra, uloz_hru, nacti_hru
+from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, WHITE, NC
+from game.save_load import (
+    Hra, uloz_hru, uloz_slot, nacti_slot, seznam_slotu,
+)
 from game.interakce import zobraz_interakce, zobraz_hromadne_interakce
 from game.ekonomika import najem_otrokyně
 from game.mafie import spravovat_mafii
@@ -19,10 +21,11 @@ from game.drazba import drazba_otrokyn
 from game.budovy import spravovat_budovy
 from game.udalosti import spust_nahodnou_udalost
 from game.statistiky import zobraz_statistiky
-from game.souboje import Souboj
+from game.souboje import Souboj, dostupni_bossove
 from game.alchymie import AlchymieSystem
 from game.crafting import CraftingSystem
 from game.harem_interakce import menu_haremu
+from game.settings import NastaveniHry, aplikuj_nastaveni
 from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel,
@@ -31,6 +34,85 @@ from data.jmena import JMENA
 from data.charaktery import CHARAKTERY
 from data.degradace import Faze
 from models.otrokyne import Otrokyně
+
+
+def _vykresli_sloty(hlavni_soubor=None):
+    for slot in seznam_slotu(hlavni_soubor) if hlavni_soubor else seznam_slotu():
+        stav = "obsazený" if slot["existuje"] else "prázdný"
+        print(f"{slot['slot']}) {slot['nazev']} — {stav}")
+
+
+def menu_ulozeni(hra):
+    clear()
+    print("--- Uložení hry ---\n")
+    _vykresli_sloty()
+    print("0) Zpět")
+    try:
+        volba = input("> ").strip()
+        if volba == "0":
+            return False
+        slot = int(volba)
+        uspech = uloz_slot(hra, slot)
+        if uspech:
+            tisk_ok(f"Hra byla uložena do slotu {slot}.")
+        return uspech
+    except (ValueError, EOFError):
+        tisk_chyba("Zadej číslo slotu 1 až 3.")
+        return False
+
+
+def menu_nacteni():
+    clear()
+    print("--- Načtení hry ---\n")
+    _vykresli_sloty()
+    print("0) Zpět")
+    try:
+        volba = input("> ").strip()
+        if volba == "0":
+            return None
+        slot = int(volba)
+        hra = nacti_slot(slot)
+        if hra:
+            tisk_ok(f"Načten slot {slot}.")
+        return hra
+    except (ValueError, EOFError):
+        tisk_chyba("Zadej číslo slotu 1 až 3.")
+        return None
+
+
+def menu_nastaveni(hra):
+    while True:
+        clear()
+        nastaveni = hra.nastaveni
+        print("--- Nastavení hry ---\n")
+        print(f"1) Barvy terminálu: {'zapnuté' if nastaveni.barvy else 'vypnuté'}")
+        print(f"2) Obtížnost: {nastaveni.obtiznost_text}")
+        print("0) Zpět")
+        try:
+            volba = input("> ").strip().lower()
+        except EOFError:
+            return
+        if volba == "0":
+            return
+        if volba == "1":
+            nastaveni.barvy = not nastaveni.barvy
+            aplikuj_nastaveni(nastaveni)
+            tisk_ok("Nastavení barev změněno.")
+            input("Enter...")
+        elif volba == "2":
+            print("\n1) Lehká  2) Normální  3) Těžká")
+            vyber = input("> ").strip()
+            mapa = {"1": "lehka", "2": "normalni", "3": "tezka"}
+            if vyber in mapa:
+                nastaveni.obtiznost = mapa[vyber]
+                aplikuj_nastaveni(nastaveni)
+                tisk_ok(f"Obtížnost nastavena na {nastaveni.obtiznost_text}.")
+            else:
+                tisk_chyba("Neplatná obtížnost.")
+            input("Enter...")
+        else:
+            tisk_chyba("Neplatná volba.")
+            input("Enter...")
 
 def hlavni_menu(hra: Hra):
     diplo = Diplomacie(hra.frakce)
@@ -52,7 +134,10 @@ def hlavni_menu(hra: Hra):
         kapitola = hra.kampan.aktualni()
         kapitola_text = kapitola["nazev"] if kapitola else "Kampaň dokončena"
         print(f"{YELLOW}Harém: {hra.harem.pocet()} | {MAGENTA}Území: {len(hra.mafie.uzemi)} 🏰{NC}")
-        print(f"{CYAN}Místo: {hra.svet.aktualni_lokace} | Kampaň: {kapitola_text}{NC}")
+        print(
+            f"{CYAN}Místo: {hra.svet.aktualni_lokace} | "
+            f"Kampaň: {kapitola_text} | Obtížnost: {hra.nastaveni.obtiznost_text}{NC}"
+        )
         print("\n")
         print(f"{GREEN}1) 👉 Interakce s otrokyněmi")
         print(f"{CYAN}2) 💰 Nájem otrokyně")
@@ -80,6 +165,7 @@ def hlavni_menu(hra: Hra):
         print(f"{GREEN}21) 💾 Uložit hru")
         print(f"{CYAN}22) 📂 Načíst hru")
         print(f"{YELLOW}26) 🏠 Hlavní menu")
+        print(f"{WHITE}27) ⚙️ Nastavení hry")
         print(f"{RED}0) 🚪 Konec")
         try:
             volba = input("> ").strip().lower()
@@ -130,7 +216,9 @@ def hlavni_menu(hra: Hra):
                     try:
                         idx = int(input("> ")) - 1
                         if 0 <= idx < len(volne):
-                            najem_otrokyně(hra.hrac, volne[idx])
+                            najem_otrokyně(
+                                hra.hrac, volne[idx], hra.nastaveni.obtiznost
+                            )
                         else:
                             tisk_chyba("Špatná volba.")
                     except ValueError:
@@ -193,11 +281,11 @@ def hlavni_menu(hra: Hra):
             hra.kampan.menu(hra)
 
         elif volba == "21":
-            uloz_hru(hra)
+            menu_ulozeni(hra)
             input("Enter...")
 
         elif volba == "22":
-            nova_hra = nacti_hru()
+            nova_hra = menu_nacteni()
             if nova_hra:
                 hra = nova_hra
                 diplo = Diplomacie(hra.frakce)
@@ -250,16 +338,19 @@ def hlavni_menu(hra: Hra):
             zobraz_statistiky(hra)
 
         elif volba == "18":
-            if (
-                hra.svet.aktualni_lokace == "observator"
-                and "strazce_hvezdne_brany" not in hra.kampan.boss_porazeni
-            ):
-                print("\nV observatoři čeká příběhový protivník.")
-                print("1) Vyvolat Strážce hvězdné brány")
-                print("2) Náhodný střet")
+            bossove = dostupni_bossove(hra)
+            if bossove:
+                print("\nPříběhoví protivníci v této lokaci:")
+                for index, (_, boss) in enumerate(bossove, 1):
+                    print(f"{index}) {boss['jmeno']}")
+                print("0) Náhodný střet")
                 volba_bosse = input("> ").strip()
-                if volba_bosse == "1":
-                    souboj.generuj_bosse(hra.hrac.level)
+                try:
+                    index = int(volba_bosse) - 1
+                except ValueError:
+                    index = -1
+                if 0 <= index < len(bossove):
+                    souboj.generuj_bosse(hra.hrac.level, bossove[index][0])
                 else:
                     souboj.generuj_nepritele(hra.hrac.level)
             else:
@@ -278,6 +369,9 @@ def hlavni_menu(hra: Hra):
 
         elif volba == "25":
             menu_energie(hra)
+
+        elif volba == "27":
+            menu_nastaveni(hra)
 
         elif volba == "0":
             uloz_hru(hra)
@@ -320,14 +414,17 @@ def hlavni_menu(hra: Hra):
             tisk_chyba("Neplatná volba.")
             input("Enter...")
 
-def nova_hra():
+def nova_hra(nastaveni=None):
     hra = Hra()
+    if nastaveni is not None:
+        hra.nastaveni = aplikuj_nastaveni(NastaveniHry.from_dict(nastaveni.to_dict()))
     for _ in range(2):
         hra.harem.pridat(Otrokyně(random.choice(JMENA)))
     return hra
 
 def uvodni_menu():
     """Nabídne volbu nové hry nebo načtení před vstupem do herního menu."""
+    predvolby = NastaveniHry()
     while True:
         clear()
         ascii_art()
@@ -335,6 +432,7 @@ def uvodni_menu():
         print(f"{GOLD}{BOLD}--- Hlavní menu ---{NC}")
         print(f"{GREEN}1) 🆕 Nová hra")
         print(f"{CYAN}2) 📂 Načíst hru")
+        print(f"{WHITE}3) ⚙️ Nastavení")
         print(f"{RED}0) 🚪 Konec")
         try:
             volba = input("> ").strip().lower()
@@ -342,19 +440,25 @@ def uvodni_menu():
             return None
 
         if volba == "1":
-            return nova_hra()
+            return nova_hra(predvolby)
         if volba == "2":
-            hra = nacti_hru()
+            hra = menu_nacteni()
             if hra:
                 tisk_ok("Hra načtena.")
                 input("Enter...")
                 return hra
             input("Enter...")
-        elif volba == "0":
+            continue
+        if volba == "3":
+            nastaveni_hra = Hra()
+            nastaveni_hra.nastaveni = predvolby
+            menu_nastaveni(nastaveni_hra)
+            predvolby = nastaveni_hra.nastaveni
+            continue
+        if volba == "0":
             return None
-        else:
-            tisk_chyba("Neplatná volba.")
-            input("Enter...")
+        tisk_chyba("Neplatná volba.")
+        input("Enter...")
 
 if __name__ == "__main__":
     while True:

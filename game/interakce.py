@@ -49,6 +49,7 @@ def proved_interakci(otrok: Otrokyně, hrac: Hrac, akce_id: str):
         tisk_chyba("Stala se nepříjemná událost!")
 
     otrok.aktualizuj_fazi()
+    otrok.zaznamenej_volbu("interakce", akce["nazev"])
     tisk_ok(f"Provedeno: {akce['nazev']} (charakter: {CHARAKTERY[otrok.charakter]['nazev']})")
     return True
 

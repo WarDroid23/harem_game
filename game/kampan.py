@@ -44,6 +44,7 @@ class KampanSystem:
     volby: list = field(default_factory=list)
     boss_porazeni: list = field(default_factory=list)
     dokonceno: bool = False
+    zaver: str = ""
 
     def aktualni(self):
         if self.dokonceno or self.kapitola >= len(KAPITOLY):
@@ -67,6 +68,31 @@ class KampanSystem:
             tisk_ok("Zahrada odhalila cestu k observatoři. Nová kapitola začíná.")
             self.kapitola += 1
 
+    def urci_zaver(self, hra):
+        """Vyhodnotí reputaci, vztahy a zásadní rozhodnutí kampaně."""
+        npc_vztahy = list(hra.svet.vztahy_npc.values())
+        prumer_npc = sum(npc_vztahy) / len(npc_vztahy) if npc_vztahy else 0
+        aktivni = hra.harem.vsechny_aktivni()
+        prumer_harem = (
+            sum(o.loajalita + o.duvera + o.romance_body for o in aktivni)
+            / (3 * len(aktivni))
+            if aktivni else 0
+        )
+        volby = {volba.get("volba") for volba in self.volby if isinstance(volba, dict)}
+        if (
+            hra.hrac.reputace_mesta >= 25
+            and prumer_npc >= 20
+            and prumer_harem >= 35
+            and "spolecna_cesta" in volby
+        ):
+            return "Sjednocené město"
+        if (
+            hra.hrac.reputace_mesta <= -10
+            or hra.mafie.vliv_ve_meste >= 65
+            or "vyuzit" in volby
+        ):
+            return "Vláda stínů"
+        return "Křehký mír"
     def zvol(self, hra, index):
         kapitola = self.aktualni()
         if not kapitola:
@@ -147,7 +173,14 @@ class KampanSystem:
             hra.hrac.pridej_xp(120)
             self.kapitola += 1
             self.dokonceno = True
-            tisk_ok("Hvězdný tribunál je uzavřen. Tvá rozhodnutí změnila vztahy i město.")
+            self.zaver = self.urci_zaver(hra)
+            popisy = {
+                "Sjednocené město": "Spojenci vytvořili městskou alianci založenou na důvěře.",
+                "Vláda stínů": "Město se uklonilo síti vlivu a pevnost ovládá podsvětí.",
+                "Křehký mír": "Podařilo se odvrátit nejhorší, ale důvěra se bude teprve stavět.",
+            }
+            tisk_ok(f"Hvězdný tribunál je uzavřen. Konec: {self.zaver}.")
+            tisk_info(popisy[self.zaver])
             return True
         return False
 
@@ -158,13 +191,18 @@ class KampanSystem:
             "volby": self.volby,
             "boss_porazeni": self.boss_porazeni,
             "dokonceno": self.dokonceno,
+            "zaver": self.zaver,
         }
 
     @classmethod
     def from_dict(cls, data):
         if not isinstance(data, dict):
             return cls()
-        kapitola = max(0, min(len(KAPITOLY), int(data.get("kapitola", 0))))
+        try:
+            kapitola = int(data.get("kapitola", 0))
+        except (TypeError, ValueError):
+            kapitola = 0
+        kapitola = max(0, min(len(KAPITOLY), kapitola))
         dokonceno = bool(data.get("dokonceno", False))
         # Starší verze končily po kapitole 3; jejich save dostane pokračování.
         if dokonceno and kapitola < len(KAPITOLY):
@@ -175,6 +213,7 @@ class KampanSystem:
             volby=data.get("volby", []) if isinstance(data.get("volby", []), list) else [],
             boss_porazeni=data.get("boss_porazeni", []) if isinstance(data.get("boss_porazeni", []), list) else [],
             dokonceno=dokonceno,
+            zaver=data.get("zaver", "") if isinstance(data.get("zaver", ""), str) else "",
         )
 
     def menu(self, hra):
@@ -184,7 +223,7 @@ class KampanSystem:
             print("--- Příběhová kampaň ---\n")
             kapitola = self.aktualni()
             if not kapitola:
-                print("Kampaň je dokončena.")
+                print(f"Kampaň je dokončena. Konec: {self.zaver or 'nevyhodnocen'}")
                 input("Enter...")
                 return
             print(f"Kapitola {self.kapitola + 1}/{len(KAPITOLY)}: {kapitola['nazev']}")

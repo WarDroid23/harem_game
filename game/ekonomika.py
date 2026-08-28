@@ -4,6 +4,7 @@ from data.klienti import KLIENTI, AUKCNI_DOBA
 from models.hrac import Hrac
 from models.otrokyne import Otrokyně
 from utils.vypis import clear, tisk_ok, tisk_chyba
+from game.balance import uprav_odmenu
 
 def vernostni_bonus(hrac, klient_id):
     if klient_id not in hrac.klient_vernost:
@@ -25,7 +26,7 @@ def pridej_vernost_xp(hrac, klient_id, xp=15):
         v["level"] += 1
         print(f"★ Věrnost klienta vzrostla na úroveň {v['level']}!")
 
-def najem_otrokyně(hrac: Hrac, otrok: Otrokyně):
+def najem_otrokyně(hrac: Hrac, otrok: Otrokyně, obtiznost="normalni"):
     clear()
     print("Dostupní klienti:")
     for klic, klient in KLIENTI.items():
@@ -50,6 +51,7 @@ def najem_otrokyně(hrac: Hrac, otrok: Otrokyně):
 
     multi, sleva = vernostni_bonus(hrac, volba)
     cena = int(cena * multi * (1 - sleva / 100))
+    cena = uprav_odmenu(cena, obtiznost)
 
     doba_volba = input("Doba najmu (kratka/stredni/dlouha): ").strip().lower()
     if doba_volba not in AUKCNI_DOBA:

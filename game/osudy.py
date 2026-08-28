@@ -96,6 +96,7 @@ class OsudySystem:
             hra.hrac.inventar.pridej_predmet(odmena["id"], odmena.get("mnozstvi", 1))
 
         otrok.osud_volby.append({"krok": otrok.osud_krok, "volba": volba["nazev"]})
+        otrok.zaznamenej_volbu("osud", volba["nazev"], hra.hrac.den)
         otrok.osud_krok += 1
         if self.hotovo(otrok):
             otrok.osud_dokonceno = True

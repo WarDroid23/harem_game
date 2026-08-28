@@ -3,6 +3,7 @@ from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
 from config import GOLD, GREEN, CYAN, MAGENTA, RED, NC
 from models.agent import Agent
 from data.jmena import JMENA_AGENTU
+from game.balance import uprav_cenu
 import random
 
 def obchod(hra):
@@ -47,8 +48,10 @@ def obchod(hra):
          "efekt": lambda h: h.skilly.update({'boj': h.skilly.get('boj', 0) + 3})},
     ]
 
-    for i, p in enumerate(polozky, 1):
-        print(f"{i}) {p['nazev']} – {p['popis']} ({p['cena']} 🪙)")
+    obtiznost = getattr(getattr(hra, "nastaveni", None), "obtiznost", "normalni")
+    ceny = [uprav_cenu(p["cena"], obtiznost) for p in polozky]
+    for i, (p, cena) in enumerate(zip(polozky, ceny), 1):
+        print(f"{i}) {p['nazev']} – {p['popis']} ({cena} 🪙)")
 
     print("\n0) Zpět")
     volba = input("> ").strip()
@@ -72,12 +75,13 @@ def obchod(hra):
         tisk_chyba("Nemáš volné místo pro agenta.")
         input("Enter...")
         return
-    if hrac.gold < polozka["cena"]:
+    cena = ceny[idx]
+    if hrac.gold < cena:
         tisk_chyba("Nedostatek zlata.")
         input("Enter...")
         return
 
-    hrac.gold -= polozka["cena"]
+    hrac.gold -= cena
 
     if polozka["id"] in ["obojky", "vycvik_sub", "psycho_prirucka"]:
         polozka["efekt"](hrac, hra.harem)

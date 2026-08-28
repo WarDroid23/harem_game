@@ -15,9 +15,19 @@ from game.alchymie import AlchymieSystem
 from game.svet import SvetSystem
 from game.kampan import KampanSystem
 from game.osudy import zajisti_osudy
+from game.settings import NastaveniHry, aplikuj_nastaveni
+
+POCET_SLOTU = 3
+NAZVY_SLOTU = {
+    1: "Hlavní save (kompatibilní se starým souborem)",
+    2: "Slot 2",
+    3: "Slot 3",
+}
 
 class Hra:
     def __init__(self):
+        self.nastaveni = NastaveniHry()
+        self.nastaveni.aplikuj()
         self.hrac = Hrac()
         self.harem = Harem()
         self.frakce = FrakcniSystem()
@@ -40,6 +50,7 @@ class Hra:
             "alchymie": self.alchymie.to_dict(),
             "svet": self.svet.to_dict(),
             "kampan": self.kampan.to_dict(),
+            "nastaveni": self.nastaveni.to_dict(),
         }
 
     @classmethod
@@ -47,6 +58,7 @@ class Hra:
         if not isinstance(data, dict):
             raise ValueError("Uložená hra musí být JSON objekt.")
         hra = cls()
+        hra.nastaveni = aplikuj_nastaveni(NastaveniHry.from_dict(data.get("nastaveni", {})))
         sekce = {
             nazev: data.get(nazev, {})
             if isinstance(data.get(nazev, {}), dict) else {}
@@ -72,6 +84,41 @@ class Hra:
         if hra.kampan.kapitola >= 3 and not hra.kampan.dokonceno:
             hra.svet.odhal_lokaci("sklenena_zahrada")
         return hra
+
+
+def cesta_slotu(slot, hlavni_soubor=SAVE_FILE):
+    """Vrátí cestu slotu; slot 1 zůstává přesně původním hlavním savem."""
+    try:
+        slot = int(slot)
+    except (TypeError, ValueError):
+        raise ValueError("Slot musí být číslo 1 až 3.")
+    if slot < 1 or slot > POCET_SLOTU:
+        raise ValueError("Slot musí být číslo 1 až 3.")
+    cesta = Path(hlavni_soubor).expanduser()
+    if slot == 1:
+        return cesta
+    return cesta.with_name(f"{cesta.stem}_slot{slot}{cesta.suffix}")
+
+
+def seznam_slotu(hlavni_soubor=SAVE_FILE):
+    """Vrátí stav tří slotů bez vytváření nebo přepisování souborů."""
+    return [
+        {
+            "slot": slot,
+            "nazev": NAZVY_SLOTU[slot],
+            "cesta": cesta_slotu(slot, hlavni_soubor),
+            "existuje": cesta_slotu(slot, hlavni_soubor).exists(),
+        }
+        for slot in range(1, POCET_SLOTU + 1)
+    ]
+
+
+def uloz_slot(hra, slot, hlavni_soubor=SAVE_FILE):
+    return uloz_hru(hra, cesta_slotu(slot, hlavni_soubor))
+
+
+def nacti_slot(slot, hlavni_soubor=SAVE_FILE):
+    return nacti_hru(cesta_slotu(slot, hlavni_soubor))
 
 def uloz_hru(hra: Hra, soubor=SAVE_FILE):
     """Uloží hru atomicky ve stejné složce a zachová jednu záložní kopii."""
