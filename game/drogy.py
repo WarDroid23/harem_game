@@ -66,6 +66,42 @@ def spravovat_odvykani(otrok, hrac):
         otrok.abstinenco_priznaky = True
         tisk_chyba(f"Odvykání selhalo. Závislost stoupla na {otrok.zavislost}%.")
 
+def podpora_zotaveni(otrok, hrac):
+    """Nabídne několik neinvazivních cest zotavení bez podávání další drogy."""
+    if otrok.zavislost <= 0:
+        tisk_info(f"{otrok.jmeno} nyní nepotřebuje léčbu závislosti.")
+        return
+    print("\nMožnosti podpory zotavení:")
+    print("1) Léčitel a bezpečný detox (50 zlata, -25 závislosti)")
+    print("2) Klidový program (zdarma, -10 závislosti, +důvěra)")
+    print("3) Podpůrná skupina (20 zlata, -15 závislosti, +loajalita)")
+    volba = input("> ").strip()
+    ceny = {"1": 50, "2": 0, "3": 20}
+    snizeni = {"1": 25, "2": 10, "3": 15}
+    if volba not in ceny:
+        tisk_chyba("Neplatná volba.")
+        return
+    if hrac.gold < ceny[volba]:
+        tisk_chyba("Nemáš dost zlata na tuto formu podpory.")
+        return
+    hrac.gold -= ceny[volba]
+    otrok.zavislost = max(0, otrok.zavislost - snizeni[volba])
+    otrok.lecba_zavislosti = min(100, otrok.lecba_zavislosti + snizeni[volba])
+    otrok.abstinenco_priznaky = otrok.zavislost > 0
+    if volba == "1":
+        otrok.zvysit_stat("hp", 15)
+        tisk_ok(f"Léčitel provedl bezpečný detox. Závislost: {otrok.zavislost}%.")
+    elif volba == "2":
+        otrok.zvysit_stat("duvera", 5)
+        tisk_ok(f"{otrok.jmeno} dostala prostor k zotavení. Závislost: {otrok.zavislost}%.")
+    else:
+        otrok.zvysit_stat("loajalita", 4)
+        tisk_ok(f"Podpůrná skupina pomohla. Závislost: {otrok.zavislost}%.")
+    if otrok.zavislost == 0:
+        otrok.typ_zavislosti = None
+        otrok.abstinenco_priznaky = False
+        tisk_ok("Závislost je překonána; další péče pomáhá udržet zotavení.")
+
 def zobraz_stav(otrok):
     print(f"\n{MAGENTA}Stav drog u {otrok.jmeno}:{NC}")
     if otrok.zavislost > 0:
@@ -86,6 +122,7 @@ def menu_drog(otrok, hrac):
         zobraz_stav(otrok)
         print("\n1) Podat drogu")
         print("2) Odvykání")
+        print("3) Podpora zotavení")
         print("0) Zpět")
         volba = input("> ").strip()
         if volba == "1":
@@ -101,6 +138,9 @@ def menu_drog(otrok, hrac):
             input("Enter...")
         elif volba == "2":
             spravovat_odvykani(otrok, hrac)
+            input("Enter...")
+        elif volba == "3":
+            podpora_zotaveni(otrok, hrac)
             input("Enter...")
         elif volba == "0":
             break

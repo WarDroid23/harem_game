@@ -133,7 +133,15 @@ def hlavni_menu(hra: Hra):
         print(f"{RED}Reputace: {hra.hrac.reputace_mesta} | {BLUE}Vliv inkvizice: {hra.hrac.vliv_inkvizice}{NC}")
         kapitola = hra.kampan.aktualni()
         kapitola_text = kapitola["nazev"] if kapitola else "Kampaň dokončena"
-        print(f"{YELLOW}Harém: {hra.harem.pocet()} | {MAGENTA}Území: {len(hra.mafie.uzemi)} 🏰{NC}")
+        pocet_partnerek = sum(
+            1 for otrok in hra.harem.vsechny_aktivni()
+            if getattr(otrok, "partnerka", False)
+        )
+        print(
+            f"{YELLOW}Harém: {hra.harem.pocet()} "
+            f"(partnerky: {pocet_partnerek}) | "
+            f"{MAGENTA}Území: {len(hra.mafie.uzemi)} 🏰{NC}"
+        )
         print(
             f"{CYAN}Místo: {hra.svet.aktualni_lokace} | "
             f"Kampaň: {kapitola_text} | Obtížnost: {hra.nastaveni.obtiznost_text}{NC}"

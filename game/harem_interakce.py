@@ -37,6 +37,8 @@ def _osobni_akce(hra, otrok):
     print("3) Přidělit roli v pevnosti")
     print("4) Otevřít osobní osud")
     print("5) Nabídnout romantickou chvíli (8 energie, pouze se souhlasem)")
+    print("6) Nabídnout partnerský vztah (po vzájemném sblížení)")
+    print("7) Společná mise s partnerkou (+XP a reputace)")
     print("0) Zpět")
     volba = input("> ").strip()
     if volba == "1":
@@ -109,6 +111,56 @@ def _osobni_akce(hra, otrok):
                     f"Večer proběhl v intimní, ale neexplicitní atmosféře. "
                     f"{otrok.jmeno} zvolila tempo sama; vztah: {otrok.romance_stav}."
                 )
+    elif volba == "6":
+        if otrok.vek < 18:
+            tisk_chyba("Partnerský vztah je dostupný pouze dospělým postavám.")
+        elif otrok.na_najmu:
+            tisk_chyba("Nejdřív musí skončit pracovní závazek.")
+        elif otrok.partnerka:
+            volba_rozchod = input(
+                f"{otrok.jmeno} je tvá partnerka. Ukončit vztah? (a/n): "
+            ).strip().lower()
+            if volba_rozchod in ("a", "ano"):
+                otrok.partnerka = False
+                otrok.partner_od_den = 0
+                otrok.romance_stav = "bývalé partnerství"
+                otrok.zaznamenej_volbu("vztah", "Ukončení partnerského vztahu", hra.hrac.den)
+                tisk_info(f"Vztah s {otrok.jmeno} byl ukončen s respektem.")
+        elif otrok.romance_body < 70 or otrok.duvera < 55:
+            tisk_chyba("Nejdřív je potřeba vybudovat hlubší důvěru a vztah.")
+        else:
+            souhlas = input(
+                f"Nabídnout {otrok.jmeno} dobrovolný partnerský vztah? (a/n): "
+            ).strip().lower()
+            if souhlas in ("a", "ano"):
+                otrok.partnerka = True
+                otrok.partner_od_den = hra.hrac.den
+                otrok.romance_stav = "partnerský vztah"
+                otrok.zaznamenej_volbu("vztah", "Přijetí partnerského vztahu", hra.hrac.den)
+                otrok.zvysit_stat("loajalita", 8)
+                otrok.zvysit_stat("duvera", 8)
+                hra.hrac.reputace_mesta += 2
+                tisk_ok(
+                    f"{otrok.jmeno} nabídku přijala. Stala se tvou osobní partnerkou "
+                    "a NPC společnicí."
+                )
+            else:
+                tisk_info(f"{otrok.jmeno} nabídku odmítla a její rozhodnutí bylo respektováno.")
+    elif volba == "7":
+        if not otrok.partnerka:
+            tisk_chyba("Tato postava není tvou partnerkou.")
+        elif hra.hrac.sex_energy < 10:
+            tisk_chyba("Na společnou misi nemáš dost energie.")
+        else:
+            hra.hrac.sex_energy -= 10
+            hra.hrac.pridej_xp(20)
+            hra.hrac.reputace_mesta += 2
+            otrok.zvysit_stat("duvera", 4)
+            otrok.zaznamenej_volbu("partnerství", "Společná mise", hra.hrac.den)
+            tisk_ok(
+                f"Ty a {otrok.jmeno} jste dokončili společnou misi. "
+                "Získal jsi 20 XP a reputace +2."
+            )
     elif volba != "0":
         tisk_chyba("Neplatná volba.")
     if volba != "4":
@@ -134,6 +186,10 @@ def zobraz_profil(otrok):
     print(f"\n--- Profil: {otrok.jmeno} ---")
     print(f"Věk: {max(18, int(otrok.vek))} | Role: {otrok.role}")
     print(f"Charakter: {otrok.charakter} | Osud: {otrok.popis_osudu()}")
+    if otrok.partnerka:
+        print(f"Partnerský vztah: ano (od dne {otrok.partner_od_den})")
+    else:
+        print("Partnerský vztah: ne")
     print(
         f"Vztah: {otrok.romance_stav} ({otrok.romance_body}/100) | "
         f"Loajalita: {otrok.loajalita} | Důvěra: {otrok.duvera}"

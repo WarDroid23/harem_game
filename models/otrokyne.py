@@ -55,6 +55,9 @@ class Otrokyně:
     romance_volby: list = field(default_factory=list)
     souhlas_romance: bool = False
     historie_voleb: list = field(default_factory=list)
+    partnerka: bool = False
+    partner_od_den: int = 0
+    lecba_zavislosti: int = 0
 
     def __post_init__(self):
         if self.charakter == "subka" and random.random() < 0.7:
@@ -122,6 +125,16 @@ class Otrokyně:
             otrok.romance_volby = []
         if not isinstance(otrok.historie_voleb, list):
             otrok.historie_voleb = []
+        if not isinstance(otrok.partnerka, bool):
+            otrok.partnerka = False
+        try:
+            otrok.partner_od_den = max(0, int(otrok.partner_od_den))
+        except (TypeError, ValueError):
+            otrok.partner_od_den = 0
+        try:
+            otrok.lecba_zavislosti = max(0, min(100, int(otrok.lecba_zavislosti)))
+        except (TypeError, ValueError):
+            otrok.lecba_zavislosti = 0
         if not isinstance(otrok.romance_stav, str):
             otrok.romance_stav = "otevřená možnost"
         try:
