@@ -100,11 +100,25 @@ class OsudySystem:
         otrok.osud_krok += 1
         if self.hotovo(otrok):
             otrok.osud_dokonceno = True
+            otrok.osud_zaver = self.urci_zaver(otrok)
             otrok.loajalita = min(100, otrok.loajalita + 5)
             tisk_ok(f"Osud {otrok.jmeno} je uzavřen. Získala +5 loajality.")
+            if hasattr(hra, "achievementy"):
+                pocet = sum(1 for clen in hra.harem.otrokyne if clen.osud_dokonceno)
+                hra.achievementy.zaznamenej("osudy", pocet)
         else:
             tisk_ok(f"Volba u osudu {otrok.jmeno} byla zaznamenána.")
         return True
+
+    def urci_zaver(self, otrok):
+        """Odvodí nenásilný epilog osobního osudu z poslední volby."""
+        volby = [v.get("volba", "") for v in otrok.osud_volby if isinstance(v, dict)]
+        posledni = volby[-1].lower() if volby else ""
+        if any(klic in posledni for klic in ("samostat", "odejít", "odejit", "společně", "spolecne")):
+            return "Svobodná cesta"
+        if any(klic in posledni for klic in ("zabrat", "prodat", "využít", "vyuzit", "silnější", "silnejsi")):
+            return "Cena moci"
+        return "Obnovená důvěra"
 
     def menu(self, hra, otrok):
         while True:

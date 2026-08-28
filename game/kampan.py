@@ -92,6 +92,16 @@ class KampanSystem:
             or "vyuzit" in volby
         ):
             return "Vláda stínů"
+        if (
+            getattr(getattr(hra, "pevnost", None), "uroven", 1) >= 3
+            and hra.hrac.reputace_mesta >= 40
+        ):
+            return "Pevnost otevřených dveří"
+        if (
+            getattr(getattr(hra, "expedice", None), "dokoncene", 0) >= 3
+            and "samostatne_cesty" in volby
+        ):
+            return "Putující spojenci"
         return "Křehký mír"
     def zvol(self, hra, index):
         kapitola = self.aktualni()

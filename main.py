@@ -27,6 +27,7 @@ from game.crafting import CraftingSystem
 from game.harem_interakce import menu_haremu
 from game.settings import NastaveniHry, aplikuj_nastaveni
 from game.automaticky_tah import obsluz_automaticky_tah
+from game.manzelstvi import menu_manzelstvi
 from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel,
@@ -171,6 +172,7 @@ def hlavni_menu(hra: Hra):
         print(f"{GREEN}23) 🤝 Harem: péče, role a osudy")
         print(f"{YELLOW}24) 🛠️ Předměty a crafting")
         print(f"{CYAN}25) ⚡ Dobít energie")
+        print(f"{MAGENTA}28) 💍 Manželství a rodina")
         print(f"{GREEN}A) 🤖 Automatický bezpečný tah")
         print(f"{GREEN}21) 💾 Uložit hru")
         print(f"{CYAN}22) 📂 Načíst hru")
@@ -386,6 +388,9 @@ def hlavni_menu(hra: Hra):
 
         elif volba == "25":
             menu_energie(hra)
+
+        elif volba == "28":
+            menu_manzelstvi(hra)
 
         elif volba == "27":
             menu_nastaveni(hra)

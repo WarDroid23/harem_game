@@ -108,6 +108,7 @@ class QuestSystem:
         self.aktivni_quest = None
         self.dny_zbyva = 0
         self.dokonceno = 0
+        self.historie = []
 
     def generuj_quest(self, hrac, hra=None):
         if self.aktivni_quest is not None:
@@ -177,6 +178,14 @@ class QuestSystem:
 
         self.aktivni_quest = None
         self.dokonceno += 1
+        self.historie.append({
+            "nazev": quest["nazev"],
+            "uspech": uspech,
+            "den": getattr(hra.hrac, "den", 0) if hra is not None else 0,
+        })
+        self.historie = self.historie[-30:]
+        if uspech and hra is not None and hasattr(hra, "achievementy"):
+            hra.achievementy.zaznamenej("quest")
 
     def zobraz_questy(self):
         clear()
@@ -200,7 +209,8 @@ class QuestSystem:
         return {
             "aktivni_quest": self.aktivni_quest,
             "dny_zbyva": self.dny_zbyva,
-            "dokonceno": self.dokonceno
+            "dokonceno": self.dokonceno,
+            "historie": self.historie,
         }
 
     @classmethod
@@ -211,4 +221,5 @@ class QuestSystem:
         q.aktivni_quest = data.get("aktivni_quest") if isinstance(data.get("aktivni_quest"), dict) else None
         q.dny_zbyva = max(0, int(data.get("dny_zbyva", 0)))
         q.dokonceno = max(0, int(data.get("dokonceno", 0)))
+        q.historie = data.get("historie", [])[-30:] if isinstance(data.get("historie", []), list) else []
         return q

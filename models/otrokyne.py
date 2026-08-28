@@ -58,6 +58,12 @@ class Otrokyně:
     partnerka: bool = False
     partner_od_den: int = 0
     lecba_zavislosti: int = 0
+    vybaveni: list = field(default_factory=list)
+    osud_zaver: str = ""
+    manzelstvi: dict = field(default_factory=dict)
+    je_manzelkou: bool = False
+    den_zasnubin: int = 0
+    den_svatby: int = 0
 
     def __post_init__(self):
         if self.charakter == "subka" and random.random() < 0.7:
@@ -125,6 +131,10 @@ class Otrokyně:
             otrok.romance_volby = []
         if not isinstance(otrok.historie_voleb, list):
             otrok.historie_voleb = []
+        if not isinstance(otrok.vybaveni, list):
+            otrok.vybaveni = []
+        if not isinstance(otrok.osud_zaver, str):
+            otrok.osud_zaver = ""
         if not isinstance(otrok.partnerka, bool):
             otrok.partnerka = False
         try:

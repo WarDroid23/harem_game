@@ -41,6 +41,9 @@ class Hrac:
     dobiti_dnes: dict = field(default_factory=dict)
     inventar: Inventory = field(default_factory=Inventory)
 
+    def bojovy_bonus_vybavy(self):
+        return self.inventar.bonus_vybaveni("hrac")
+
     def pridej_xp(self, m):
         self.xp += m
         while self.xp >= self.xp_next:

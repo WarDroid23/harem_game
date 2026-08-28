@@ -53,6 +53,14 @@ def zobraz_statistiky(hra):
         1 for otrok in hra.harem.otrokyne if otrok.osud_dokonceno
     )
     print(f"  Uzavřené osobní osudy: {dokoncene_osudy}/{len(hra.harem.otrokyne)}")
+    if hasattr(hra, "expedice"):
+        print(f"  Dokončené výpravy: {hra.expedice.dokoncene}")
+    if hasattr(hra, "pevnost"):
+        print(f"  Pevnost: úroveň {hra.pevnost.uroven}, bonusy {hra.pevnost.bonusy()}")
+    if hasattr(hra, "achievementy"):
+        print(f"  Achievementy: {len(hra.achievementy.odemcene)}/{len(__import__('models.achievements', fromlist=['ACHIEVEMENTS']).ACHIEVEMENTS)}")
+        for ident in hra.achievementy.odemcene:
+            print(f"    ✔ {ident}")
     print()
 
     tisk_info("Stiskni Enter...")

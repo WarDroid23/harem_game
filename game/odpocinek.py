@@ -53,6 +53,8 @@ def odpocinek(hra, rezim=None):
         rezim = "spánek"
 
     hrac.den += 1
+    if hasattr(hra, "kalendar"):
+        hra.kalendar.dalsi_den(hrac.den - 1)
     if rezim == "meditace":
         hrac.sex_energy = min(100, hrac.sex_energy + 15)
         hrac.dark_energy = min(100, hrac.dark_energy + 30)
@@ -69,8 +71,23 @@ def odpocinek(hra, rezim=None):
     prijem_mafie = hra.mafie.vypocet_prijmu()
     hrac.gold += prijem_harem + prijem_mafie
 
+    # Manželské bonusy
+    bonus_marriage_energie = 0
+    bonus_marriage_gold = 0
+    for jmeno, marriage in hra.marriage_system.items():
+        if marriage.je_vdana():
+            bonus_marriage_energie += 10
+            bonus_marriage_gold += 50
+            marriage.intimita_level = min(100, marriage.intimita_level + 5)
+            marriage.starne_deti()
+    
+    if bonus_marriage_energie > 0:
+        hrac.sex_energy = min(100, hrac.sex_energy + bonus_marriage_energie)
+        hrac.gold += bonus_marriage_gold
+        tisk_ok(f"💍 Manželství: energie +{bonus_marriage_energie}, zlato +{bonus_marriage_gold}")
+
     tisk_ok(f"Energie: {hrac.sex_energy} (sex) / {hrac.dark_energy} (temno).")
-    tisk_ok(f"Pasivní příjem: {prijem_harem + prijem_mafie} zlaťáků.")
+    tisk_ok(f"Pasivní příjem: {prijem_harem + prijem_mafie + bonus_marriage_gold} zlaťáků.")
     if dokoncene_najmy:
         tisk_ok("Nájem skončil: " + ", ".join(dokoncene_najmy) + ".")
     if hra.questy.aktivni_quest:
@@ -78,6 +95,10 @@ def odpocinek(hra, rezim=None):
             f"Aktivní quest čeká na plnění ({hra.questy.dny_zbyva} "
             "dní do konce)."
         )
+    if hasattr(hra, "achievementy"):
+        hra.achievementy.zaznamenej("dny", hrac.den)
+    if hasattr(hra, "kalendar") and hra.kalendar.posledni_udalost:
+        tisk_info(hra.kalendar.posledni_udalost)
     try:
         input("Enter...")
     except EOFError:

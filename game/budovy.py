@@ -12,6 +12,8 @@ def vylepsit_budovu(hrac, harem, typ):
     cena = budova.cena
     hrac.gold -= cena
     budova.vylepsi()
+    if hasattr(hrac, "_hra_achievementy"):
+        hrac._hra_achievementy.zaznamenej("stavba")
     tisk_ok(f"Budova {typ} vylepšena na úroveň {budova.uroven}.")
     return True
 

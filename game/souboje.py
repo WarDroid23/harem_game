@@ -14,6 +14,10 @@ BOSSOVE = {
         "obrana": 10,
         "zlato": 420,
         "xp": 140,
+        "faze": [
+            {"nazev": "Světelný štít", "hp": 145, "utok": 15, "obrana": 10},
+            {"nazev": "Praskající brána", "hp": 95, "utok": 22, "obrana": 7},
+        ],
     },
     "kapitan_zeleznich_flotily": {
         "jmeno": "Kapitán železné flotily",
@@ -23,6 +27,10 @@ BOSSOVE = {
         "obrana": 13,
         "zlato": 560,
         "xp": 190,
+        "faze": [
+            {"nazev": "Paluba flotily", "hp": 185, "utok": 19, "obrana": 13},
+            {"nazev": "Nouzový manévr", "hp": 125, "utok": 27, "obrana": 9},
+        ],
     },
     "inkvizitor_cerne_peceti": {
         "jmeno": "Inkvizitor Černé pečeti",
@@ -32,6 +40,10 @@ BOSSOVE = {
         "obrana": 15,
         "zlato": 600,
         "xp": 210,
+        "faze": [
+            {"nazev": "Černá pečeť", "hp": 165, "utok": 22, "obrana": 15},
+            {"nazev": "Rozbitá pečeť", "hp": 110, "utok": 30, "obrana": 10},
+        ],
     },
 }
 
@@ -53,7 +65,7 @@ def dostupni_bossove(hra):
     return dostupni
 
 class Nepritel:
-    def __init__(self, jmeno, hp, utok, obrana, odmena_zlato, odmena_xp, boss=False, boss_id=""):
+    def __init__(self, jmeno, hp, utok, obrana, odmena_zlato, odmena_xp, boss=False, boss_id="", faze=None, faze_index=0):
         self.jmeno = jmeno
         self.hp = hp
         self.max_hp = hp
@@ -63,6 +75,8 @@ class Nepritel:
         self.odmena_xp = odmena_xp
         self.boss = boss
         self.boss_id = boss_id
+        self.faze = faze or []
+        self.faze_index = faze_index
 
     def je_nazivu(self):
         return self.hp > 0
@@ -106,27 +120,50 @@ class Souboj:
         sila = max(1, uroven)
         obtiznost = self._obtiznost()
         koeficient = profil_obtiznosti(obtiznost)["nepritel"]
+        faze = data.get("faze", [])
+        prvni = faze[0] if faze else data
         self.nepritel = Nepritel(
             data["jmeno"],
-            max(1, int((data["hp"] + sila * 18) * koeficient)),
-            max(1, int((data["utok"] + sila * 2) * koeficient)),
-            max(0, int((data["obrana"] + sila) * koeficient)),
+            max(1, int((prvni["hp"] + sila * 18) * koeficient)),
+            max(1, int((prvni["utok"] + sila * 2) * koeficient)),
+            max(0, int((prvni["obrana"] + sila) * koeficient)),
             uprav_odmenu(data["zlato"] + sila * 35, obtiznost),
             uprav_xp(data["xp"] + sila * 18, obtiznost),
             boss=True,
             boss_id=boss_id,
+            faze=faze,
         )
         return self.nepritel
+
+    def dalsi_faze(self):
+        """Přepne vícestupňového bosse; vrací False, pokud už byl poslední."""
+        if not self.nepritel or not self.nepritel.boss:
+            return False
+        nepritel = self.nepritel
+        if nepritel.faze_index + 1 >= len(nepritel.faze):
+            return False
+        nepritel.faze_index += 1
+        faze = nepritel.faze[nepritel.faze_index]
+        koeficient = profil_obtiznosti(self._obtiznost())["nepritel"]
+        nepritel.jmeno = f"{BOSSOVE[nepritel.boss_id]['jmeno']} — {faze['nazev']}"
+        nepritel.max_hp = max(1, int(faze["hp"] * koeficient))
+        nepritel.hp = nepritel.max_hp
+        nepritel.utok = max(1, int(faze["utok"] * koeficient))
+        nepritel.obrana = max(0, int(faze["obrana"] * koeficient))
+        tisk_info(f"Boss vstoupil do další fáze: {faze['nazev']}.")
+        return True
 
     def hracuv_utok(self, bonus=0):
         zaklad = self.hrac.skill_body * 2 + self.hrac.skilly.get("boj", 0) * 3 + self.hrac.skilly.get("strelba", 0) * 2
         for zbran in self.hrac.inventar.zbrane:
             zaklad += zbran.poskozeni
-        return zaklad + bonus
+        return zaklad + self.hrac.bojovy_bonus_vybavy() + bonus
 
     def hracova_obrana(self):
         zaklad = self.hrac.skill_body + self.hrac.skilly.get("obrana", 0) * 2
         zaklad += self.mafie.vojaci // 2
+        if self.hra is not None and getattr(self.hra, "pevnost", None):
+            zaklad += self.hra.pevnost.bonusy().get("obrana", 0)
         return zaklad
 
     def proved_boj(self):
@@ -204,6 +241,8 @@ class Souboj:
                 print(f"{GREEN}Tvůj útok: {poskozeni} zranění. {nepritel.jmeno} HP: {max(0, nepritel.hp)}/{nepritel.max_hp}{NC}")
 
             if not nepritel.je_nazivu():
+                if self.dalsi_faze():
+                    continue
                 break
 
             if preskocit_utok_nepritele:
@@ -227,6 +266,8 @@ class Souboj:
             self.hrac.kill_count += 1
             tisk_ok(f"Zvítězil jsi! Odměna: {nepritel.odmena_zlato} zlaťáků, +{nepritel.odmena_xp} XP.")
             if nepritel.boss and self.hra is not None:
+                if hasattr(self.hra, "achievementy"):
+                    self.hra.achievementy.zaznamenej("boss")
                 porazeni = self.hra.kampan.boss_porazeni
                 if nepritel.boss_id not in porazeni:
                     porazeni.append(nepritel.boss_id)
