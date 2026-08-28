@@ -46,8 +46,6 @@ def hlavni_menu(hra: Hra):
         print(f"{BLUE}5) 🤝 Diplomacie")
         print(f"{GOLD}6) 🔬 Výzkum")
         print(f"{RED}7) 🧠 Subky / Domestikace")
-        print(f"{GREEN}8) 💾 Uložit hru")
-        print(f"{CYAN}9) 📂 Načíst hru")
         print(f"{MAGENTA}10) ➕ Přidat otrokyni (test)")
         print(f"{YELLOW}11) 🎯 Lov otrokyň")
         print(f"{BLUE}12) 🛌 Odpočinek")
@@ -59,6 +57,8 @@ def hlavni_menu(hra: Hra):
         print(f"{YELLOW}18) ⚔️ Souboj")
         print(f"{BLUE}19) 🧪 Alchymie")
         print(f"{CYAN}20) 📋 Rychlý přehled")
+        print(f"{GREEN}21) 💾 Uložit hru")
+        print(f"{CYAN}22) 📂 Načíst hru")
         print(f"{RED}0) 🚪 Konec")
         try:
             volba = input("> ").strip().lower()
@@ -67,7 +67,7 @@ def hlavni_menu(hra: Hra):
             return
 
         # Klávesové zkratky usnadňují návrat do menu i práci v terminálu.
-        volba = {"s": "8", "l": "9", "q": "0"}.get(volba, volba)
+        volba = {"s": "21", "l": "22", "q": "0"}.get(volba, volba)
 
         if volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
@@ -156,11 +156,11 @@ def hlavni_menu(hra: Hra):
                 tisk_chyba("Nemáš otrokyně.")
                 input("Enter...")
 
-        elif volba == "8":
+        elif volba == "21":
             uloz_hru(hra)
             input("Enter...")
 
-        elif volba == "9":
+        elif volba == "22":
             nova_hra = nacti_hru()
             if nova_hra:
                 hra = nova_hra
