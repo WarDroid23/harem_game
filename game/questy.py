@@ -62,6 +62,44 @@ QUESTY = [
         "odmena_predmet": "signalni_roh",
         "riziko": 0.25,
         "doba_trvani": 2
+    },
+    {
+        "nazev": "Mapa pro Lyru",
+        "popis": "Dones Lyře záznamy z akademie a pomoz jí zakreslit bezpečnou cestu zahradou.",
+        "typ": "npc",
+        "lokace": "sklenena_zahrada",
+        "npc_id": "lyra",
+        "narocnost": 4,
+        "odmena_zlato": 180,
+        "odmena_predmet": "mapa_hvezd",
+        "odmena_energie": {"sex": 12, "temna": 8},
+        "riziko": 0.15,
+        "doba_trvani": 1
+    },
+    {
+        "nazev": "Archiv bez řetězů",
+        "popis": "Pomoz Cassianovi zabezpečit archiv tak, aby znalosti sloužily lidem, ne nátlaku.",
+        "typ": "pomoc",
+        "lokace": "observator",
+        "npc_id": "cassian",
+        "narocnost": 6,
+        "odmena_zlato": 300,
+        "odmena_predmet": "klic_observatore",
+        "riziko": 0.25,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Světla na molu",
+        "popis": "Pomoz Tereze připravit noční odplutí pro dospělé uprchlíky, kteří si vybrali vlastní cestu.",
+        "typ": "pomoc",
+        "lokace": "molo_mesicniho_pristavu",
+        "npc_id": "tereza",
+        "narocnost": 7,
+        "odmena_zlato": 420,
+        "odmena_predmet": "mesicni_kompas",
+        "odmena_energie": {"sex": 8, "temna": 18},
+        "riziko": 0.3,
+        "doba_trvani": 2
     }
 ]
 
@@ -124,6 +162,10 @@ class QuestSystem:
                 print(f"{GREEN}Získal jsi otrokyni {otrok.jmeno}!{NC}")
             if quest.get("odmena_predmet"):
                 hrac.inventar.pridej_predmet(quest["odmena_predmet"])
+            energie = quest.get("odmena_energie", {})
+            if isinstance(energie, dict):
+                hrac.sex_energy = min(100, hrac.sex_energy + max(0, int(energie.get("sex", 0))))
+                hrac.dark_energy = min(100, hrac.dark_energy + max(0, int(energie.get("temna", 0))))
             if quest.get("npc_id") and hra is not None and hasattr(hra, "svet"):
                 hra.svet.zmen_vztah(quest["npc_id"], 8)
             tisk_ok(f"Quest '{quest['nazev']}' dokončen! Odměna: {quest['odmena_zlato']} zlaťáků, +20 XP.")

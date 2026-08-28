@@ -67,6 +67,10 @@ class Hra:
             hra.svet = SvetSystem.from_dict(data["svet"])
         if isinstance(data.get("kampan"), dict):
             hra.kampan = KampanSystem.from_dict(data["kampan"])
+        # Staré sejvy končily po třetí kapitole; pokračování se odemkne bez
+        # přepsání inventáře, harému nebo dosavadních rozhodnutí.
+        if hra.kampan.kapitola >= 3 and not hra.kampan.dokonceno:
+            hra.svet.odhal_lokaci("sklenena_zahrada")
         return hra
 
 def uloz_hru(hra: Hra, soubor=SAVE_FILE):

@@ -5,7 +5,7 @@ from config import GOLD, GREEN, RED, CYAN, NC
 from game.predmety import PREDMETY
 
 class Nepritel:
-    def __init__(self, jmeno, hp, utok, obrana, odmena_zlato, odmena_xp):
+    def __init__(self, jmeno, hp, utok, obrana, odmena_zlato, odmena_xp, boss=False, boss_id=""):
         self.jmeno = jmeno
         self.hp = hp
         self.max_hp = hp
@@ -13,14 +13,17 @@ class Nepritel:
         self.obrana = obrana
         self.odmena_zlato = odmena_zlato
         self.odmena_xp = odmena_xp
+        self.boss = boss
+        self.boss_id = boss_id
 
     def je_nazivu(self):
         return self.hp > 0
 
 class Souboj:
-    def __init__(self, hrac, mafie):
+    def __init__(self, hrac, mafie, hra=None):
         self.hrac = hrac
         self.mafie = mafie
+        self.hra = hra
         self.nepritel = None
 
     def generuj_nepritele(self, uroven):
@@ -32,6 +35,21 @@ class Souboj:
         ]
         data = random.choice(typy)
         self.nepritel = Nepritel(data["jmeno"], data["hp"], data["utok"], data["obrana"], data["zlato"], data["xp"])
+        return self.nepritel
+
+    def generuj_bosse(self, uroven):
+        """Příběhový střet, který se odemyká návštěvou observatoře."""
+        sila = max(1, uroven)
+        self.nepritel = Nepritel(
+            "Strážce hvězdné brány",
+            145 + sila * 18,
+            15 + sila * 2,
+            10 + sila,
+            420 + sila * 35,
+            140 + sila * 18,
+            boss=True,
+            boss_id="strazce_hvezdne_brany",
+        )
         return self.nepritel
 
     def hracuv_utok(self, bonus=0):
@@ -138,6 +156,12 @@ class Souboj:
             self.hrac.pridej_xp(nepritel.odmena_xp)
             self.hrac.kill_count += 1
             tisk_ok(f"Zvítězil jsi! Odměna: {nepritel.odmena_zlato} zlaťáků, +{nepritel.odmena_xp} XP.")
+            if nepritel.boss and self.hra is not None:
+                porazeni = self.hra.kampan.boss_porazeni
+                if nepritel.boss_id not in porazeni:
+                    porazeni.append(nepritel.boss_id)
+                    self.hra.svet.odhal_lokaci("molo_mesicniho_pristavu")
+                    tisk_ok("Strážce padl. Na mapě se objevilo Molo Měsíčního přístavu.")
             self.nepritel = None
             vysledek = True
         else:

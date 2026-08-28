@@ -36,7 +36,7 @@ def hlavni_menu(hra: Hra):
     diplo = Diplomacie(hra.frakce)
     vyzkum = hra.vyzkum
     subky = SubkyDomestikace()
-    souboj = Souboj(hra.hrac, hra.mafie)
+    souboj = Souboj(hra.hrac, hra.mafie, hra)
     crafting = CraftingSystem()
 
     while True:
@@ -202,7 +202,7 @@ def hlavni_menu(hra: Hra):
                 diplo = Diplomacie(hra.frakce)
                 vyzkum = hra.vyzkum
                 subky = SubkyDomestikace()
-                souboj = Souboj(hra.hrac, hra.mafie)
+                souboj = Souboj(hra.hrac, hra.mafie, hra)
                 crafting = CraftingSystem()
                 tisk_ok("Hra načtena.")
             else:
@@ -249,8 +249,22 @@ def hlavni_menu(hra: Hra):
             zobraz_statistiky(hra)
 
         elif volba == "18":
-            souboj.generuj_nepritele(hra.hrac.level)
+            if (
+                hra.svet.aktualni_lokace == "observator"
+                and "strazce_hvezdne_brany" not in hra.kampan.boss_porazeni
+            ):
+                print("\nV observatoři čeká příběhový protivník.")
+                print("1) Vyvolat Strážce hvězdné brány")
+                print("2) Náhodný střet")
+                volba_bosse = input("> ").strip()
+                if volba_bosse == "1":
+                    souboj.generuj_bosse(hra.hrac.level)
+                else:
+                    souboj.generuj_nepritele(hra.hrac.level)
+            else:
+                souboj.generuj_nepritele(hra.hrac.level)
             souboj.proved_boj()
+            hra.kampan.zkontroluj_postup(hra)
 
         elif volba == "19":
             hra.alchymie.zobraz_menu(hra.hrac, hra.harem)

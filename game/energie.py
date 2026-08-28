@@ -82,6 +82,57 @@ def meditace(hra):
     return True
 
 
+def zahrada(hra):
+    """Klidný rozhovor v zahradě obnoví energii a nevyžaduje zlato."""
+    hrac = hra.hrac
+    if not _lze_pouzit(hrac, "zahrada"):
+        return False
+    if _zbyva(hrac, "sex_energy") == 0 and _zbyva(hrac, "dark_energy") == 0:
+        tisk_info("Obě energie už máš plné.")
+        return False
+    hrac.sex_energy = min(MAX_ENERGIE, hrac.sex_energy + 24)
+    hrac.dark_energy = min(MAX_ENERGIE, hrac.dark_energy + 6)
+    hrac.hp = min(hrac.max_hp, hrac.hp + 8)
+    _oznac_pouziti(hrac, "zahrada")
+    tisk_ok("Ve Skleněné zahradě jste si odpočinuli v bezpečném tichu. Energie +24/+6, HP +8.")
+    return True
+
+
+def observator(hra):
+    """Pozorování oblohy v observatoři obnoví soustředění."""
+    hrac = hra.hrac
+    if not _lze_pouzit(hrac, "observator"):
+        return False
+    if _zbyva(hrac, "sex_energy") == 0 and _zbyva(hrac, "dark_energy") == 0:
+        tisk_info("Obě energie už máš plné.")
+        return False
+    hrac.sex_energy = min(MAX_ENERGIE, hrac.sex_energy + 8)
+    hrac.dark_energy = min(MAX_ENERGIE, hrac.dark_energy + 30)
+    _oznac_pouziti(hrac, "observator")
+    tisk_ok("Čočky observatoře zaostřily tvou mysl. Energie +8/+30.")
+    return True
+
+
+def molo(hra):
+    """Krátká směna na molu dá sílu za cenu zásob."""
+    hrac = hra.hrac
+    cena = 25
+    if hrac.gold < cena:
+        tisk_chyba("Na čaj a světla pro směnu na molu nemáš dost zlata.")
+        return False
+    if not _lze_pouzit(hrac, "molo"):
+        return False
+    if _zbyva(hrac, "sex_energy") == 0 and _zbyva(hrac, "dark_energy") == 0:
+        tisk_info("Obě energie už máš plné.")
+        return False
+    hrac.gold -= cena
+    hrac.sex_energy = min(MAX_ENERGIE, hrac.sex_energy + 16)
+    hrac.dark_energy = min(MAX_ENERGIE, hrac.dark_energy + 16)
+    _oznac_pouziti(hrac, "molo")
+    tisk_ok("Směna na Měsíčním molu skončila. Energie +16/+16.")
+    return True
+
+
 def zobraz_menu(hra):
     """Nabídne obnovu dostupnou v aktuální lokaci."""
     while True:
@@ -101,6 +152,12 @@ def zobraz_menu(hra):
         if lokace == "lazne":
             moznosti.append(("3", "Lázně (60 zlata, energie a HP)"))
         moznosti.append(("4", "Alchymie (lektvary z vyrobených surovin)"))
+        if lokace == "sklenena_zahrada":
+            moznosti.append(("5", "Klidný rozhovor v zahradě (1x denně)"))
+        if lokace == "observator":
+            moznosti.append(("6", "Pozorování oblohy (1x denně)"))
+        if lokace == "molo_mesicniho_pristavu":
+            moznosti.append(("7", "Směna na molu (25 zlata, 1x denně)"))
         for cislo, popis in moznosti:
             print(f"{cislo}) {popis}")
         print("0) Zpět")
@@ -116,6 +173,12 @@ def zobraz_menu(hra):
             lazne(hra)
         elif volba == "4":
             hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
+        elif volba == "5" and lokace == "sklenena_zahrada":
+            zahrada(hra)
+        elif volba == "6" and lokace == "observator":
+            observator(hra)
+        elif volba == "7" and lokace == "molo_mesicniho_pristavu":
+            molo(hra)
         else:
             tisk_chyba("Tato možnost zde není dostupná.")
         input("Enter...")

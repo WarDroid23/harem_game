@@ -226,6 +226,78 @@ OSUDY = {
             },
         ],
     },
+    "cesta_pod_hvezdami": {
+        "nazev": "Cesta pod hvězdami",
+        "popis": "Učí se znovu věřit vlastnímu hlasu a hledá vztah založený na klidu a volbě.",
+        "kroky": [
+            {
+                "text": "Po dlouhém dni se svěří, že chce být slyšena, ne řízena. Jak odpovíš?",
+                "volby": [
+                    {
+                        "nazev": "Nechat ji určit tempo",
+                        "popis": "Dáš jí prostor říct, co skutečně chce.",
+                        "efekty": {"duvera": 12, "loajalita": 8, "touha": 4},
+                    },
+                    {
+                        "nazev": "Slíbit ochranu bez podmínek",
+                        "popis": "Nabídneš bezpečí a respekt k jejím hranicím.",
+                        "efekty": {"duvera": 8, "loajalita": 12, "reputace_mesta": 2},
+                    },
+                ],
+            },
+            {
+                "text": "Na střeše observatoře je ticho. Mezi vámi vzniká důvěrná chvíle, která nic nevyžaduje.",
+                "volby": [
+                    {
+                        "nazev": "Sdílet vlastní nejistotu",
+                        "popis": "Vzájemná upřímnost prohloubí blízkost.",
+                        "efekty": {"duvera": 14, "loajalita": 8, "xp": 25},
+                    },
+                    {
+                        "nazev": "Zůstat po jejím boku v tichu",
+                        "popis": "Respektuješ, že blízkost může být i beze slov.",
+                        "efekty": {"duvera": 10, "loajalita": 10, "touha": 6},
+                    },
+                ],
+            },
+        ],
+    },
+    "spolecny_pristan": {
+        "nazev": "Společný přístav",
+        "popis": "Dospělý vztah, ve kterém si oba chrání svobodu a přesto se k sobě vracejí.",
+        "kroky": [
+            {
+                "text": "Navrhne, abyste si před důležitým rozhodnutím vždy řekli pravdu. Přijmeš to?",
+                "volby": [
+                    {
+                        "nazev": "Ano, žádná dohoda bez souhlasu",
+                        "popis": "Postavíš vztah na otevřené komunikaci.",
+                        "efekty": {"duvera": 14, "loajalita": 10, "reputace_mesta": 2},
+                    },
+                    {
+                        "nazev": "Nechat sliby růst přirozeně",
+                        "popis": "Nebudeš nic uspěchávat ani vlastnit.",
+                        "efekty": {"duvera": 10, "loajalita": 8, "xp": 30},
+                    },
+                ],
+            },
+            {
+                "text": "Po vítězství se ptá, zda má zůstat v pevnosti, nebo pokračovat po vlastní cestě.",
+                "volby": [
+                    {
+                        "nazev": "Jít spolu, ale každý s vlastním hlasem",
+                        "popis": "Sdílíte cestu bez ztráty osobní svobody.",
+                        "efekty": {"duvera": 16, "loajalita": 12, "touha": 5},
+                    },
+                    {
+                        "nazev": "Podpořit její samostatnou misi",
+                        "popis": "Láska není klec; pomůžeš jí odejít a vrátit se z vlastní vůle.",
+                        "efekty": {"duvera": 18, "loajalita": 8, "reputace_mesta": 4, "xp": 35},
+                    },
+                ],
+            },
+        ],
+    },
 }
 
 OSUDY_PORADI = tuple(OSUDY)

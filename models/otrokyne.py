@@ -50,12 +50,20 @@ class Otrokyně:
     osud_krok: int = 0
     osud_volby: list = field(default_factory=list)
     osud_dokonceno: bool = False
+    romance_body: int = 0
+    romance_stav: str = "otevřená možnost"
+    romance_volby: list = field(default_factory=list)
+    souhlas_romance: bool = False
 
     def __post_init__(self):
         if self.charakter == "subka" and random.random() < 0.7:
             self.charakter = random.choice(list(CHARAKTERY.keys()))
         if self.vek == 18:
             self.vek = random.randint(18, 45)
+        try:
+            self.vek = max(18, int(self.vek))
+        except (TypeError, ValueError):
+            self.vek = 18
         self.aktualizuj_fazi()
 
     def zvysit_stat(self, stat, hodnota):
@@ -98,4 +106,16 @@ class Otrokyně:
         # být při načtení znovu náhodně přegenerován.
         for key, value in values.items():
             setattr(otrok, key, value)
+        try:
+            otrok.vek = max(18, int(otrok.vek))
+        except (TypeError, ValueError):
+            otrok.vek = 18
+        if not isinstance(otrok.romance_volby, list):
+            otrok.romance_volby = []
+        if not isinstance(otrok.romance_stav, str):
+            otrok.romance_stav = "otevřená možnost"
+        try:
+            otrok.romance_body = max(0, min(100, int(otrok.romance_body)))
+        except (TypeError, ValueError):
+            otrok.romance_body = 0
         return otrok

@@ -55,4 +55,22 @@ PREDMETY = {
         "boj": None,
         "hodnota": 0,
     },
+    "mapa_hvezd": {
+        "nazev": "Mapa hvězd",
+        "popis": "Pomáhá plánovat cesty mezi zahradou, věží a molem.",
+        "boj": None,
+        "hodnota": 0,
+    },
+    "klic_observatore": {
+        "nazev": "Klíč observatoře",
+        "popis": "Otevírá zabezpečené dveře severní věže.",
+        "boj": None,
+        "hodnota": 0,
+    },
+    "mesicni_kompas": {
+        "nazev": "Měsíční kompas",
+        "popis": "Jednou za den ukáže cestu k bezpečnému návratu.",
+        "boj": None,
+        "hodnota": 0,
+    },
 }

@@ -39,6 +39,16 @@ def spust_nahodnou_udalost(hra):
             "popis": "Na cestě tě oslovila neznámá postava.",
             "efekt": lambda h: setkani_npc(h)
         },
+        {
+            "nazev": "Večer světel",
+            "popis": "Skleněná zahrada se rozzářila lucernami; Lyra zve k upřímnému rozhovoru.",
+            "efekt": lambda h: vecer_svetel(h)
+        },
+        {
+            "nazev": "Signál z věže",
+            "popis": "Observatoř vyslala varovný záblesk. Někdo se blíží k hvězdné bráně.",
+            "efekt": lambda h: signal_z_veze(h)
+        },
     ]
 
     udalost = random.choice(udalosti)
@@ -138,3 +148,30 @@ def setkani_npc(hra):
         hrac.gold -= cena
         hrac.reputace_mesta += 3
         tisk_ok("Informátor ti předal cenné zprávy. Reputace města +3.")
+
+
+def vecer_svetel(hra):
+    if hra.svet.aktualni_lokace != "sklenena_zahrada":
+        tisk_info("Událost se rozplynula dřív, než jsi dorazil do zahrady.")
+        return
+    print("Lyra: „Můžeme dnes jen sedět a poslouchat. Nemusíme nic dokazovat.“")
+    volba = input("Zůstaneš a budeš respektovat její tempo? (a/n): ").strip().lower()
+    if volba in ("a", "ano"):
+        hra.svet.zmen_vztah("lyra", 8)
+        hra.hrac.sex_energy = min(100, hra.hrac.sex_energy + 15)
+        hra.hrac.reputace_mesta += 1
+        tisk_ok("Večer posílil důvěru. Sexuální energie +15, vztah s Lyrou +8.")
+    else:
+        tisk_info("Nechal jsi Lyře prostor. Její hranice zůstaly nedotčené.")
+
+
+def signal_z_veze(hra):
+    if hra.svet.aktualni_lokace != "observator":
+        tisk_info("Záblesk z věže zahlédneš jen z dálky.")
+        return
+    hra.svet.zmen_vztah("cassian", 5)
+    hra.hrac.dark_energy = min(100, hra.hrac.dark_energy + 12)
+    if "strazce_hvezdne_brany" not in hra.kampan.boss_porazeni:
+        tisk_info("Cassian tě varoval: Strážce hvězdné brány je vzhůru. Temná energie +12.")
+    else:
+        tisk_ok("Cassian potvrdil, že věž je bezpečná. Temná energie +12.")

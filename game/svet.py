@@ -66,6 +66,24 @@ LOKACE = {
         "sousedni": ["ctvrt_remeselniku", "trh"],
         "uroven": 2,
     },
+    "sklenena_zahrada": {
+        "nazev": "Skleněná zahrada",
+        "popis": "Zastřešená zahrada plná světla, kde se dá mluvit bez publika a beze spěchu.",
+        "sousedni": ["lazne", "akademie", "observator"],
+        "uroven": 2,
+    },
+    "observator": {
+        "nazev": "Observatoř severní věže",
+        "popis": "Staré čočky ukazují cesty, které město raději zapomnělo.",
+        "sousedni": ["sklenena_zahrada", "hranice"],
+        "uroven": 3,
+    },
+    "molo_mesicniho_pristavu": {
+        "nazev": "Molo Měsíčního přístavu",
+        "popis": "Tiché molo na okraji přístavu, kde se uzavírají dohody a loučí se s minulostí.",
+        "sousedni": ["pristav", "observator"],
+        "uroven": 3,
+    },
 }
 
 VYCHOZI_ODHALENE = [
@@ -107,6 +125,36 @@ NPC = {
         "jmeno": "Nela, mladá alchymistka",
         "popis": "Hledá pomocníky pro své pokusy a odměňuje je užitečnými esencemi.",
         "lokace": "akademie",
+    },
+    "lyra": {
+        "jmeno": "Lyra, kartografka hvězd",
+        "popis": "Dospělá kartografka, která kreslí bezpečné cesty i mapy lidské důvěry.",
+        "lokace": "sklenena_zahrada",
+        "vek": 29,
+        "dialogy": [
+            "Když člověk zná svou cestu, nemusí nikoho vlastnit, aby nebyl sám.",
+            "Můžeme mluvit o tom, co chceme, až když stejně dobře umíme říct ne.",
+        ],
+    },
+    "cassian": {
+        "jmeno": "Cassian, správce observatoře",
+        "popis": "Dospělý správce věže, který chrání její archiv před lidmi toužícími po moci.",
+        "lokace": "observator",
+        "vek": 34,
+        "dialogy": [
+            "Hvězdy nejsou věštba. Jsou připomínka, že i dlouhá noc jednou skončí.",
+            "Archiv otevřu jen těm, kdo unesou pravdu bez toho, aby ji použili proti druhým.",
+        ],
+    },
+    "tereza": {
+        "jmeno": "Tereza, kapitánka měsíčního mola",
+        "popis": "Dospělá kapitánka, která dává posádce druhou šanci a jasné hranice.",
+        "lokace": "molo_mesicniho_pristavu",
+        "vek": 31,
+        "dialogy": [
+            "Důvěra se nevyžaduje rozkazem. Staví se z malých rozhodnutí, která platí i zítra.",
+            "Pokud chceš plout se mnou, řekni mi nejdřív, kam skutečně míříš.",
+        ],
     },
 }
 
@@ -213,7 +261,8 @@ class SvetSystem:
             npc_v_lokaci = self.npc_v_lokaci()
             if npc_v_lokaci:
                 for npc_id, npc in npc_v_lokaci:
-                    print(f"  {npc['jmeno']} (vztah {self.vztahy_npc[npc_id]:+d})")
+                    vek = f", {npc['vek']} let" if npc.get("vek") else ""
+                    print(f"  {npc['jmeno']} ({self.vztahy_npc[npc_id]:+d}{vek})")
             else:
                 print("  Nikdo známý.")
             print("\n1-9) Cestovat  |  N) setkat se s NPC  |  E) dobít energii  |  0) Zpět")
@@ -247,7 +296,8 @@ class SvetSystem:
             return
         print()
         for index, (npc_id, npc) in enumerate(npc_v_lokaci, 1):
-            print(f"{index}) {npc['jmeno']} (vztah {self.vztahy_npc[npc_id]:+d})")
+            vek = f", {npc['vek']} let" if npc.get("vek") else ""
+            print(f"{index}) {npc['jmeno']} (vztah {self.vztahy_npc[npc_id]:+d}{vek})")
         print("0) Zpět")
         try:
             index = int(input("> ")) - 1
@@ -269,6 +319,10 @@ class SvetSystem:
         if akce == "1":
             self.zmen_vztah(npc_id, 4)
             hra.hrac.reputace_mesta += 1
+            dialogy = npc.get("dialogy", [])
+            if dialogy:
+                index_dialogu = 0 if vztah < 35 else min(len(dialogy) - 1, 1)
+                print(f"{npc['jmeno']}: „{dialogy[index_dialogu]}“")
             tisk_ok(f"{npc['jmeno']} si tě zapamatoval. Vztah +4.")
         elif akce == "2":
             if npc_id == "mira":
@@ -301,6 +355,23 @@ class SvetSystem:
                     tisk_ok("Nela ti svěřila lahvičku temné esence. Vztah +3.")
                 else:
                     tisk_chyba("Nela dnes nemá vhodnou surovinu.")
+            elif npc_id == "lyra":
+                from game.energie import zahrada
+                if zahrada(hra):
+                    self.zmen_vztah(npc_id, 4)
+            elif npc_id == "cassian":
+                if hra.hrac.dark_energy < 10:
+                    tisk_chyba("Cassian žádá nejdřív důkaz, že zvládneš soustředění.")
+                else:
+                    hra.hrac.dark_energy -= 10
+                    self.odhal_lokaci("molo_mesicniho_pristavu")
+                    self.zmen_vztah(npc_id, 5)
+                    tisk_ok("Cassian ti otevřel hvězdný archiv. Molo Měsíčního přístavu je na mapě.")
+            elif npc_id == "tereza":
+                hra.hrac.sex_energy = min(100, hra.hrac.sex_energy + 12)
+                hra.hrac.reputace_mesta += 2
+                self.zmen_vztah(npc_id, 4)
+                tisk_ok("Tereza s tebou sdílela klidnou směnu na molu. Energie +12, reputace +2.")
         elif akce == "3":
             if vztah < -20:
                 self.zmen_vztah(npc_id, -4)

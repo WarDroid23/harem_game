@@ -22,6 +22,18 @@ KAPITOLY = (
         "cil": "uzavri_kampan",
         "lokace": "hranice",
     },
+    {
+        "nazev": "Zahrada tichých slibů",
+        "popis": "Najdi místo, kde mohou spojenci mluvit otevřeně a bez nátlaku.",
+        "cil": "navstiv_zahradu",
+        "lokace": "sklenena_zahrada",
+    },
+    {
+        "nazev": "Hvězdný tribunál",
+        "popis": "Poraz Strážce hvězdné brány a rozhodni, jakou budoucnost nabídneš svým spojencům.",
+        "cil": "uzavri_hvezdny_slib",
+        "lokace": "observator",
+    },
 )
 
 
@@ -30,6 +42,7 @@ class KampanSystem:
     kapitola: int = 0
     splnene_cile: list = field(default_factory=list)
     volby: list = field(default_factory=list)
+    boss_porazeni: list = field(default_factory=list)
     dokonceno: bool = False
 
     def aktualni(self):
@@ -46,6 +59,12 @@ class KampanSystem:
             self.splnene_cile.append(kapitola["cil"])
             hra.hrac.pridej_xp(25)
             tisk_ok("Kapitola dokončena. Přístav je nyní dostupný.")
+            self.kapitola += 1
+        elif kapitola["cil"] == "navstiv_zahradu" and hra.svet.navstiveno.get("sklenena_zahrada", 0):
+            hra.svet.odhal_lokaci("observator")
+            self.splnene_cile.append(kapitola["cil"])
+            hra.hrac.pridej_xp(55)
+            tisk_ok("Zahrada odhalila cestu k observatoři. Nová kapitola začíná.")
             self.kapitola += 1
 
     def zvol(self, hra, index):
@@ -92,9 +111,43 @@ class KampanSystem:
                 hra.hrac.gold += 220
                 hra.mafie.vliv_ve_meste = min(100, hra.mafie.vliv_ve_meste + 10)
             hra.hrac.pridej_xp(80)
+            hra.svet.odhal_lokaci("sklenena_zahrada")
+            self.kapitola += 1
+            self.dokonceno = False
+            tisk_ok("Síť je uzavřena, ale příběh pokračuje. Na mapě se objevila Skleněná zahrada.")
+            return True
+        if kapitola["cil"] == "navstiv_zahradu":
+            if not hra.svet.navstiveno.get("sklenena_zahrada", 0):
+                tisk_chyba("Nejdřív navštiv Skleněnou zahradu.")
+                return False
+            hra.svet.odhal_lokaci("observator")
+            self.splnene_cile.append(kapitola["cil"])
+            hra.hrac.pridej_xp(55)
+            self.kapitola += 1
+            tisk_ok("Cesta k observatoři je otevřená.")
+            return True
+        if kapitola["cil"] == "uzavri_hvezdny_slib":
+            if hra.svet.aktualni_lokace != "observator":
+                tisk_chyba("Rozhodnutí můžeš učinit až v observatoři.")
+                return False
+            if "strazce_hvezdne_brany" not in self.boss_porazeni:
+                tisk_chyba("Nejdřív poraz Strážce hvězdné brány.")
+                return False
+            volba_id = ("spolecna_cesta", "samostatne_cesty")[index]
+            self.volby.append({"kapitola": self.kapitola, "volba": volba_id})
+            self.splnene_cile.append(kapitola["cil"])
+            if index == 0:
+                hra.hrac.reputace_mesta += 10
+                hra.hrac.sex_energy = min(100, hra.hrac.sex_energy + 20)
+                tisk_ok("Zvolil jsi společnou cestu založenou na důvěře a vzájemném souhlasu.")
+            else:
+                hra.hrac.reputace_mesta += 6
+                hra.hrac.dark_energy = min(100, hra.hrac.dark_energy + 25)
+                tisk_ok("Podpořil jsi samostatnost spojenců; návraty budou mít větší váhu.")
+            hra.hrac.pridej_xp(120)
             self.kapitola += 1
             self.dokonceno = True
-            tisk_ok("Kampaň dokončena. Tvé rozhodnutí změnilo poměry ve městě.")
+            tisk_ok("Hvězdný tribunál je uzavřen. Tvá rozhodnutí změnila vztahy i město.")
             return True
         return False
 
@@ -103,6 +156,7 @@ class KampanSystem:
             "kapitola": self.kapitola,
             "splnene_cile": self.splnene_cile,
             "volby": self.volby,
+            "boss_porazeni": self.boss_porazeni,
             "dokonceno": self.dokonceno,
         }
 
@@ -110,11 +164,17 @@ class KampanSystem:
     def from_dict(cls, data):
         if not isinstance(data, dict):
             return cls()
+        kapitola = max(0, min(len(KAPITOLY), int(data.get("kapitola", 0))))
+        dokonceno = bool(data.get("dokonceno", False))
+        # Starší verze končily po kapitole 3; jejich save dostane pokračování.
+        if dokonceno and kapitola < len(KAPITOLY):
+            dokonceno = False
         return cls(
-            kapitola=max(0, min(len(KAPITOLY), int(data.get("kapitola", 0)))),
+            kapitola=kapitola,
             splnene_cile=data.get("splnene_cile", []) if isinstance(data.get("splnene_cile", []), list) else [],
             volby=data.get("volby", []) if isinstance(data.get("volby", []), list) else [],
-            dokonceno=bool(data.get("dokonceno", False)),
+            boss_porazeni=data.get("boss_porazeni", []) if isinstance(data.get("boss_porazeni", []), list) else [],
+            dokonceno=dokonceno,
         )
 
     def menu(self, hra):
@@ -130,12 +190,15 @@ class KampanSystem:
             print(f"Kapitola {self.kapitola + 1}/{len(KAPITOLY)}: {kapitola['nazev']}")
             print(kapitola["popis"])
             print(f"Cíl: navštívit {LOKACE[kapitola['lokace']]['nazev']}")
-            if kapitola["cil"] == "navstiv_trh":
-                print("\nCestuj na trh a prozkoumej okolí.")
+            if kapitola["cil"] in ("navstiv_trh", "navstiv_zahradu"):
+                print(f"\nCestuj do lokace {LOKACE[kapitola['lokace']]['nazev']} a prozkoumej okolí.")
                 print("1) Zpět na mapu")
             elif kapitola["cil"] == "vyber_spojence":
                 print("\n1) Požádat Miru o pomoc (reputace a péče)")
                 print("2) Požádat Radana o pomoc (temná energie a zásoby)")
+            elif kapitola["cil"] == "uzavri_hvezdny_slib":
+                print("\n1) Pokračovat společně, s jasnými hranicemi a vzájemnou volbou")
+                print("2) Podpořit samostatné cesty a setkávat se bez vlastnění")
             else:
                 print("\n1) Odhalit síť a očistit město")
                 print("2) Využít síť a posílit vlastní vliv")
@@ -143,9 +206,18 @@ class KampanSystem:
             volba = input("> ").strip()
             if volba == "0":
                 return
-            if kapitola["cil"] == "navstiv_trh":
-                tisk_info("Otevři mapu a vydej se na Starý trh.")
+            if kapitola["cil"] in ("navstiv_trh", "navstiv_zahradu"):
+                tisk_info(f"Otevři mapu a vydej se do lokace: {LOKACE[kapitola['lokace']]['nazev']}.")
                 input("Enter...")
+            elif kapitola["cil"] == "uzavri_hvezdny_slib":
+                print("\n1) Pokračovat společně, s jasnými hranicemi a vzájemnou volbou")
+                print("2) Podpořit samostatné cesty a setkávat se bez vlastnění")
+                try:
+                    if self.zvol(hra, int(volba) - 1):
+                        input("Enter...")
+                except ValueError:
+                    tisk_chyba("Zadej číslo.")
+                    input("Enter...")
             else:
                 try:
                     if self.zvol(hra, int(volba) - 1):

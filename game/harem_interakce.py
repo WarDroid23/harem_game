@@ -36,6 +36,7 @@ def _osobni_akce(hra, otrok):
     print("2) Péče a zotavení (20 zlata, +HP)")
     print("3) Přidělit roli v pevnosti")
     print("4) Otevřít osobní osud")
+    print("5) Nabídnout romantickou chvíli (8 energie, pouze se souhlasem)")
     print("0) Zpět")
     volba = input("> ").strip()
     if volba == "1":
@@ -72,6 +73,37 @@ def _osobni_akce(hra, otrok):
     elif volba == "4":
         from game.osudy import OsudySystem
         OsudySystem().menu(hra, otrok)
+    elif volba == "5":
+        if otrok.vek < 18:
+            tisk_chyba("Romantická linka je dostupná pouze dospělým postavám.")
+        elif otrok.na_najmu:
+            tisk_chyba("Nejdřív musí skončit pracovní závazek; romantická volba není služba.")
+        elif hra.hrac.sex_energy < 8:
+            tisk_chyba("Nemáš dost energie na klidný večer.")
+        else:
+            souhlas = input(
+                f"Zeptat se {otrok.jmeno}, zda chce dobrovolně sdílet romantický večer? (a/n): "
+            ).strip().lower()
+            if souhlas not in ("a", "ano"):
+                otrok.romance_stav = "respektovaný odstup"
+                tisk_info(f"{otrok.jmeno} dnes nechce. Její hranice byly respektovány.")
+            else:
+                hra.hrac.sex_energy -= 8
+                otrok.souhlas_romance = True
+                otrok.romance_body = min(100, otrok.romance_body + 12)
+                otrok.romance_volby.append({"den": hra.hrac.den, "typ": "společná romantická chvíle"})
+                otrok.zvysit_stat("duvera", 8)
+                otrok.zvysit_stat("loajalita", 6)
+                if otrok.romance_body >= 70:
+                    otrok.romance_stav = "oddané partnerství"
+                elif otrok.romance_body >= 35:
+                    otrok.romance_stav = "blízký vztah"
+                else:
+                    otrok.romance_stav = "opatrné sbližování"
+                tisk_ok(
+                    f"Večer proběhl v intimní, ale neexplicitní atmosféře. "
+                    f"{otrok.jmeno} zvolila tempo sama; vztah: {otrok.romance_stav}."
+                )
     elif volba != "0":
         tisk_chyba("Neplatná volba.")
     if volba != "4":
@@ -116,7 +148,8 @@ def menu_haremu(hra):
                 print(
                     f"{otrok.jmeno}: {otrok.role}, nálada {otrok.nalada}, "
                     f"loajalita {otrok.loajalita}, důvěra {otrok.duvera}, "
-                    f"osud {otrok.popis_osudu()}"
+                    f"osud {otrok.popis_osudu()}, romantika: {otrok.romance_stav} "
+                    f"({otrok.romance_body}/100)"
                 )
             input("Enter...")
         else:
