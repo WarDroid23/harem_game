@@ -30,4 +30,6 @@ class Building:
 
     @classmethod
     def from_dict(cls, data):
-        return cls(data["typ"], data["uroven"])
+        if not isinstance(data, dict) or "typ" not in data:
+            raise ValueError("Neplatná data budovy.")
+        return cls(data["typ"], data.get("uroven", 1))

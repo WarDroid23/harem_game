@@ -1,5 +1,5 @@
 # models/hrac.py
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 from models.inventory import Inventory
 from models.agent import Agent
 
@@ -59,10 +59,19 @@ class Hrac:
 
     @classmethod
     def from_dict(cls, data):
-        inv_data = data.pop("inventar", None)
-        agenti_data = data.pop("agenti", [])
-        h = cls(**data)
-        if inv_data:
+        if not isinstance(data, dict):
+            raise ValueError("Data hráče musí být objekt.")
+
+        values = dict(data)
+        inv_data = values.pop("inventar", None)
+        agenti_data = values.pop("agenti", [])
+        allowed = {f.name for f in fields(cls)}
+        values = {key: value for key, value in values.items() if key in allowed}
+        h = cls(**values)
+        if isinstance(inv_data, dict):
             h.inventar = Inventory.from_dict(inv_data)
-        h.agenti = [Agent.from_dict(a) for a in agenti_data]
+        if isinstance(agenti_data, list):
+            h.agenti = [Agent.from_dict(a) for a in agenti_data if isinstance(a, dict)]
+        if not isinstance(h.skilly, dict):
+            h.skilly = cls().skilly
         return h

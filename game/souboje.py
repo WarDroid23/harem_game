@@ -33,11 +33,11 @@ class Souboj:
         self.nepritel = Nepritel(data["jmeno"], data["hp"], data["utok"], data["obrana"], data["zlato"], data["xp"])
         return self.nepritel
 
-    def hracuv_utok(self):
+    def hracuv_utok(self, bonus=0):
         zaklad = self.hrac.skill_body * 2 + self.hrac.skilly.get("boj", 0) * 3 + self.hrac.skilly.get("strelba", 0) * 2
         for zbran in self.hrac.inventar.zbrane:
             zaklad += zbran.poskozeni
-        return zaklad
+        return zaklad + bonus
 
     def hracova_obrana(self):
         zaklad = self.hrac.skill_body + self.hrac.skilly.get("obrana", 0) * 2
@@ -45,7 +45,7 @@ class Souboj:
         return zaklad
 
     def proved_boj(self):
-        if not self.nepritel:
+        if not self.nepritel or not self.nepritel.je_nazivu():
             self.generuj_nepritele(self.hrac.level)
 
         nepritel = self.nepritel
@@ -53,17 +53,47 @@ class Souboj:
         print(f"Tvé HP: {self.hrac.hp}/{self.hrac.max_hp}\n")
 
         while self.hrac.hp > 0 and nepritel.je_nazivu():
-            utok_hrac = self.hracuv_utok()
+            print("1) Útok  2) Obrana  3) Temný úder (10 temné energie)  4) Útěk")
+            try:
+                volba = input("> ").strip()
+            except EOFError:
+                volba = "1"
+
+            obranny_bonus = 0
+            if volba == "4":
+                if random.random() < 0.65:
+                    tisk_info("Útěk se podařil.")
+                    self.nepritel = None
+                    return False
+                tisk_chyba("Útěk se nepodařil; nepřítel útočí.")
+                utok_hrac = 0
+            elif volba == "2":
+                obranny_bonus = 8 + self.hrac.skilly.get("obrana", 0)
+                tisk_info("Zaujal jsi obranný postoj.")
+                utok_hrac = 0
+            elif volba == "3":
+                if self.hrac.dark_energy < 10:
+                    tisk_chyba("Nemáš dost temné energie, provede se běžný útok.")
+                    utok_hrac = self.hracuv_utok()
+                else:
+                    self.hrac.dark_energy -= 10
+                    utok_hrac = self.hracuv_utok(
+                        8 + self.hrac.skilly.get("temnota", 0) * 3
+                    )
+            else:
+                utok_hrac = self.hracuv_utok()
+
             obrana_nepr = nepritel.obrana
-            poskozeni = max(1, utok_hrac - obrana_nepr + random.randint(-2, 2))
-            nepritel.hp -= poskozeni
-            print(f"{GREEN}Tvůj útok: {poskozeni} zranění. {nepritel.jmeno} HP: {max(0, nepritel.hp)}/{nepritel.max_hp}{NC}")
+            if utok_hrac:
+                poskozeni = max(1, utok_hrac - obrana_nepr + random.randint(-2, 2))
+                nepritel.hp -= poskozeni
+                print(f"{GREEN}Tvůj útok: {poskozeni} zranění. {nepritel.jmeno} HP: {max(0, nepritel.hp)}/{nepritel.max_hp}{NC}")
 
             if not nepritel.je_nazivu():
                 break
 
             utok_nepr = nepritel.utok
-            obrana_hrac = self.hracova_obrana()
+            obrana_hrac = self.hracova_obrana() + obranny_bonus
             poskozeni = max(1, utok_nepr - obrana_hrac + random.randint(-2, 2))
             self.hrac.hp -= poskozeni
             print(f"{RED}Nepřítel útočí: {poskozeni} zranění. Tvé HP: {max(0, self.hrac.hp)}/{self.hrac.max_hp}{NC}")
@@ -74,10 +104,19 @@ class Souboj:
         if self.hrac.hp > 0:
             self.hrac.gold += nepritel.odmena_zlato
             self.hrac.pridej_xp(nepritel.odmena_xp)
+            self.hrac.kill_count += 1
             tisk_ok(f"Zvítězil jsi! Odměna: {nepritel.odmena_zlato} zlaťáků, +{nepritel.odmena_xp} XP.")
+            self.nepritel = None
+            vysledek = True
         else:
             ztrata = nepritel.odmena_zlato // 2
             self.hrac.gold = max(0, self.hrac.gold - ztrata)
             self.hrac.hp = 1
             tisk_chyba(f"Prohrál jsi! Ztratil jsi {ztrata} zlaťáků a přežíváš s 1 HP.")
-        input("Enter...")
+            self.nepritel = None
+            vysledek = False
+        try:
+            input("Enter...")
+        except EOFError:
+            pass
+        return vysledek

@@ -68,6 +68,10 @@ def obchod(hra):
         return
 
     polozka = polozky[idx]
+    if polozka["id"] == "najem_spiona" and len(hrac.agenti) >= hrac.max_agentu:
+        tisk_chyba("Nemáš volné místo pro agenta.")
+        input("Enter...")
+        return
     if hrac.gold < polozka["cena"]:
         tisk_chyba("Nedostatek zlata.")
         input("Enter...")
@@ -80,11 +84,7 @@ def obchod(hra):
     elif polozka["id"] == "mapa_podsveti":
         polozka["efekt"](hrac, hra.mafie)
     elif polozka["id"] == "najem_spiona":
-        uspech = polozka["efekt"](hrac)
-        if not uspech:
-            tisk_chyba("Nemáš volné místo pro agenta.")
-            input("Enter...")
-            return
+        polozka["efekt"](hrac)
     else:
         polozka["efekt"](hrac)
 

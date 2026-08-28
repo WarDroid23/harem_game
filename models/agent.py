@@ -1,5 +1,5 @@
 # models/agent.py
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, fields
 
 @dataclass
 class Agent:
@@ -15,4 +15,7 @@ class Agent:
 
     @classmethod
     def from_dict(cls, data):
-        return cls(**data)
+        if not isinstance(data, dict):
+            raise ValueError("Data agenta musí být objekt.")
+        allowed = {f.name for f in fields(cls)}
+        return cls(**{key: value for key, value in data.items() if key in allowed})

@@ -1,5 +1,5 @@
 # models/mafie.py
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 
 @dataclass
 class Uzemi:
@@ -16,7 +16,10 @@ class Uzemi:
 
     @classmethod
     def from_dict(cls, data):
-        return cls(**data)
+        if not isinstance(data, dict):
+            raise ValueError("Data území musí být objekt.")
+        allowed = {f.name for f in fields(cls)}
+        return cls(**{key: value for key, value in data.items() if key in allowed})
 
 @dataclass
 class Mafie:

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # main.py
-import sys
 import random
 from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, NC
 from game.save_load import Hra, uloz_hru, nacti_hru
@@ -59,8 +58,16 @@ def hlavni_menu(hra: Hra):
         print(f"{MAGENTA}17) 📊 Statistiky")
         print(f"{YELLOW}18) ⚔️ Souboj")
         print(f"{BLUE}19) 🧪 Alchymie")
+        print(f"{CYAN}20) 📋 Rychlý přehled")
         print(f"{RED}0) 🚪 Konec")
-        volba = input("> ").strip()
+        try:
+            volba = input("> ").strip().lower()
+        except EOFError:
+            uloz_hru(hra)
+            return
+
+        # Klávesové zkratky usnadňují návrat do menu i práci v terminálu.
+        volba = {"s": "8", "l": "9", "q": "0"}.get(volba, volba)
 
         if volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
@@ -213,8 +220,34 @@ def hlavni_menu(hra: Hra):
             hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
 
         elif volba == "0":
-            print("Konec hry.")
-            sys.exit(0)
+            uloz_hru(hra)
+            print("Hra uložena. Konec hry.")
+            return
+
+        elif volba == "20":
+            clear()
+            print(f"{GOLD}--- Rychlý přehled dne {hra.hrac.den} ---{NC}\n")
+            print(
+                f"HP {hra.hrac.hp}/{hra.hrac.max_hp} | "
+                f"Energie {hra.hrac.sex_energy}/100 | "
+                f"Temno {hra.hrac.dark_energy}/100"
+            )
+            najmy = [
+                f"{o.jmeno} ({o.najem_zbyva_dni} dní)"
+                for o in hra.harem.vsechny_aktivni() if o.na_najmu
+            ]
+            print("Aktivní nájmy: " + (", ".join(najmy) if najmy else "žádné"))
+            if hra.questy.aktivni_quest:
+                print(
+                    f"Quest: {hra.questy.aktivni_quest['nazev']} "
+                    f"({hra.questy.dny_zbyva} dní)"
+                )
+            else:
+                print("Quest: žádný aktivní")
+            try:
+                input("\nEnter...")
+            except EOFError:
+                pass
 
         else:
             tisk_chyba("Neplatná volba.")

@@ -15,15 +15,20 @@ class Harem:
         return len([o for o in self.otrokyne if o.hp > 0])
 
     def pridat(self, otrokyne):
+        if not isinstance(otrokyne, Otrokyně):
+            raise TypeError("Do harému lze přidat pouze otrokyni.")
         self.otrokyne.append(otrokyne)
         self.harem_exp += 12
-        if self.harem_exp >= self.harem_max_exp:
-            self.harem_exp = 0
+        while self.harem_exp >= self.harem_max_exp:
+            self.harem_exp -= self.harem_max_exp
             self.harem_level += 1
             self.harem_max_exp = int(self.harem_max_exp * 1.8)
 
     def odstranit(self, jmeno):
-        self.otrokyne = [o for o in self.otrokyne if o.jmeno != jmeno]
+        for index, otrok in enumerate(self.otrokyne):
+            if otrok.jmeno == jmeno:
+                del self.otrokyne[index]
+                break
 
     def vsechny_aktivni(self):
         return [o for o in self.otrokyne if o.hp > 0]
@@ -42,11 +47,23 @@ class Harem:
 
     @classmethod
     def from_dict(cls, data):
+        if not isinstance(data, dict):
+            raise ValueError("Data harému musí být objekt.")
         h = cls()
-        h.otrokyne = [Otrokyně.from_dict(o) for o in data.get("otrokyne", [])]
-        h.harem_level = data.get("harem_level", 1)
-        h.harem_exp = data.get("harem_exp", 0)
-        h.harem_max_exp = data.get("harem_max_exp", 100)
-        for k, v in data.get("budovy", {}).items():
-            h.budovy[k] = Building.from_dict(v)
+        otrokyne = data.get("otrokyne", [])
+        h.otrokyne = [
+            Otrokyně.from_dict(o) for o in otrokyne if isinstance(o, dict)
+        ] if isinstance(otrokyne, list) else []
+        h.harem_level = max(1, int(data.get("harem_level", 1)))
+        h.harem_exp = max(0, int(data.get("harem_exp", 0)))
+        h.harem_max_exp = max(1, int(data.get("harem_max_exp", 100)))
+        budovy = data.get("budovy", {})
+        if isinstance(budovy, dict):
+            for k, v in budovy.items():
+                if (
+                    k in h.budovy
+                    and isinstance(v, dict)
+                    and v.get("typ", k) in Building.TYPY
+                ):
+                    h.budovy[k] = Building.from_dict(v)
         return h

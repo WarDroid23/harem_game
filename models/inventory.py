@@ -1,5 +1,5 @@
 # models/inventory.py
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 
 @dataclass
 class Zbran:
@@ -38,8 +38,17 @@ class Inventory:
 
     @classmethod
     def from_dict(cls, data):
+        if not isinstance(data, dict):
+            raise ValueError("Data inventáře musí být objekt.")
         inv = cls()
-        inv.predmety = data.get("predmety", [])
-        inv.zbrane = [Zbran.from_dict(z) if isinstance(z, dict) else z for z in data.get("zbrane", [])]
+        predmety = data.get("predmety", [])
+        inv.predmety = predmety if isinstance(predmety, list) else []
+        zbrane = data.get("zbrane", [])
+        allowed = {f.name for f in fields(Zbran)}
+        inv.zbrane = [
+            Zbran(**{key: value for key, value in z.items() if key in allowed})
+            if isinstance(z, dict) else z
+            for z in zbrane
+        ] if isinstance(zbrane, list) else []
         inv.penize_v_bance = data.get("penize_v_bance", 0)
         return inv

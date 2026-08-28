@@ -36,9 +36,12 @@ def najem_otrokyně(hrac: Hrac, otrok: Otrokyně):
         return
 
     klient = KLIENTI[volba]
+    if otrok.hp <= 0:
+        tisk_chyba("Tato otrokyně není v dostatečném stavu pro nájem.")
+        return False
     if otrok.na_najmu:
         tisk_chyba("Otrokyně je již na najmu.")
-        return
+        return False
 
     zaklad = 20 + otrok.submisivita + otrok.poslusnost
     cena = int(zaklad * klient["multi"] * (1 + hrac.aukcni_bonus / 100))
@@ -69,6 +72,13 @@ def najem_otrokyně(hrac: Hrac, otrok: Otrokyně):
     hrac.reputace_mesta += 1
 
     pridej_vernost_xp(hrac, volba)
+    if random.random() < klient.get("riziko", 0):
+        hrac.vliv_inkvizice = min(100, hrac.vliv_inkvizice + 2)
+        tisk_chyba("Rizikový klient přitáhl pozornost inkvizice (+2 vliv).")
 
     tisk_ok(f"Otrokyně {otrok.jmeno} pronajata klientovi {klient['jmeno']} na {dny} dní za {otrok.najem_prijem_celkem} zlaťáků.")
-    input("Enter...")
+    try:
+        input("Enter...")
+    except EOFError:
+        pass
+    return True

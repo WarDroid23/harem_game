@@ -1,5 +1,5 @@
 # models/otrokyne.py
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict, field, fields
 import random
 from data.charaktery import CHARAKTERY
 from data.degradace import ziskat_fazi, aplikuj_bonusy, Faze
@@ -77,4 +77,13 @@ class Otrokyně:
 
     @classmethod
     def from_dict(cls, data):
-        return cls(**data)
+        if not isinstance(data, dict):
+            raise ValueError("Data otrokyně musí být objekt.")
+        allowed = {f.name for f in fields(cls)}
+        values = {key: value for key, value in data.items() if key in allowed}
+        otrok = cls(**values)
+        # Staré sejvy mohou obsahovat výchozí charakter „subka“. Ten nesmí
+        # být při načtení znovu náhodně přegenerován.
+        for key, value in values.items():
+            setattr(otrok, key, value)
+        return otrok
