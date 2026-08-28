@@ -79,6 +79,7 @@ def hlavni_menu(hra: Hra):
         print(f"{CYAN}25) ⚡ Dobít energie")
         print(f"{GREEN}21) 💾 Uložit hru")
         print(f"{CYAN}22) 📂 Načíst hru")
+        print(f"{YELLOW}26) 🏠 Hlavní menu")
         print(f"{RED}0) 🚪 Konec")
         try:
             volba = input("> ").strip().lower()
@@ -283,6 +284,9 @@ def hlavni_menu(hra: Hra):
             print("Hra uložena. Konec hry.")
             return
 
+        elif volba == "26":
+            return
+
         elif volba == "20":
             clear()
             print(f"{GOLD}--- Rychlý přehled dne {hra.hrac.den} ---{NC}\n")
@@ -316,15 +320,46 @@ def hlavni_menu(hra: Hra):
             tisk_chyba("Neplatná volba.")
             input("Enter...")
 
-if __name__ == "__main__":
+def nova_hra():
     hra = Hra()
-    nactena = nacti_hru()
-    if nactena:
-        hra = nactena
-        print("Načtena uložená hra.")
-    else:
-        for _ in range(2):
-            jmeno = random.choice(JMENA)
-            hra.harem.pridat(Otrokyně(jmeno))
-        print("Nová hra vytvořena.")
-    hlavni_menu(hra)
+    for _ in range(2):
+        hra.harem.pridat(Otrokyně(random.choice(JMENA)))
+    return hra
+
+def uvodni_menu():
+    """Nabídne volbu nové hry nebo načtení před vstupem do herního menu."""
+    while True:
+        clear()
+        ascii_art()
+        terminalni_obrazek("menu")
+        print(f"{GOLD}{BOLD}--- Hlavní menu ---{NC}")
+        print(f"{GREEN}1) 🆕 Nová hra")
+        print(f"{CYAN}2) 📂 Načíst hru")
+        print(f"{RED}0) 🚪 Konec")
+        try:
+            volba = input("> ").strip().lower()
+        except EOFError:
+            return None
+
+        if volba == "1":
+            return nova_hra()
+        if volba == "2":
+            hra = nacti_hru()
+            if hra:
+                tisk_ok("Hra načtena.")
+                input("Enter...")
+                return hra
+            input("Enter...")
+        elif volba == "0":
+            return None
+        else:
+            tisk_chyba("Neplatná volba.")
+            input("Enter...")
+
+if __name__ == "__main__":
+    while True:
+        hra = uvodni_menu()
+        if hra is None:
+            print("Konec hry.")
+            break
+        hlavni_menu(hra)
