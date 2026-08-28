@@ -11,6 +11,17 @@ JMENA = [
     "Frost", "Shadow", "Myst", "Echo", "Siren", "Vixen", "Wren",
     "Mei", "Yuki", "Sakura", "Hana", "Kira", "Miyu", "Rei", "Aiko",
     "Lin", "Xia", "Meiling", "Yuna",
+    "Althea", "Calista", "Dahlia", "Elara", "Fiora", "Isolde", "Leona",
+    "Maribel", "Nadia", "Ophelia", "Persephone", "Thalia", "Valeria",
+    "Aurelia", "Briseis", "Dione", "Elektra", "Gaia", "Helena", "Ione",
+    "Juniper", "Kassia", "Lyra", "Maelis", "Niamh", "Orla", "Phoebe",
+    "Amálie", "Barbora", "Eliška", "Jitka", "Karolína", "Lenka", "Markéta",
+    "Nela", "Radka", "Tereza", "Veronika", "Zdena", "Adéla", "Kristýna",
+    "Anastasia", "Beatrix", "Celeste", "Davina", "Elowen", "Genevieve",
+    "Imara", "Isadora", "Jessamine", "Lorelei", "Mirabel", "Noelle",
+    "Octavia", "Rosalind", "Serena", "Tatiana", "Vivienne", "Yvette",
+    "Amina", "Farah", "Inaya", "Layla", "Nour", "Samira", "Zahra",
+    "Akari", "Emi", "Kaori", "Natsuki", "Rin", "Tomoe", "Umiko",
 ]
 
 JMENA_AGENTU = ["Shadow", "Vesper", "Cinder", "Raven", "Silas", "Nyx", "Ash", "Wraith", "Echo"]
