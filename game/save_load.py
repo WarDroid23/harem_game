@@ -50,11 +50,29 @@ class Hra:
         self.pevnost = FortressDevelopment()
         self.kalendar = CalendarSystem(self.hrac.den)
         self.achievementy = AchievementSystem()
-        self.marriage_system = {}  # slovník {jmeno_otrokyne: Marriage objekt}
+        self.marriage_system = {}
 
     def to_dict(self):
+        from datetime import datetime
+        aktivni = []
+        try:
+            aktivni = self.harem.vsechny_aktivni()
+        except Exception:
+            pass
+        oblib = next((o.jmeno for o in aktivni if getattr(o, "oblibena", False)), None)
+        meta = {
+            "ulozene": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "format": "json",
+            "den": getattr(self.hrac, "den", 1),
+            "zlato": getattr(self.hrac, "gold", 0),
+            "pocet_haremu": len(aktivni),
+            "oblibenkyně": oblib,
+            "obtiznost": getattr(self.nastaveni, "obtiznost", "normalni"),
+            "tema": getattr(self.nastaveni, "tema", "temne_dominium"),
+        }
         return {
             "verze": VERSION,
+            "meta": meta,
             "hrac": self.hrac.to_dict(),
             "harem": self.harem.to_dict(),
             "frakce": self.frakce.to_dict(),
@@ -108,31 +126,25 @@ class Hra:
         hra.kalendar = CalendarSystem.from_dict(
             data.get("kalendar"), fallback_den=hra.hrac.den
         )
-        # Hrac.den je autoritativní pro starší sejvy, nový kalendář se s ním
-        # srovná při migraci bez ztráty historie událostí.
         hra.kalendar.den = max(hra.kalendar.den, hra.hrac.den)
         hra.hrac.den = hra.kalendar.den
         if isinstance(data.get("achievementy"), dict):
             hra.achievementy = AchievementSystem.from_dict(data["achievementy"])
-        # Načtení marriage_system
         if isinstance(data.get("marriage_system"), dict):
             hra.marriage_system = {
-                k: Marriage.from_dict(v) 
+                k: Marriage.from_dict(v)
                 for k, v in data["marriage_system"].items()
             }
-        # Staré sejvy končily po třetí kapitole; pokračování se odemkne bez
-        # přepsání inventáře, harému nebo dosavadních rozhodnutí.
         if hra.kampan.kapitola >= 3 and not hra.kampan.dokonceno:
             hra.svet.odhal_lokaci("sklenena_zahrada")
         return hra
 
 
 def cesta_slotu(slot, hlavni_soubor=SAVE_FILE):
-    """Vrátí cestu slotu; slot 1 zůstává přesně původním hlavním savem."""
     try:
         slot = int(slot)
     except (TypeError, ValueError):
-        raise ValueError("Slot musí být číslo 1 až 3.")
+        raise ValueError(f"Slot musí být číslo 1 až {POCET_SLOTU}.")
     if slot < 1 or slot > POCET_SLOTU:
         raise ValueError(f"Slot musí být číslo 1 až {POCET_SLOTU}.")
     cesta = Path(hlavni_soubor).expanduser()
@@ -141,17 +153,41 @@ def cesta_slotu(slot, hlavni_soubor=SAVE_FILE):
     return cesta.with_name(f"{cesta.stem}_slot{slot}{cesta.suffix}")
 
 
+def _nacti_meta(cesta):
+    try:
+        with Path(cesta).open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            return None
+        meta = data.get("meta")
+        if isinstance(meta, dict):
+            return meta
+        hrac = data.get("hrac") or {}
+        return {
+            "ulozene": "?",
+            "den": hrac.get("den", "?"),
+            "zlato": hrac.get("gold", "?"),
+            "pocet_haremu": len((data.get("harem") or {}).get("otrokyne") or []),
+            "oblibenkyně": None,
+        }
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        return None
+
+
 def seznam_slotu(hlavni_soubor=SAVE_FILE):
-    """Vrátí stav tří slotů bez vytváření nebo přepisování souborů."""
-    return [
-        {
+    vysledek = []
+    for slot in range(1, POCET_SLOTU + 1):
+        cesta = cesta_slotu(slot, hlavni_soubor)
+        existuje = cesta.exists()
+        meta = _nacti_meta(cesta) if existuje else None
+        vysledek.append({
             "slot": slot,
             "nazev": NAZVY_SLOTU[slot],
-            "cesta": cesta_slotu(slot, hlavni_soubor),
-            "existuje": cesta_slotu(slot, hlavni_soubor).exists(),
-        }
-        for slot in range(1, POCET_SLOTU + 1)
-    ]
+            "cesta": cesta,
+            "existuje": existuje,
+            "meta": meta,
+        })
+    return vysledek
 
 
 def uloz_slot(hra, slot, hlavni_soubor=SAVE_FILE):
@@ -161,8 +197,9 @@ def uloz_slot(hra, slot, hlavni_soubor=SAVE_FILE):
 def nacti_slot(slot, hlavni_soubor=SAVE_FILE):
     return nacti_hru(cesta_slotu(slot, hlavni_soubor))
 
+
 def uloz_hru(hra: Hra, soubor=SAVE_FILE):
-    """Uloží hru atomicky a rotuje tři záložní kopie bez mazání hlavního savu."""
+    """Uloží hru atomicky do JSON a rotuje záložní kopie."""
     cesta = Path(soubor).expanduser()
     slozka = cesta.parent if str(cesta.parent) else Path(".")
     docasny = None
@@ -185,7 +222,7 @@ def uloz_hru(hra: Hra, soubor=SAVE_FILE):
             shutil.copy2(cesta, cesta.with_name(cesta.name + ".bak"))
         os.replace(docasny, cesta)
         docasny = None
-        print(f"Hra uložena do {cesta}.")
+        print(f"Hra uložena do JSON: {cesta}.")
         return True
     except (OSError, TypeError, ValueError) as chyba:
         if docasny:
@@ -196,8 +233,9 @@ def uloz_hru(hra: Hra, soubor=SAVE_FILE):
         print(f"Uložení selhalo: {chyba}")
         return False
 
+
 def nacti_hru(soubor=SAVE_FILE):
-    """Načte hlavní sejv a při poškození zkusí všechny dostupné zálohy."""
+    """Načte JSON sejv; při poškození zkusí zálohy .bak/.bak2/.bak3."""
     cesta = Path(soubor).expanduser()
     if not cesta.exists() and not cesta.with_name(cesta.name + ".bak").exists():
         print("Žádná uložená hra.")
@@ -210,11 +248,11 @@ def nacti_hru(soubor=SAVE_FILE):
         cesta.with_name(cesta.name + ".bak3"),
     ]
     posledni_chyba = None
-    for index, kandidát in enumerate(cesty):
-        if not kandidát.exists():
+    for index, kandidat in enumerate(cesty):
+        if not kandidat.exists():
             continue
         try:
-            with kandidát.open("r", encoding="utf-8") as f:
+            with kandidat.open("r", encoding="utf-8") as f:
                 data = json.load(f)
             hra = Hra.from_dict(data)
             if index:
@@ -233,5 +271,4 @@ def cesta_autosave(hlavni_soubor=SAVE_FILE):
 
 
 def uloz_autosave(hra, hlavni_soubor=SAVE_FILE):
-    """Zapíše bezpečný autosave do samostatného souboru, nikdy přes hlavní slot."""
     return uloz_hru(hra, cesta_autosave(hlavni_soubor))
