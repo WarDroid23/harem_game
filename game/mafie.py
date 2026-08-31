@@ -42,7 +42,6 @@ def najmout_vojaka(hrac, mafie: Mafie, cena=50):
 
 
 def _rozbal_args(arg0, arg1=None):
-    """Podporuje spravovat_mafii(hra) i spravovat_mafii(hrac, mafie)."""
     if arg1 is not None:
         return arg0, arg1
     if hasattr(arg0, "hrac") and hasattr(arg0, "mafie"):
@@ -50,8 +49,27 @@ def _rozbal_args(arg0, arg1=None):
     raise TypeError("spravovat_mafii očekává (hra) nebo (hrac, mafie)")
 
 
+def valka_uzemi(hrac, mafie):
+    import random
+    if not mafie.uzemi:
+        tisk_chyba("Bez území nemá smysl válčit.")
+        return
+    sila = mafie.vojaci * 3 + mafie.korupce // 2 + len(mafie.uzemi) * 5
+    nepritel = random.randint(15, 40 + getattr(hrac, "den", 1))
+    tisk_info(f"Tvá síla: {sila} vs nepřítel: {nepritel}")
+    if sila >= nepritel:
+        zisk = random.randint(80, 200)
+        hrac.gold += zisk
+        mafie.vliv_ve_meste = min(100, getattr(mafie, "vliv_ve_meste", 0) + 5)
+        tisk_ok(f"Vítězství! Kořist +{zisk} zl, vliv ve městě stoupl.")
+    else:
+        ztrata = min(hrac.gold, random.randint(40, 120))
+        hrac.gold -= ztrata
+        mafie.vojaci = max(0, mafie.vojaci - random.randint(0, 2))
+        tisk_chyba(f"Porážka. −{ztrata} zl, ztráty mezi vojáky.")
+
+
 def spravovat_mafii(arg0, arg1=None):
-    """Menu mafie. Volání: spravovat_mafii(hra) nebo (hrac, mafie)."""
     try:
         hrac, mafie = _rozbal_args(arg0, arg1)
     except TypeError as e:
@@ -61,7 +79,6 @@ def spravovat_mafii(arg0, arg1=None):
         except EOFError:
             pass
         return
-
     while True:
         clear()
         print(f"{MAGENTA}--- Mafie / Sex impérium ---{NC}")
@@ -74,34 +91,27 @@ def spravovat_mafii(arg0, arg1=None):
         else:
             for i, u in enumerate(mafie.uzemi, 1):
                 stav = "obsazeno" if getattr(u, "obsazeno", False) else "volné"
-                print(
-                    f"{i}) {u.nazev} – příjem {u.prijem}, "
-                    f"kontrola {u.kontrola}%, stav: {stav}"
-                )
+                print(f"{i}) {u.nazev} – příjem {u.prijem}, kontrola {u.kontrola}%, stav: {stav}")
         print(f"\n{GREEN}1) Koupit území")
         print(f"{CYAN}2) Vylepšit kontrolu")
         print(f"{GOLD}3) Najímat vojáky (50 zl)")
         print(f"{RED}4) Zvýšit korupci (200 zl)")
+        print(f"{MAGENTA}5) Válka o území")
         print(f"{NC}0) Zpět")
         try:
             volba = input("> ").strip()
         except EOFError:
             return
-
         if volba == "0":
             return
         if volba == "1":
-            print("Dostupná území:")
             dostupna = dostupna_uzemi(mafie)
             if not dostupna:
                 tisk_info("Žádná další území k nákupu.")
             else:
                 for i, u in enumerate(dostupna, 1):
                     cena = 500 + len(mafie.uzemi) * 200
-                    print(
-                        f"{i}) {u.nazev} – příjem {u.prijem}, "
-                        f"riziko {u.riziko_inkvizice}, cena {cena}"
-                    )
+                    print(f"{i}) {u.nazev} – příjem {u.prijem}, riziko {u.riziko_inkvizice}, cena {cena}")
                 try:
                     idx = int(input("Vyber území: ")) - 1
                     if 0 <= idx < len(dostupna):
@@ -142,6 +152,12 @@ def spravovat_mafii(arg0, arg1=None):
         elif volba == "3":
             if not najmout_vojaka(hrac, mafie):
                 tisk_chyba("Nedostatek zlata.")
+            try:
+                input("Enter...")
+            except EOFError:
+                return
+        elif volba == "5":
+            valka_uzemi(hrac, mafie)
             try:
                 input("Enter...")
             except EOFError:
