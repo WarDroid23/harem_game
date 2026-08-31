@@ -5,6 +5,7 @@ from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, WHITE, N
 from game.save_load import (
     Hra, uloz_hru, uloz_slot, nacti_slot, seznam_slotu,
 )
+from game.trailer import prehraj_trailer, menu_trailer
 from game.interakce import zobraz_interakce, zobraz_hromadne_interakce
 from game.ekonomika import najem_otrokyně
 from game.mafie import spravovat_mafii
@@ -209,9 +210,11 @@ def hlavni_menu(hra: Hra):
         ascii_art()
         terminalni_obrazek("menu")
         print(f"{GOLD}{BOLD}Den: {hra.hrac.den} | {GREEN}Zlato: {hra.hrac.gold} 🪙{NC}")
+        max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
+        max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
         print(
-            f"{CYAN}Energie {ukazatel(hra.hrac.sex_energy, 100)} | "
-            f"Temná energie {ukazatel(hra.hrac.dark_energy, 100)}{NC}"
+            f"{CYAN}Energie {ukazatel(hra.hrac.sex_energy, max_s)} | "
+            f"Temná energie {ukazatel(hra.hrac.dark_energy, max_t)}{NC}"
         )
         print(f"{RED}Reputace: {hra.hrac.reputace_mesta} | {BLUE}Vliv inkvizice: {hra.hrac.vliv_inkvizice}{NC}")
         kapitola = hra.kampan.aktualni()
@@ -397,10 +400,12 @@ def hlavni_menu(hra: Hra):
         elif volba == "20":
             clear()
             print(f"{GOLD}--- Rychlý přehled dne {hra.hrac.den} ---{NC}\n")
+            max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
+            max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
             print(
                 f"HP {hra.hrac.hp}/{hra.hrac.max_hp} | "
-                f"Energie {hra.hrac.sex_energy}/100 | "
-                f"Temno {hra.hrac.dark_energy}/100"
+                f"Energie {hra.hrac.sex_energy}/{max_s} | "
+                f"Temno {hra.hrac.dark_energy}/{max_t}"
             )
             print(
                 f"Místo: {hra.svet.aktualni_lokace} | "
@@ -425,30 +430,38 @@ def hlavni_menu(hra: Hra):
 
 
 def start():
-    clear()
-    ascii_art()
-    print(f"{GOLD}{BOLD}HAREM DARK – Dark Expansion{NC}\n")
-    print("1) Nová hra")
-    print("2) Načíst hru")
-    print("3) Nastavení")
-    print("0) Konec")
-    try:
-        volba = input("> ").strip()
-    except EOFError:
-        return
-    if volba == "1":
-        hra = Hra()
-        hlavni_menu(hra)
-    elif volba == "2":
-        hra = menu_nacteni()
-        if hra:
+    while True:
+        clear()
+        ascii_art()
+        print(f"{GOLD}{BOLD}HAREM DARK – Dark Expansion{NC}\n")
+        print(f"{GREEN}1) Nová hra")
+        print(f"{CYAN}2) Načíst hru")
+        print(f"{WHITE}3) Nastavení")
+        print(f"{MAGENTA}4) 🎬 Trailer")
+        print(f"{RED}0) Konec")
+        try:
+            volba = input("> ").strip()
+        except EOFError:
+            return
+        if volba == "1":
+            try:
+                prehraj_trailer(rychle=True, interaktivni=True)
+            except Exception:
+                pass
+            hra = Hra()
             hlavni_menu(hra)
-    elif volba == "3":
-        h = Hra()
-        menu_nastaveni(h)
-        start()
-    else:
-        print("Konec.")
+        elif volba == "2":
+            hra = menu_nacteni()
+            if hra:
+                hlavni_menu(hra)
+        elif volba == "3":
+            h = Hra()
+            menu_nastaveni(h)
+        elif volba == "4":
+            menu_trailer()
+        else:
+            print("Konec.")
+            return
 
 
 if __name__ == "__main__":
