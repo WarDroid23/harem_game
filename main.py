@@ -83,12 +83,15 @@ def menu_nacteni():
 
 
 def menu_nastaveni(hra):
+    from config import THEMES, apply_theme
     while True:
         clear()
         nastaveni = hra.nastaveni
+        terminalni_obrazek("nastaveni")
         print("--- Nastavení hry ---\n")
         print(f"1) Barvy terminálu: {'zapnuté' if nastaveni.barvy else 'vypnuté'}")
         print(f"2) Obtížnost: {nastaveni.obtiznost_text}")
+        print(f"3) Barevné téma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -112,9 +115,36 @@ def menu_nastaveni(hra):
             else:
                 tisk_chyba("Neplatná obtížnost.")
             input("Enter...")
+        elif volba == "3":
+            print("\n--- Barevná témata ---\n")
+            seznam = list(THEMES.items())
+            for i, (tid, info) in enumerate(seznam, 1):
+                aktivni = " ← aktivní" if tid == getattr(nastaveni, "tema", "") else ""
+                print(f"{i}) {info['nazev']}{aktivni}")
+                print(f"   {info['popis']}")
+            print("0) Zpět")
+            vyber = input("> ").strip()
+            if vyber == "0":
+                continue
+            try:
+                idx = int(vyber) - 1
+                if 0 <= idx < len(seznam):
+                    tid = seznam[idx][0]
+                    nastaveni.tema = tid
+                    nastaveni.barvy = True
+                    aplikuj_nastaveni(nastaveni)
+                    nazev = apply_theme(tid)
+                    tisk_ok(f"Téma nastaveno: {nazev}")
+                    terminalni_obrazek("menu")
+                else:
+                    tisk_chyba("Špatná volba.")
+            except ValueError:
+                tisk_chyba("Zadej číslo.")
+            input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")
             input("Enter...")
+
 
 def hlavni_menu(hra: Hra):
     diplo = Diplomacie(hra.frakce)
