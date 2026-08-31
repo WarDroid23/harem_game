@@ -29,6 +29,7 @@ from game.harem_interakce import menu_haremu
 from game.settings import NastaveniHry, aplikuj_nastaveni
 from game.automaticky_tah import obsluz_automaticky_tah
 from game.manzelstvi import menu_manzelstvi
+from game.menu_extra import obsluz_extra_volbu
 from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel,
@@ -106,6 +107,7 @@ def menu_nastaveni(hra):
         print(f"1) Barvy terminálu: {'zapnuté' if nastaveni.barvy else 'vypnuté'}")
         print(f"2) Obtížnost: {nastaveni.obtiznost_text}")
         print(f"3) Barevné téma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
+        print(f"4) Ironman: {'ANO' if getattr(nastaveni, 'ironman', False) else 'ne'}")
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -154,6 +156,10 @@ def menu_nastaveni(hra):
                     tisk_chyba("Špatná volba.")
             except ValueError:
                 tisk_chyba("Zadej číslo.")
+            input("Enter...")
+        elif volba == "4":
+            nastaveni.ironman = not getattr(nastaveni, "ironman", False)
+            tisk_ok("Ironman " + ("zapnut" if nastaveni.ironman else "vypnut") + ".")
             input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")
@@ -257,6 +263,9 @@ def hlavni_menu(hra: Hra):
         print(f"{YELLOW}24) 🛠️ Předměty a crafting")
         print(f"{CYAN}25) ⚡ Dobít energie")
         print(f"{MAGENTA}28) 💍 Manželství a rodina")
+        print(f"{CYAN}29) 📜 Kronika")
+        print(f"{GOLD}30) 📋 Denní rozkazy harému")
+        print(f"{RED}31) 🎭 Veřejný výkon")
         print(f"{GREEN}A) 🤖 Automatický bezpečný tah")
         print(f"{YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení)")
         print(f"{RED}0) 🚪 Konec")
@@ -378,7 +387,10 @@ def hlavni_menu(hra: Hra):
             input("Enter...")
         elif volba == "12":
             odpocinek(hra)
-            input("Enter...")
+            try:
+                spust_nahodnou_udalost(hra)
+            except Exception:
+                pass
         elif volba == "13":
             obchod(hra)
         elif volba == "14":
@@ -403,6 +415,9 @@ def hlavni_menu(hra: Hra):
             menu_energie(hra)
         elif volba == "28":
             menu_manzelstvi(hra)
+        elif volba in ("29", "30", "31"):
+            if obsluz_extra_volbu(volba, hra):
+                pass
         elif volba == "26":
             vysledek = menu_meta_hlavni(hra)
             if vysledek == "quit":
