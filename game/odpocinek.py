@@ -1,6 +1,7 @@
 # game/odpocinek.py
 from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
-from config import GREEN, CYAN, MAGENTA, NC
+from config import GREEN, CYAN, MAGENTA, GOLD, NC
+
 
 def zpracuj_den(hra):
     harem = hra.harem
@@ -31,6 +32,61 @@ def zpracuj_den(hra):
     return dokoncene_najmy
 
 
+def _bonus_energie_ze_vztahu(hra):
+    hrac = hra.hrac
+    zpravy = []
+    try:
+        aktivni = hra.harem.vsechny_aktivni()
+    except Exception:
+        return zpravy
+
+    manzelky = [o for o in aktivni if getattr(o, "je_manzelkou", False)]
+    if not manzelky and getattr(hra, "marriage_system", None):
+        for o in aktivni:
+            m = hra.marriage_system.get(o.jmeno)
+            if m and hasattr(m, "je_vdana") and m.je_vdana():
+                manzelky.append(o)
+
+    oblibene = [o for o in aktivni if getattr(o, "oblibena", False)]
+    rust_sex = 0
+    rust_temno = 0
+
+    if manzelky:
+        for m in manzelky[:2]:
+            rust_sex += 1
+            rust_temno += 1
+        jmena = ", ".join(o.jmeno for o in manzelky[:2])
+        zpravy.append(f"💍 {jmena}: manželská blízkost posílila tvou výdrž (+{min(2, len(manzelky))} max).")
+
+    if oblibene:
+        o = oblibene[0]
+        rust_sex += 1
+        if getattr(o, "faze_zkazenosti", 0) >= 8 or getattr(o, "loajalita", 0) >= 80:
+            rust_temno += 1
+            zpravy.append(f"★ {o.jmeno}: oddanost oblíbenkyně zvedá sex i temno (+1/+1 max).")
+        else:
+            zpravy.append(f"★ {o.jmeno}: přítomnost oblíbenkyně zvedá sexuální výdrž (+1 max).")
+
+    if not manzelky:
+        partnerky = [
+            o for o in aktivni
+            if getattr(o, "partnerka", False) and not getattr(o, "je_manzelkou", False)
+        ]
+        if partnerky:
+            rust_sex += 1
+            zpravy.append(f"♥ Partnerka {partnerky[0].jmeno}: jemné sbližování (+1 max sex).")
+
+    if rust_sex:
+        skutecny = hrac.zvys_max_sex(rust_sex)
+        if skutecny == 0 and rust_sex:
+            zpravy.append("Sexuální maximum je už na stropu.")
+    if rust_temno:
+        skutecny = hrac.zvys_max_temno(rust_temno)
+        if skutecny == 0 and rust_temno:
+            zpravy.append("Temné maximum je už na stropu.")
+    return zpravy
+
+
 def odpocinek(hra, rezim=None):
     hrac = hra.hrac
     clear()
@@ -49,6 +105,9 @@ def odpocinek(hra, rezim=None):
     hrac.den += 1
     if hasattr(hra, "kalendar"):
         hra.kalendar.dalsi_den(hrac.den - 1)
+
+    for z in _bonus_energie_ze_vztahu(hra):
+        tisk_ok(z)
 
     hrac.dopln_energie_naplno()
     if rezim == "meditace":
@@ -69,7 +128,7 @@ def odpocinek(hra, rezim=None):
             bonus_marriage_gold += 50
             marriage.intimita_level = min(100, marriage.intimita_level + 5)
             marriage.starne_deti()
-    if bonus_marriage_gold:
+    if bonus_marriage_gold > 0:
         hrac.gold += bonus_marriage_gold
         tisk_ok(f"💍 Manželství: zlato +{bonus_marriage_gold}")
 
