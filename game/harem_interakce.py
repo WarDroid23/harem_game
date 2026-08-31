@@ -1,4 +1,5 @@
 from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from game.tresty_odmeny import nastav_oblibenou, menu_odmen
 
 
 def _vyber_otrokyni(hra):
@@ -10,8 +11,15 @@ def _vyber_otrokyni(hra):
     print("Vyber postavu:")
     for index, otrok in enumerate(aktivni, 1):
         stav_osudu = "dokončen" if otrok.osud_dokonceno else f"{otrok.osud_krok}/2"
+        hvezda = "★ " if getattr(otrok, "oblibena", False) else ""
+        znacky = []
+        if getattr(otrok, "je_manzelkou", False):
+            znacky.append("💍")
+        if getattr(otrok, "partnerka", False):
+            znacky.append("♥")
+        zn = (" " + " ".join(znacky)) if znacky else ""
         print(
-            f"{index}) {otrok.jmeno} — role: {otrok.role}, "
+            f"{index}) {hvezda}{otrok.jmeno}{zn} — role: {otrok.role}, "
             f"loajalita {otrok.loajalita}, důvěra {otrok.duvera}, osud {stav_osudu}"
         )
     print("0) Zpět")
@@ -39,6 +47,8 @@ def _osobni_akce(hra, otrok):
     print("5) Nabídnout romantickou chvíli (8 energie, pouze se souhlasem)")
     print("6) Nabídnout partnerský vztah (po vzájemném sblížení)")
     print("7) Společná mise s partnerkou (+XP a reputace)")
+    print("8) Jmenovat oblíbenkyní harému")
+    print("9) Odměny (systém odměn)")
     print("0) Zpět")
     volba = input("> ").strip()
     if volba == "1":
@@ -155,6 +165,10 @@ def _osobni_akce(hra, otrok):
                 f"Ty a {otrok.jmeno} jste dokončili společnou misi. "
                 "Získal jsi 20 XP a reputace +2."
             )
+    elif volba == "8":
+        nastav_oblibenou(hra, otrok)
+    elif volba == "9":
+        menu_odmen(otrok, hra.hrac)
     elif volba != "0":
         tisk_chyba("Neplatná volba.")
     if volba != "4":
@@ -199,14 +213,17 @@ def proved_poradu(hra, postavy=None):
 
 
 def zobraz_profil(otrok):
-    """Vypíše úplný profil jedné dospělé postavy bez odhalování neplatného věku."""
     print(f"\n--- Profil: {otrok.jmeno} ---")
     print(f"Věk: {max(18, int(otrok.vek))} | Role: {otrok.role}")
     print(f"Charakter: {otrok.charakter} | Osud: {otrok.popis_osudu()}")
+    if getattr(otrok, "oblibena", False):
+        print(f"★ Oblíbenkyně (od dne {getattr(otrok, 'oblibena_od_den', '?')})")
     if otrok.partnerka:
         print(f"Partnerský vztah: ano (od dne {otrok.partner_od_den})")
     else:
         print("Partnerský vztah: ne")
+    if getattr(otrok, "je_manzelkou", False):
+        print("💍 Manželka")
     print(
         f"Vztah: {otrok.romance_stav} ({otrok.romance_body}/100) | "
         f"Loajalita: {otrok.loajalita} | Důvěra: {otrok.duvera}"
@@ -242,8 +259,9 @@ def menu_profily(hra):
             input("Enter...")
             return
         for index, otrok in enumerate(aktivni, 1):
+            hvezda = "★ " if getattr(otrok, "oblibena", False) else ""
             print(
-                f"{index}) {otrok.jmeno} — {max(18, int(otrok.vek))} let, "
+                f"{index}) {hvezda}{otrok.jmeno} — {max(18, int(otrok.vek))} let, "
                 f"{otrok.role}, vztah {otrok.romance_stav}"
             )
         print("0) Zpět")
@@ -268,11 +286,27 @@ def menu_profily(hra):
 def menu_haremu(hra):
     while True:
         clear()
-        print("--- Harem: péče a vztahy ---\n")
-        print(f"Členky: {hra.harem.pocet()} | Úroveň harému: {hra.harem.harem_level}")
-        print("1) Osobní rozhovor a osud")
+        aktivni = hra.harem.vsechny_aktivni()
+        oblibene = [o for o in aktivni if getattr(o, "oblibena", False)]
+        partnerky = [o for o in aktivni if getattr(o, "partnerka", False)]
+        manzelky = [o for o in aktivni if getattr(o, "je_manzelkou", False)]
+
+        print("--- Harem: péče, vztahy a privilegia ---\n")
+        print(f"Členky: {hra.harem.pocet()} | Úroveň harému: {getattr(hra.harem, 'harem_level', 1)}")
+        if oblibene:
+            print(f"★ Oblíbenkyně: {oblibene[0].jmeno}")
+        else:
+            print("★ Oblíbenkyně: (zatím žádná)")
+        if partnerky:
+            print(f"♥ Partnerky: {', '.join(o.jmeno for o in partnerky)}")
+        if manzelky:
+            print(f"💍 Manželka: {', '.join(o.jmeno for o in manzelky)}")
+        print()
+        print("1) Osobní rozhovor, osud, odměny a oblíbenkyně")
         print("2) Společná porada")
         print("3) Profily postav a historie voleb")
+        print("4) Rychle jmenovat / změnit oblíbenkyni")
+        print("5) Odměny pro vybranou otrokyni")
         print("0) Zpět")
         volba = input("> ").strip()
         if volba == "0":
@@ -285,6 +319,16 @@ def menu_haremu(hra):
             porada_haremu(hra)
         elif volba == "3":
             menu_profily(hra)
+        elif volba == "4":
+            otrok = _vyber_otrokyni(hra)
+            if otrok:
+                nastav_oblibenou(hra, otrok)
+                input("Enter...")
+        elif volba == "5":
+            otrok = _vyber_otrokyni(hra)
+            if otrok:
+                menu_odmen(otrok, hra.hrac)
+                input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")
             input("Enter...")
