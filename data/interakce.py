@@ -1,4 +1,6 @@
 # data/interakce.py
+# Dark Expansion v1.0 – rozšířené interakce
+
 INTERAKCE = [
     {
         "id": "neznost",
@@ -162,5 +164,115 @@ INTERAKCE = [
         "cena_energie": 7,
         "cena_temnoty": 0,
         "riziko": 0.0
+    },
+    # === DARK EXPANSION – nové interakce ===
+    {
+        "id": "znaceni_vlastnictvi",
+        "nazev": "Značení vlastnictví",
+        "typ": "trest",
+        "efekty": {"loajalita": 8, "broken": 6, "humiliation": 12, "scarred": 4, "owned_mark": 1},
+        "cena_energie": 12,
+        "cena_temnoty": 15,
+        "riziko": 0.05
+    },
+    {
+        "id": "verejny_trenink",
+        "nazev": "Veřejný trénink před harémem",
+        "typ": "trest",
+        "efekty": {"humiliation": 20, "submisivita": 12, "broken": 7, "strach": 10},
+        "cena_energie": 15,
+        "cena_temnoty": 10,
+        "riziko": 0.07,
+        "vliv_inkvizice": 3
+    },
+    {
+        "id": "smyslove_pretižení",
+        "nazev": "Smyslové přetížení",
+        "typ": "trest",
+        "efekty": {"touha": 15, "broken": 8, "mindbreak": 6, "vlhkost": 12},
+        "cena_energie": 18,
+        "cena_temnoty": 8,
+        "riziko": 0.04
+    },
+    {
+        "id": "nucena_regresse",
+        "nazev": "Nucená regrese",
+        "typ": "trest",
+        "efekty": {"mindbreak": 12, "submisivita": 15, "broken": 5, "duvera": -4},
+        "cena_energie": 10,
+        "cena_temnoty": 18,
+        "riziko": 0.06
+    },
+    {
+        "id": "oralni_sluzba_hodiny",
+        "nazev": "Orální služba (dlouhá)",
+        "typ": "odmena",
+        "efekty": {"poslusnost": 10, "loajalita": 6, "touha": 8, "submisivita": 5},
+        "cena_energie": 20,
+        "cena_temnoty": 0,
+        "riziko": 0.0
+    },
+    {
+        "id": "klec_a_cakani",
+        "nazev": "Klec a čekání",
+        "typ": "trest",
+        "efekty": {"strach": 12, "submisivita": 10, "broken": 4, "duvera": -3},
+        "cena_energie": 5,
+        "cena_temnoty": 6,
+        "riziko": 0.02
+    },
+    {
+        "id": "kolektivni_pouziti",
+        "nazev": "Kolektivní použití (harém)",
+        "typ": "trest",
+        "efekty": {"humiliation": 18, "broken": 10, "submisivita": 8, "touha": 5},
+        "cena_energie": 25,
+        "cena_temnoty": 12,
+        "riziko": 0.08
+    },
+    {
+        "id": "elixir_poslusnosti",
+        "nazev": "Elixír poslušnosti",
+        "typ": "neutralni",
+        "efekty": {"poslusnost": 15, "submisivita": 10, "mindbreak": 4, "zavislost": 5},
+        "cena_energie": 5,
+        "cena_temnoty": 15,
+        "riziko": 0.03
+    },
+    {
+        "id": "rituali_poklona",
+        "nazev": "Rituální poklona",
+        "typ": "odmena",
+        "efekty": {"loajalita": 12, "poslusnost": 8, "duvera": 4},
+        "cena_energie": 8,
+        "cena_temnoty": 5,
+        "riziko": 0.0
+    },
+    {
+        "id": "bolest_jako_odmena",
+        "nazev": "Bolest jako odměna",
+        "typ": "trest",
+        "efekty": {"pain_addiction": 12, "touha": 10, "submisivita": 8, "broken": 3},
+        "cena_energie": 14,
+        "cena_temnoty": 10,
+        "riziko": 0.05
+    },
+    {
+        "id": "ticho_a_pohled",
+        "nazev": "Ticho a pohled",
+        "typ": "odmena",
+        "efekty": {"duvera": 8, "loajalita": 5, "strach": -3},
+        "cena_energie": 4,
+        "cena_temnoty": 0,
+        "riziko": 0.0
+    },
+    {
+        "id": "vynucene_priznani",
+        "nazev": "Vynucené přiznání",
+        "typ": "trest",
+        "efekty": {"broken": 9, "humiliation": 10, "mindbreak": 5, "duvera": -5},
+        "cena_energie": 8,
+        "cena_temnoty": 12,
+        "riziko": 0.04
     },
 ]
