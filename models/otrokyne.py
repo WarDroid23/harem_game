@@ -64,6 +64,8 @@ class Otrokyně:
     je_manzelkou: bool = False
     den_zasnubin: int = 0
     den_svatby: int = 0
+    oblibena: bool = False
+    oblibena_od_den: int = 0
 
     def __post_init__(self):
         if self.charakter == "subka" and random.random() < 0.7:
@@ -98,16 +100,10 @@ class Otrokyně:
     def popis_osudu(self):
         if not self.osud_id:
             return "Osud zatím neznámý"
-        from data.osudy import OSUDY
-        osud = OSUDY.get(self.osud_id)
-        return osud["nazev"] if osud else "Osud zatím neznámý"
+        return f"{self.osud_id} ({self.osud_krok})"
 
-    def zaznamenej_volbu(self, typ, text, den=None):
-        """Uloží stručnou historii rozhodnutí pro profil postavy."""
-        zaznam = {"typ": str(typ), "volba": str(text)}
-        if den is not None:
-            zaznam["den"] = den
-        self.historie_voleb.append(zaznam)
+    def zaznamenej_volbu(self, kategorie, popis, den):
+        self.historie_voleb.append({"kategorie": kategorie, "popis": popis, "den": den})
 
     def to_dict(self):
         return asdict(self)
@@ -115,40 +111,17 @@ class Otrokyně:
     @classmethod
     def from_dict(cls, data):
         if not isinstance(data, dict):
-            raise ValueError("Data otrokyně musí být objekt.")
-        allowed = {f.name for f in fields(cls)}
-        values = {key: value for key, value in data.items() if key in allowed}
-        otrok = cls(**values)
-        # Staré sejvy mohou obsahovat výchozí charakter „subka“. Ten nesmí
-        # být při načtení znovu náhodně přegenerován.
-        for key, value in values.items():
-            setattr(otrok, key, value)
-        try:
-            otrok.vek = max(18, int(otrok.vek))
-        except (TypeError, ValueError):
-            otrok.vek = 18
-        if not isinstance(otrok.romance_volby, list):
-            otrok.romance_volby = []
-        if not isinstance(otrok.historie_voleb, list):
-            otrok.historie_voleb = []
-        if not isinstance(otrok.vybaveni, list):
-            otrok.vybaveni = []
-        if not isinstance(otrok.osud_zaver, str):
-            otrok.osud_zaver = ""
+            return None
+        valid = {f.name for f in fields(cls)}
+        filtered = {k: v for k, v in data.items() if k in valid}
+        otrok = cls(**filtered)
+        # sanitizace
         if not isinstance(otrok.partnerka, bool):
             otrok.partnerka = False
         try:
             otrok.partner_od_den = max(0, int(otrok.partner_od_den))
         except (TypeError, ValueError):
             otrok.partner_od_den = 0
-        try:
-            otrok.lecba_zavislosti = max(0, min(100, int(otrok.lecba_zavislosti)))
-        except (TypeError, ValueError):
-            otrok.lecba_zavislosti = 0
-        if not isinstance(otrok.romance_stav, str):
-            otrok.romance_stav = "otevřená možnost"
-        try:
-            otrok.romance_body = max(0, min(100, int(otrok.romance_body)))
-        except (TypeError, ValueError):
-            otrok.romance_body = 0
+        if not isinstance(getattr(otrok, "oblibena", False), bool):
+            otrok.oblibena = False
         return otrok
