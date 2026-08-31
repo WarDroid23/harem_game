@@ -44,125 +44,21 @@ def tisk_cyan(text):
     print(barva(f"💠 {text}", CYAN))
 
 
-def terminalni_obrazek(scena):
-    obrazky = {
-        "menu": (
-            f"{VIOLET}       /\\_/\\{NC}\n"
-            f"{MAGENTA}      ( o.o ){NC}   {GOLD}╔════════════════════╗{NC}\n"
-            f"{CYAN}       > ^ <{NC}    {GOLD}║  TEMNÉ DOMINIUM   ║{NC}\n"
-            f"{GRAY}      /|   |\\{NC}   {GOLD}╚════════════════════╝{NC}"
-        ),
-        "mapa": (
-            f"{GREEN}       [PEVNOST]───[TRH]───[PŘÍSTAV]{NC}\n"
-            f"{GRAY}          │          │{NC}\n"
-            f"{BLUE}       [LES]────[HRANICE]{NC}\n"
-            f"{ORANGE}              ✦ CESTA OSUDU{NC}"
-        ),
-        "souboj": (
-            f"{RED}             /\\        /\\{NC}\n"
-            f"{WHITE}            /  \\      /  \\{NC}\n"
-            f"{YELLOW}           < ⚔  >  VS  <  ⚔ >{NC}\n"
-            f"{RED}            \\__/      \\__/{NC}"
-        ),
-        "osudy": (
-            f"{VIOLET}          .-=========-.{NC}\n"
-            f"{GOLD}         /  KNIHA OSUDŮ \\{NC}\n"
-            f"{CYAN}        |  ✦  ✦  ✦  ✦  |{NC}\n"
-            f"{VIOLET}         \\_____________/{NC}"
-        ),
-        "harem": (
-            f"{MAGENTA}     ╔═══ HARÉM ═══╗{NC}\n"
-            f"{CYAN}     │ ♀  ♀  ★  ♀  │{NC}\n"
-            f"{GOLD}     │   klečí…    │{NC}\n"
-            f"{MAGENTA}     ╚═════════════╝{NC}"
-        ),
-        "odmena": (
-            f"{GOLD}        .·´¯`·.¸{NC}\n"
-            f"{YELLOW}       ¸.·´¯`·.¸.{NC}\n"
-            f"{GREEN}      ODMĚNA PÁNA{NC}\n"
-            f"{CYAN}       `·.¸.·´{NC}"
-        ),
-        "trest": (
-            f"{RED}        ╱|、{NC}\n"
-            f"{RED}      (˚ˎ 。7{NC}\n"
-            f"{GRAY}       |、˜〵{NC}   {RED}TREST{NC}\n"
-            f"{GRAY}       じしˍ,)ノ{NC}"
-        ),
-        "oblibena": (
-            f"{GOLD}         ★{NC}\n"
-            f"{MAGENTA}      ╱|、  ★{NC}\n"
-            f"{CYAN}    (˚ˎ 。7{NC}\n"
-            f"{GOLD}     OBLÍBENKYNĚ{NC}"
-        ),
-        "manzelstvi": (
-            f"{MAGENTA}       .·´¯`·.{NC}\n"
-            f"{GOLD}      ╱ 💍  ╲{NC}\n"
-            f"{CYAN}     │ manžel │{NC}\n"
-            f"{MAGENTA}      ╲_____╱{NC}"
-        ),
-        "lov": (
-            f"{GREEN}      /\\_/\\  {ORANGE}╱╲{NC}\n"
-            f"{GRAY}     ( o.o ) {ORANGE}╱  ╲  STOPA{NC}\n"
-            f"{CYAN}      > ^ <  {ORANGE}╲  ╱{NC}\n"
-            f"{GREEN}     LOV OTROKYŇ{NC}"
-        ),
-        "drazba": (
-            f"{GOLD}     ╔══════════╗{NC}\n"
-            f"{YELLOW}     ║  DRAŽBA  ║{NC}\n"
-            f"{CYAN}     ║  ♀ ???   ║{NC}\n"
-            f"{GOLD}     ╚══════════╝{NC}\n"
-            f"{GRAY}      kladívko ⇓{NC}"
-        ),
-        "alchymie": (
-            f"{GREEN}       (  (  )  ){NC}\n"
-            f"{CYAN}        \\  ||  /{NC}\n"
-            f"{VIOLET}         ╲ || ╱{NC}\n"
-            f"{GOLD}        ELIXÍR{NC}"
-        ),
-        "noc": (
-            f"{BLUE}      ·  *  .{NC}\n"
-            f"{VIOLET}    *   ☽   *{NC}\n"
-            f"{GRAY}   .  NOC V HARÉMU  .{NC}\n"
-            f"{BLUE}      *  ·  *{NC}"
-        ),
-        "pevnost": (
-            f"{GRAY}        /\\  /\\  /\\{NC}\n"
-            f"{WHITE}       |  ||  ||  |{NC}\n"
-            f"{GOLD}       | PEVNOST |{NC}\n"
-            f"{GRAY}       |__||__||__|{NC}"
-        ),
-        "inkvizice": (
-            f"{RED}      ╱ ═══ ╲{NC}\n"
-            f"{YELLOW}     │  ✠  │{NC}\n"
-            f"{RED}     │INKVIZICE│{NC}\n"
-            f"{GRAY}      ╲_____╱{NC}"
-        ),
-        "loajalita": (
-            f"{GOLD}      ♥─────♥─────♥{NC}\n"
-            f"{CYAN}     LOAJALITA HARÉMU{NC}\n"
-            f"{GREEN}      [████████░░]{NC}\n"
-            f"{MAGENTA}       oddanost{NC}"
-        ),
-        "partnerka": (
-            f"{CYAN}       .·´ ♥ `·.{NC}\n"
-            f"{MAGENTA}      ╱ partner ╲{NC}\n"
-            f"{GOLD}     │   spolu   │{NC}\n"
-            f"{CYAN}      ╲_________╱{NC}"
-        ),
-        "nastaveni": (
-            f"{WHITE}     ⚙️  NASTAVENÍ{NC}\n"
-            f"{CYAN}     ├─ barvy{NC}\n"
-            f"{MAGENTA}     ├─ téma{NC}\n"
-            f"{GOLD}     └─ obtížnost{NC}"
-        ),
-        "save": (
-            f"{GREEN}     ╔═══════╗{NC}\n"
-            f"{CYAN}     ║ ULOŽIT ║{NC}\n"
-            f"{GREEN}     ╚═══════╝{NC}\n"
-            f"{GRAY}      💾 sloty{NC}"
-        ),
-    }
-    print(obrazky.get(scena, obrazky["menu"]))
+def terminalni_obrazek(scena, hra=None, **kwargs):
+    """Vykreslí ASCII ilustraci – dynamicky generovanou."""
+    try:
+        from utils.ascii_gen import generuj_scenu, generuj_z_hry
+        if hra is not None:
+            print(generuj_z_hry(hra, scena))
+        else:
+            print(generuj_scenu(scena or "menu", **kwargs))
+        return
+    except Exception:
+        pass
+    from config import GOLD, MAGENTA, CYAN, NC
+    print(f"{MAGENTA}     ╔═══ {scena or 'menu'} ═══╗{NC}")
+    print(f"{CYAN}     │  TEMNÉ DOMINIUM  │{NC}")
+    print(f"{GOLD}     ╚═════════════════╝{NC}")
 
 
 def ukazatel(hodnota, maximum, sirka=18):
