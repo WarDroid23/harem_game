@@ -108,6 +108,7 @@ def menu_nastaveni(hra):
         print(f"2) Obtížnost: {nastaveni.obtiznost_text}")
         print(f"3) Barevné téma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
         print(f"4) Ironman: {'ANO' if getattr(nastaveni, 'ironman', False) else 'ne'}")
+        print(f"5) AI dialogy: {'zapnuté (Ollama/API)' if getattr(nastaveni, 'ai_dialogy', False) else 'vypnuté'}")
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -160,6 +161,13 @@ def menu_nastaveni(hra):
         elif volba == "4":
             nastaveni.ironman = not getattr(nastaveni, "ironman", False)
             tisk_ok("Ironman " + ("zapnut" if nastaveni.ironman else "vypnut") + ".")
+            input("Enter...")
+        elif volba == "5":
+            nastaveni.ai_dialogy = not getattr(nastaveni, "ai_dialogy", False)
+            if nastaveni.ai_dialogy:
+                tisk_ok("AI dialogy zapnuty. Ollama :11434 nebo AI_API_KEY.")
+            else:
+                tisk_ok("AI dialogy vypnuty.")
             input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")
@@ -303,7 +311,7 @@ def hlavni_menu(hra: Hra):
                         continue
                     idx = int(volba_otrokyn) - 1
                     if 0 <= idx < len(aktivni):
-                        zobraz_interakce(aktivni[idx], hra.hrac)
+                        zobraz_interakce(aktivni[idx], hra.hrac, nastaveni=hra.nastaveni)
                     else:
                         tisk_chyba("Špatná volba.")
                 except ValueError:
