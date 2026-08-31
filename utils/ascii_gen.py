@@ -95,11 +95,7 @@ def trun(s_hvezdou: bool = True) -> List[str]:
 
 
 def mesic_a_noci() -> List[str]:
-    return [
-        hvezdy(sirka=24),
-        f"{VIOLET}         *   ☽   *{NC}",
-        f"{GRAY}      .  NOC V HARÉMU  .{NC}",
-    ]
+    return [hvezdy(sirka=24), f"{VIOLET}         *   ☽   *{NC}", f"{GRAY}      .  NOC V HARÉMU  .{NC}"]
 
 
 def generuj_harem(pocet: int = 3, oblibena: bool = False, loajalita_avg: int = 50, nadpis: str = "HARÉM") -> str:
@@ -165,10 +161,8 @@ def generuj_souboj(nepritel: str = "BOSS") -> str:
 def generuj_odmenu(uroven: int = 1) -> str:
     hvezdy_txt = "★" * max(1, min(5, uroven))
     return "\n".join([
-        f"{GOLD}        .·´¯`·.¸{NC}",
-        f"{YELLOW}       ¸.·´¯`·.¸.{NC}",
-        f"{GREEN}      ODMĚNA PÁNA{NC}",
-        f"{CYAN}       {hvezdy_txt}{NC}",
+        f"{GOLD}        .·´¯`·.¸{NC}", f"{YELLOW}       ¸.·´¯`·.¸.{NC}",
+        f"{GREEN}      ODMĚNA PÁNA{NC}", f"{CYAN}       {hvezdy_txt}{NC}",
     ])
 
 
@@ -179,10 +173,8 @@ def generuj_trest() -> str:
 def generuj_oblibenou(jmeno: str = "") -> str:
     jm = (jmeno or "OBLÍBENKYNĚ")[:12]
     return "\n".join([
-        f"{GOLD}         ★{NC}",
-        f"{MAGENTA}      ╱|、  ★{NC}",
-        f"{CYAN}    (˚ˎ 。7{NC}",
-        f"{GOLD}     {jm}{NC}",
+        f"{GOLD}         ★{NC}", f"{MAGENTA}      ╱|、  ★{NC}",
+        f"{CYAN}    (˚ˎ 。7{NC}", f"{GOLD}     {jm}{NC}",
     ])
 
 
@@ -190,10 +182,8 @@ def generuj_loajalitu(avg: int = 50) -> str:
     bar = progress_bar(avg, 100, 12)
     col = GREEN if avg >= 70 else (YELLOW if avg >= 40 else RED)
     return "\n".join([
-        f"{GOLD}      ♥─────♥─────♥{NC}",
-        f"{CYAN}     LOAJALITA HARÉMU{NC}",
-        f"{col}      [{bar}] {avg}%{NC}",
-        f"{MAGENTA}       oddanost{NC}",
+        f"{GOLD}      ♥─────♥─────♥{NC}", f"{CYAN}     LOAJALITA HARÉMU{NC}",
+        f"{col}      [{bar}] {avg}%{NC}", f"{MAGENTA}       oddanost{NC}",
     ])
 
 
@@ -206,10 +196,7 @@ def generuj_noc() -> str:
 
 
 def generuj_mapu(aktualni: str = "pevnost") -> str:
-    uzly = {
-        "pevnost": "PEVNOST", "trh": "TRH", "pristav": "PŘÍSTAV",
-        "les": "LES", "hranice": "HRANICE",
-    }
+    uzly = {"pevnost": "PEVNOST", "trh": "TRH", "pristav": "PŘÍSTAV", "les": "LES", "hranice": "HRANICE"}
     def z(k):
         nazev = uzly.get(k, k.upper())
         if k == aktualni.lower() or nazev.lower() == aktualni.lower():
@@ -227,62 +214,29 @@ def generuj_scenu(scena: str, **kwargs) -> str:
     scena = (scena or "menu").lower()
     generatory = {
         "menu": generuj_menu,
-        "harem": lambda: generuj_harem(
-            kwargs.get("pocet", 3), kwargs.get("oblibena", False), kwargs.get("loajalita", 50),
-        ),
+        "harem": lambda: generuj_harem(kwargs.get("pocet", 3), kwargs.get("oblibena", False), kwargs.get("loajalita", 50)),
         "mapa": lambda: generuj_mapu(kwargs.get("aktualni", "pevnost")),
         "souboj": lambda: generuj_souboj(kwargs.get("nepritel", "BOSS")),
-        "osudy": lambda: "\n".join([
-            f"{VIOLET}          .-=========-.{NC}",
-            f"{GOLD}         /  KNIHA OSUDŮ \\{NC}",
-            f"{CYAN}        |  {'✦ ' * random.randint(2, 4)} |{NC}",
-            f"{VIOLET}         \\_____________/{NC}",
-        ]),
+        "osudy": lambda: "\n".join([f"{VIOLET}          .-=========-.{NC}", f"{GOLD}         /  KNIHA OSUDŮ \\{NC}", f"{CYAN}        |  {'✦ ' * random.randint(2, 4)} |{NC}", f"{VIOLET}         \\_____________/{NC}"]),
         "odmena": lambda: generuj_odmenu(kwargs.get("uroven", 1)),
         "trest": generuj_trest,
         "oblibena": lambda: generuj_oblibenou(kwargs.get("jmeno", "")),
-        "manzelstvi": lambda: "\n".join([
-            f"{MAGENTA}       .·´¯`·.{NC}", f"{GOLD}      ╱ 💍  ╲{NC}",
-            f"{CYAN}     │ manžel │{NC}", f"{MAGENTA}      ╲_____╱{NC}",
-        ]),
+        "manzelstvi": lambda: "\n".join([f"{MAGENTA}       .·´¯`·.{NC}", f"{GOLD}      ╱ 💍  ╲{NC}", f"{CYAN}     │ manžel │{NC}", f"{MAGENTA}      ╲_____╱{NC}"]),
         "lov": lambda: generuj_lov(kwargs.get("uspech")),
-        "drazba": lambda: "\n".join([
-            f"{GOLD}     ╔══════════╗{NC}", f"{YELLOW}     ║  DRAŽBA  ║{NC}",
-            f"{CYAN}     ║  ♀ {random.choice(['???', 'nová', 'vzácná']):^5} ║{NC}",
-            f"{GOLD}     ╚══════════╝{NC}", f"{GRAY}      kladívko ⇓{NC}",
-        ]),
-        "alchymie": lambda: "\n".join([
-            f"{GREEN}       (  (  )  ){NC}", f"{CYAN}        \\  ||  /{NC}",
-            f"{VIOLET}         ╲ || ╱{NC}", f"{GOLD}        ELIXÍR{NC}",
-        ]),
+        "drazba": lambda: "\n".join([f"{GOLD}     ╔══════════╗{NC}", f"{YELLOW}     ║  DRAŽBA  ║{NC}", f"{CYAN}     ║  ♀ {random.choice(['???', 'nová', 'vzácná']):^5} ║{NC}", f"{GOLD}     ╚══════════╝{NC}", f"{GRAY}      kladívko ⇓{NC}"]),
+        "alchymie": lambda: "\n".join([f"{GREEN}       (  (  )  ){NC}", f"{CYAN}        \\  ||  /{NC}", f"{VIOLET}         ╲ || ╱{NC}", f"{GOLD}        ELIXÍR{NC}"]),
         "noc": generuj_noc,
         "pevnost": generuj_pevnost,
-        "inkvizice": lambda: "\n".join([
-            f"{RED}      ╱ ═══ ╲{NC}", f"{YELLOW}     │  ✠  │{NC}",
-            f"{RED}     │INKVIZICE│{NC}", f"{GRAY}      ╲_____╱{NC}",
-        ]),
+        "inkvizice": lambda: "\n".join([f"{RED}      ╱ ═══ ╲{NC}", f"{YELLOW}     │  ✠  │{NC}", f"{RED}     │INKVIZICE│{NC}", f"{GRAY}      ╲_____╱{NC}"]),
         "loajalita": lambda: generuj_loajalitu(kwargs.get("loajalita", 50)),
-        "partnerka": lambda: "\n".join([
-            f"{CYAN}       .·´ ♥ `·.{NC}", f"{MAGENTA}      ╱ partner ╲{NC}",
-            f"{GOLD}     │   spolu   │{NC}", f"{CYAN}      ╲_________╱{NC}",
-        ]),
-        "nastaveni": lambda: "\n".join([
-            f"{WHITE}     ⚙️  NASTAVENÍ{NC}", f"{CYAN}     ├─ barvy{NC}",
-            f"{MAGENTA}     ├─ téma{NC}", f"{GOLD}     └─ obtížnost{NC}",
-        ]),
-        "save": lambda: "\n".join([
-            f"{GREEN}     ╔═══════╗{NC}", f"{CYAN}     ║ ULOŽIT ║{NC}",
-            f"{GREEN}     ╚═══════╝{NC}", f"{GRAY}      💾 sloty{NC}",
-        ]),
-        "energie": lambda: generuj_energie(
-            kwargs.get("sex", 70), kwargs.get("max_sex", 100),
-            kwargs.get("temno", 20), kwargs.get("max_temno", 100),
-        ),
+        "partnerka": lambda: "\n".join([f"{CYAN}       .·´ ♥ `·.{NC}", f"{MAGENTA}      ╱ partner ╲{NC}", f"{GOLD}     │   spolu   │{NC}", f"{CYAN}      ╲_________╱{NC}"]),
+        "nastaveni": lambda: "\n".join([f"{WHITE}     ⚙️  NASTAVENÍ{NC}", f"{CYAN}     ├─ barvy{NC}", f"{MAGENTA}     ├─ téma{NC}", f"{GOLD}     └─ obtížnost{NC}"]),
+        "save": lambda: "\n".join([f"{GREEN}     ╔═══════╗{NC}", f"{CYAN}     ║ ULOŽIT ║{NC}", f"{GREEN}     ╚═══════╝{NC}", f"{GRAY}      💾 sloty{NC}"]),
+        "energie": lambda: generuj_energie(kwargs.get("sex", 70), kwargs.get("max_sex", 100), kwargs.get("temno", 20), kwargs.get("max_temno", 100)),
         "trun": lambda: "\n".join(trun(True)),
         "hrad": generuj_pevnost,
     }
-    fn = generatory.get(scena, generatory["menu"])
-    return fn()
+    return generatory.get(scena, generatory["menu"])()
 
 
 def generuj_z_hry(hra, scena: str = "harem") -> str:
@@ -298,8 +252,83 @@ def generuj_z_hry(hra, scena: str = "harem") -> str:
         max_t = hrac.max_temno() if hasattr(hrac, "max_temno") else getattr(hrac, "max_dark_energy", 100)
         return generuj_scenu(
             scena, pocet=pocet, oblibena=oblib, loajalita=loaj, jmeno=jmeno_oblib,
-            aktualni=lokace, sex=hrac.sex_energy, max_sex=max_s,
-            temno=hrac.dark_energy, max_temno=max_t,
+            aktualni=lokace, sex=hrac.sex_energy, max_sex=max_s, temno=hrac.dark_energy, max_temno=max_t,
         )
     except Exception:
         return generuj_scenu(scena)
+
+
+# ── animované snímky ─────────────────────────────────────────
+
+def framy_hvezd_pulz(cyklu_framu: int = 8, jmeno: str = "★") -> List[str]:
+    faze = ["·", "✧", "★", "✦", "★", "✧", "·", " "]
+    framy = []
+    for i in range(cyklu_framu):
+        z = faze[i % len(faze)]
+        pad = " " * (i % 3)
+        framy.append("\n".join([
+            f"{GOLD}{pad}    {z}{NC}",
+            f"{MAGENTA}      ╱|、  {z}{NC}",
+            f"{CYAN}    (˚ˎ 。7{NC}",
+            f"{GOLD}     {jmeno[:12]}{NC}",
+            f"{GRAY}   oddanost pulzuje…{NC}",
+        ]))
+    return framy
+
+
+def framy_napln_energie(sex_cil: int = 100, temno_cil: int = 100, max_sex: int = 100, max_temno: int = 100, kroku: int = 12) -> List[str]:
+    framy = []
+    for i in range(kroku + 1):
+        t = i / kroku
+        framy.append("\n".join([
+            f"{GOLD}   === OBNOVA ENERGIE ==={NC}", "",
+            generuj_energie(int(sex_cil * t), max_sex, int(temno_cil * t), max_temno), "",
+            f"{CYAN}   {'█' * i}{GRAY}{'.' * (kroku - i)}{NC}",
+        ]))
+    return framy
+
+
+def framy_harem_dych(pocet: int = 4, oblibena: bool = True, framy: int = 6) -> List[str]:
+    out = []
+    for i in range(framy):
+        loaj = 55 + (i * 5) % 40
+        n = pocet if i % 2 == 0 else max(1, pocet - 1)
+        block = generuj_harem(n, oblibena, loaj)
+        if i % 2:
+            block = "\n" + block
+        out.append(block + f"\n{GRAY}   harém dýchá…{NC}")
+    return out
+
+
+def framy_noc(framy: int = 8) -> List[str]:
+    out = []
+    for _ in range(framy):
+        out.append("\n".join([hvezdy(sirka=30), f"{VIOLET}         *   ☽   *{NC}", f"{GRAY}      .  NOC V HARÉMU  .{NC}", hvezdy(sirka=30)]))
+    return out
+
+
+def framy_okovy_pulse(framy: int = 6) -> List[str]:
+    out = []
+    for i in range(framy):
+        c = RED if i % 2 == 0 else GRAY
+        out.append("\n".join([
+            f"{c}           ⛓    ⛓    ⛓{NC}",
+            f"{RED}          ╔═══════════╗{NC}",
+            f"{GOLD}          ║  TVŮJ ZÁKON ║{NC}",
+            f"{RED}          ╚═══════════╝{NC}",
+            f"{MAGENTA}        loajalita • strach • touha{NC}",
+        ]))
+    return out
+
+
+def framy_trailer_uvod(framy: int = 5) -> List[str]:
+    text = "ty držíš klíč od klecí."
+    out = []
+    for i in range(1, framy + 1):
+        cast = text[: int(len(text) * i / framy)]
+        out.append("\n".join([
+            f"{CYAN}  V říši, kde se slunce schovává za mraky dýmu,{NC}",
+            f"{CYAN}  kde inkvizice šeptá a mafie platí zlatem,{NC}", "",
+            f"{GOLD}  {cast}{NC}",
+        ]))
+    return out
