@@ -51,11 +51,19 @@ def proved_interakci(otrok: Otrokyně, hrac: Hrac, akce_id: str):
     otrok.aktualizuj_fazi()
     otrok.zaznamenej_volbu("interakce", akce["nazev"])
     tisk_ok(f"Provedeno: {akce['nazev']} (charakter: {CHARAKTERY[otrok.charakter]['nazev']})")
+    try:
+        from game.ai_dialog import vypis_dialog, typ_z_akce
+        nast = getattr(hrac, "_nastaveni_ref", None)
+        vypis_dialog(otrok, hrac, typ_z_akce(akce), nastaveni=nast)
+    except Exception:
+        pass
     return True
 
-def zobraz_interakce(otrok, hrac):
+def zobraz_interakce(otrok, hrac, nastaveni=None):
     from game.tresty_odmeny import menu_trestu, menu_odmen
     from game.drogy import menu_drog
+    if nastaveni is not None:
+        hrac._nastaveni_ref = nastaveni
     while True:
         clear()
         print(f"--- Interakce s {otrok.jmeno} ---")
