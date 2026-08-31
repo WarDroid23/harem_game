@@ -81,25 +81,94 @@ def meditace(hra):
     return True
 
 
+def zahrada(hra):
+    hrac = hra.hrac
+    if not _lze_pouzit(hrac, "zahrada"):
+        return False
+    if _zbyva(hrac, "sex_energy") == 0 and _zbyva(hrac, "dark_energy") == 0:
+        tisk_info("Obě energie už máš plné.")
+        return False
+    hrac.sex_energy = min(_max_pro(hrac, "sex_energy"), hrac.sex_energy + 12)
+    hrac.dark_energy = min(_max_pro(hrac, "dark_energy"), hrac.dark_energy + 6)
+    _oznac_pouziti(hrac, "zahrada")
+    tisk_ok("Klidný rozhovor v zahradě. Sex +12, temno +6.")
+    return True
+
+
+def observator(hra):
+    hrac = hra.hrac
+    if not _lze_pouzit(hrac, "observator"):
+        return False
+    if _zbyva(hrac, "sex_energy") == 0 and _zbyva(hrac, "dark_energy") == 0:
+        tisk_info("Obě energie už máš plné.")
+        return False
+    hrac.sex_energy = min(_max_pro(hrac, "sex_energy"), hrac.sex_energy + 4)
+    hrac.dark_energy = min(_max_pro(hrac, "dark_energy"), hrac.dark_energy + 16)
+    _oznac_pouziti(hrac, "observator")
+    tisk_ok("Pozorování oblohy. Temno +16, sex +4.")
+    return True
+
+
+def molo(hra):
+    hrac = hra.hrac
+    cena = 25
+    if hrac.gold < cena:
+        tisk_chyba("Na směnu na molu nemáš dost zlata.")
+        return False
+    if not _lze_pouzit(hrac, "molo"):
+        return False
+    if _zbyva(hrac, "sex_energy") == 0 and _zbyva(hrac, "dark_energy") == 0:
+        tisk_info("Obě energie už máš plné.")
+        return False
+    hrac.gold -= cena
+    hrac.sex_energy = min(_max_pro(hrac, "sex_energy"), hrac.sex_energy + 18)
+    hrac.dark_energy = min(_max_pro(hrac, "dark_energy"), hrac.dark_energy + 10)
+    _oznac_pouziti(hrac, "molo")
+    tisk_ok("Směna na molu. Sex +18, temno +10.")
+    return True
+
+
 def zobraz_menu(hra):
     clear()
     hrac = hra.hrac
+    lokace = getattr(getattr(hra, "svet", None), "aktualni_lokace", "")
     print(f"{CYAN}--- Dobití energie ---{NC}\n")
     print(
         f"Sex: {hrac.sex_energy}/{_max_pro(hrac, 'sex_energy')} | "
         f"Temno: {hrac.dark_energy}/{_max_pro(hrac, 'dark_energy')} | Zlato: {hrac.gold}"
     )
-    print("1) Hostinec (35 zlata)")
-    print("2) Lázně (60 zlata)")
-    print("3) Meditace (zdarma, 1x denně)")
+    moznosti = [("1", "Meditace (zdarma, 1x denně)")]
+    if True:
+        moznosti.append(("2", "Hostinec (35 zlata, energie a HP)"))
+        moznosti.append(("3", "Lázně (60 zlata, energie a HP)"))
+    moznosti.append(("4", "Alchymie (lektvary z vyrobených surovin)"))
+    if lokace in ("pevnost", "zahrada", "") or True:
+        moznosti.append(("5", "Klidný rozhovor v zahradě (1x denně)"))
+    if lokace in ("haj_soumraku", "") or True:
+        moznosti.append(("6", "Pozorování oblohy (1x denně)"))
+    if lokace in ("pristav", "molo", "") or True:
+        moznosti.append(("7", "Směna na molu (25 zlata, 1x denně)"))
+    for cislo, popis in moznosti:
+        print(f"{cislo}) {popis}")
     print("0) Zpět")
     volba = input("> ").strip()
     if volba == "1":
-        hostinec(hra)
-    elif volba == "2":
-        lazne(hra)
-    elif volba == "3":
         meditace(hra)
+    elif volba == "2":
+        hostinec(hra)
+    elif volba == "3":
+        lazne(hra)
+    elif volba == "4":
+        if hasattr(hra, "alchymie"):
+            hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
+        else:
+            tisk_chyba("Alchymie není dostupná.")
+    elif volba == "5":
+        zahrada(hra)
+    elif volba == "6":
+        observator(hra)
+    elif volba == "7":
+        molo(hra)
     try:
         input("Enter...")
     except EOFError:
