@@ -13,6 +13,13 @@ if hasattr(sys.stderr, "reconfigure"):
 
 
 def clear():
+    """Rychlé smazání – ANSI bez shellu, fallback na cls/clear."""
+    try:
+        from utils.term_render import clear_fast
+        clear_fast()
+        return
+    except Exception:
+        pass
     os.system("cls" if os.name == "nt" else "clear")
 
 
