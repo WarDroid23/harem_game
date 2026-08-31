@@ -1,4 +1,4 @@
-"""Nastavení hry včetně barevných témat a Ironman."""
+"""Nastavení hry včetně barevných témat, Ironman a AI dialogů."""
 
 from dataclasses import dataclass
 
@@ -15,6 +15,7 @@ class NastaveniHry:
     obtiznost: str = VYCHOZI_OBTIZNOST
     tema: str = VYCHOZI_TEMA
     ironman: bool = False
+    ai_dialogy: bool = False
 
     def __post_init__(self):
         if isinstance(self.barvy, str):
@@ -32,6 +33,10 @@ class NastaveniHry:
         if not isinstance(self.tema, str) or self.tema not in THEMES:
             self.tema = VYCHOZI_TEMA
         self.ironman = bool(self.ironman)
+        if isinstance(self.ai_dialogy, str):
+            self.ai_dialogy = self.ai_dialogy.strip().lower() in {"1", "true", "ano", "on"}
+        else:
+            self.ai_dialogy = bool(self.ai_dialogy)
 
     def aplikuj(self):
         set_colors_enabled(self.barvy)
@@ -44,6 +49,7 @@ class NastaveniHry:
             "obtiznost": self.obtiznost,
             "tema": self.tema,
             "ironman": self.ironman,
+            "ai_dialogy": self.ai_dialogy,
         }
 
     @classmethod
@@ -55,6 +61,7 @@ class NastaveniHry:
             obtiznost=data.get("obtiznost", VYCHOZI_OBTIZNOST),
             tema=data.get("tema", VYCHOZI_TEMA),
             ironman=data.get("ironman", False),
+            ai_dialogy=data.get("ai_dialogy", False),
         )
 
     @property
