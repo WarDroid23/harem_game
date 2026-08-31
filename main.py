@@ -326,13 +326,34 @@ def hlavni_menu(hra: Hra):
                 tisk_chyba("Nemáš otrokyně.")
                 input("Enter...")
         elif volba == "3":
-            spravovat_mafii(hra)
+            try:
+                spravovat_mafii(hra)
+            except Exception as e:
+                tisk_chyba(f"Mafie selhala: {e}")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
         elif volba == "4":
             zobraz_vyvoj(hra.hrac)
         elif volba == "5":
-            diplo.menu(hra)
+            try:
+                diplo.menu(hra)
+            except Exception as e:
+                tisk_chyba(f"Diplomacie selhala: {e}")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
         elif volba == "6":
-            vyzkum.menu(hra)
+            try:
+                vyzkum.menu(hra)
+            except Exception as e:
+                tisk_chyba(f"Výzkum selhal: {e}")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
         elif volba == "7":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
