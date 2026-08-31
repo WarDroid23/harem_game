@@ -40,13 +40,26 @@ from models.otrokyne import Otrokyně
 
 def _vykresli_sloty(hlavni_soubor=None):
     for slot in seznam_slotu(hlavni_soubor) if hlavni_soubor else seznam_slotu():
-        stav = "obsazený" if slot["existuje"] else "prázdný"
-        print(f"{slot['slot']}) {slot['nazev']} — {stav}")
+        if not slot["existuje"]:
+            print(f"{slot['slot']}) {slot['nazev']} — prázdný")
+            continue
+        meta = slot.get("meta") or {}
+        den = meta.get("den", "?")
+        zlato = meta.get("zlato", "?")
+        harem = meta.get("pocet_haremu", "?")
+        kdy = meta.get("ulozene", "?")
+        oblib = meta.get("oblibenkyně")
+        oblib_txt = f" | ★ {oblib}" if oblib else ""
+        print(
+            f"{slot['slot']}) {slot['nazev']} — den {den}, zlato {zlato}, "
+            f"harém {harem}{oblib_txt}"
+        )
+        print(f"    uloženo: {kdy} (JSON)")
 
 
 def menu_ulozeni(hra):
     clear()
-    print("--- Uložení hry ---\n")
+    print("--- Uložení hry (JSON) ---\n")
     _vykresli_sloty()
     print("0) Zpět")
     try:
@@ -56,16 +69,16 @@ def menu_ulozeni(hra):
         slot = int(volba)
         uspech = uloz_slot(hra, slot)
         if uspech:
-            tisk_ok(f"Hra byla uložena do slotu {slot}.")
+            tisk_ok(f"Hra byla uložena do JSON slotu {slot}.")
         return uspech
     except (ValueError, EOFError):
-        tisk_chyba("Zadej číslo slotu 1 až 3.")
+        tisk_chyba("Zadej číslo slotu 1 až 5.")
         return False
 
 
 def menu_nacteni():
     clear()
-    print("--- Načtení hry ---\n")
+    print("--- Načtení hry (JSON) ---\n")
     _vykresli_sloty()
     print("0) Zpět")
     try:
@@ -75,10 +88,10 @@ def menu_nacteni():
         slot = int(volba)
         hra = nacti_slot(slot)
         if hra:
-            tisk_ok(f"Načten slot {slot}.")
+            tisk_ok(f"Načten JSON slot {slot}.")
         return hra
     except (ValueError, EOFError):
-        tisk_chyba("Zadej číslo slotu 1 až 3.")
+        tisk_chyba("Zadej číslo slotu 1 až 5.")
         return None
 
 
@@ -147,7 +160,6 @@ def menu_nastaveni(hra):
 
 
 def menu_meta_hlavni(hra):
-    """Podmenu 26: uložení, načtení a nastavení."""
     while True:
         clear()
         terminalni_obrazek("nastaveni")
@@ -259,7 +271,6 @@ def hlavni_menu(hra: Hra):
                 input("Enter...")
             except EOFError:
                 pass
-
         elif volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
@@ -289,7 +300,6 @@ def hlavni_menu(hra: Hra):
             else:
                 tisk_chyba("Nemáš žádné otrokyně.")
                 input("Enter...")
-
         elif volba == "2":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
@@ -312,7 +322,6 @@ def hlavni_menu(hra: Hra):
             else:
                 tisk_chyba("Nemáš otrokyně.")
                 input("Enter...")
-
         elif volba == "3":
             spravovat_mafii(hra)
         elif volba == "4":
