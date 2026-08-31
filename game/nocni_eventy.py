@@ -39,6 +39,20 @@ def spust_nocni_eventy(hra):
             zaznamenej(hra, msg)
     except Exception:
         pass
+
+    if aktivni and getattr(getattr(hra, "nastaveni", None), "ai_dialogy", False):
+        try:
+            from game.ai_dialog import generuj_dialog
+            o = random.choice(aktivni)
+            typ = "noční_scéna"
+            if any("žárl" in m.lower() for m in zpravy):
+                typ = "žárlivost"
+            if any("zrád" in m.lower() for m in zpravy):
+                typ = "vzdor"
+            dialog = generuj_dialog(o, hra.hrac, typ, nastaveni=hra.nastaveni, ticho=True)
+            zpravy.append(f"💬 {dialog}")
+        except Exception:
+            pass
     return zpravy
 
 
