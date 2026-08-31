@@ -4,12 +4,12 @@
 from __future__ import annotations
 
 import time
-from typing import Optional
 
 from config import (
     BOLD, BLUE, CYAN, GOLD, GRAY, GREEN, MAGENTA, NC, ORANGE, RED, VIOLET, WHITE, YELLOW,
 )
 from utils.vypis import clear
+from utils.ascii_gen import generuj_harem, hrad, trun
 
 
 def _pause(sekundy: float = 2.2, rychle: bool = False):
@@ -28,41 +28,12 @@ def _blok(texty, barva: str = WHITE):
         print(f"{barva}{t}{NC}")
 
 
-SCENA_HRAD = f"""
-{VIOLET}                    /\\
-{VIOLET}                   /  \\
-{GRAY}                  /_/\\_\\
-{GRAY}                 |  ||  |
-{GOLD}              ╔══|  ||  |══╗
-{GOLD}              ║  ║▓▓▓▓║  ║
-{RED}              ║  🔥  🔥  ║
-{GOLD}              ╚════════════╝
-{MAGENTA}           TEMNÉ DOMINIUM
-"""
-
-SCENA_HAREM = f"""
-{MAGENTA}        ╔══════ HARÉM ══════╗
-{CYAN}        │  ♀    ★    ♀     │
-{GOLD}        │   klečí u trůnu  │
-{VIOLET}        │  oči sklopené…   │
-{MAGENTA}        ╚══════════════════╝
-"""
-
 SCENA_OKOVY = f"""
 {GRAY}           ⛓    ⛓    ⛓
 {RED}          ╔═══════════╗
 {GOLD}          ║  TVŮJ ZÁKON ║
 {RED}          ╚═══════════╝
 {MAGENTA}        loajalita • strach • touha
-"""
-
-SCENA_TRUN = f"""
-{GOLD}              .--.
-{GOLD}             | ★  |
-{YELLOW}          ___/____\\___
-{GRAY}         |  TRŮN PÁNA  |
-{VIOLET}         |_____________|
-{CYAN}      maximální energie… maximální moc
 """
 
 SCENA_FINALE = f"""
@@ -81,13 +52,8 @@ SCENA_FINALE = f"""
 
 def prehraj_trailer(rychle: bool = False, interaktivni: bool = True) -> None:
     sceny = [
-        _scena_1_temnota,
-        _scena_2_hrad,
-        _scena_3_harem,
-        _scena_4_zakon,
-        _scena_5_moc,
-        _scena_6_svet,
-        _scena_7_finale,
+        _scena_1_temnota, _scena_2_hrad, _scena_3_harem, _scena_4_zakon,
+        _scena_5_moc, _scena_6_svet, _scena_7_finale,
     ]
     for i, fn in enumerate(sceny):
         clear()
@@ -118,12 +84,7 @@ def prehraj_trailer(rychle: bool = False, interaktivni: bool = True) -> None:
 def _scena_1_temnota(rychle: bool) -> bool:
     _radek("…", GRAY)
     _pause(0.6, rychle)
-    _blok([
-        "",
-        "  V říši, kde se slunce schovává za mraky dýmu,",
-        "  kde inkvizice šeptá a mafie platí zlatem,",
-        "",
-    ], CYAN)
+    _blok(["", "  V říši, kde se slunce schovává za mraky dýmu,", "  kde inkvizice šeptá a mafie platí zlatem,", ""], CYAN)
     _pause(1.2, rychle)
     _radek(f"  {BOLD}ty držíš klíč od klecí.{NC}", GOLD)
     _pause(1.0, rychle)
@@ -131,46 +92,27 @@ def _scena_1_temnota(rychle: bool) -> bool:
 
 
 def _scena_2_hrad(rychle: bool) -> bool:
-    print(SCENA_HRAD)
-    _blok([
-        "  Pevnost. Trůn. Tvé dominium.",
-        "  Za hradbami čeká svět – a uvnitř harém,",
-        "  který se učí tvé jméno šeptem.",
-    ], WHITE)
+    print("\n".join(hrad(vyska=4, sire=3)))
+    print(f"{MAGENTA}           TEMNÉ DOMINIUM{NC}")
+    _blok(["  Pevnost. Trůn. Tvé dominium.", "  Za hradbami čeká svět – a uvnitř harém,", "  který se učí tvé jméno šeptem."], WHITE)
     return True
 
 
 def _scena_3_harem(rychle: bool) -> bool:
-    print(SCENA_HAREM)
-    _blok([
-        "  Každá má charakter. Fázi. Loajalitu.",
-        "  Jedna klečí jako ★ oblíbenkyně.",
-        "  Jiná šeptá o svatbě… nebo o útěku.",
-        "",
-        "  Ty rozhodneš, kdo bude majetek –",
-        "  a kdo absolutní oddanost.",
-    ], MAGENTA)
+    print(generuj_harem(pocet=4, oblibena=True, loajalita_avg=75))
+    _blok(["  Každá má charakter. Fázi. Loajalitu.", "  Jedna klečí jako ★ oblíbenkyně.", "  Jiná šeptá o svatbě… nebo o útěku.", "", "  Ty rozhodneš, kdo bude majetek –", "  a kdo absolutní oddanost."], MAGENTA)
     return True
 
 
 def _scena_4_zakon(rychle: bool) -> bool:
     print(SCENA_OKOVY)
-    _blok([
-        "  Odměny. Tresty. 16 fází zkázanosti.",
-        "  Od vzdoru… k prázdné nádobě.",
-        "",
-        "  Harém reaguje. Žárlí. Prosí. Spí u tvých dveří.",
-    ], RED)
+    _blok(["  Odměny. Tresty. 16 fází zkázanosti.", "  Od vzdoru… k prázdné nádobě.", "", "  Harém reaguje. Žárlí. Prosí. Spí u tvých dveří."], RED)
     return True
 
 
 def _scena_5_moc(rychle: bool) -> bool:
-    print(SCENA_TRUN)
-    _blok([
-        "  Každý den se energie vrátí naplno.",
-        "  Výdrž roste. Manželka a ★ tě posilují.",
-        "  Tvé tělo je zbraň – i slib.",
-    ], GOLD)
+    print("\n".join(trun(True)))
+    _blok(["  Každý den se energie vrátí naplno.", "  Výdrž roste. Manželka a ★ tě posilují.", "  Tvé tělo je zbraň – i slib."], GOLD)
     return True
 
 
@@ -182,31 +124,22 @@ def _scena_6_svet(rychle: bool) -> bool:
 {YELLOW}             ✦ CESTA OSUDU
 {MAGENTA}     mafie • lov • kampaň • inkvizice
 """)
-    _blok([
-        "  Lov. Dražba. Questy. Temné NPC.",
-        "  Buduj impérium. Lámej vůli. Piš osudy.",
-    ], CYAN)
+    _blok(["  Lov. Dražba. Questy. Temné NPC.", "  Buduj impérium. Lámej vůli. Piš osudy."], CYAN)
     return True
 
 
 def _scena_7_finale(rychle: bool) -> bool:
     print(SCENA_FINALE)
-    _blok([
-        "",
-        "           Textová RPG • 18+",
-        "         Dark Expansion 22.1",
-        "",
-        f"  {GOLD}Pán. Harém. Trůn. Tvoje pravidla.{NC}",
-        "",
-    ], WHITE)
+    _blok(["", "           Textová RPG • 18+", "         Dark Expansion 22.1", "", f"  {GOLD}Pán. Harém. Trůn. Tvoje pravidla.{NC}", ""], WHITE)
     return True
 
 
 def menu_trailer():
     clear()
-    print(f"{GOLD}{BOLD}--- Trailer ---{NC}\n")
+    print(f"{GOLD}{BOLD}--- Trailer / animace ---{NC}\n")
     print("1) Přehrát trailer")
     print("2) Rychlá verze")
+    print("3) Animace (ukázky)")
     print("0) Zpět")
     try:
         v = input("> ").strip()
@@ -216,3 +149,52 @@ def menu_trailer():
         prehraj_trailer(rychle=False, interaktivni=True)
     elif v == "2":
         prehraj_trailer(rychle=True, interaktivni=False)
+    elif v == "3":
+        _menu_animace()
+
+
+def _menu_animace():
+    from utils.term_render import animuj, show_cursor
+    from utils.ascii_gen import (
+        framy_hvezd_pulz, framy_napln_energie, framy_harem_dych,
+        framy_noc, framy_okovy_pulse, framy_trailer_uvod,
+    )
+    clear()
+    print(f"{GOLD}--- Animace ---{NC}\n")
+    print("1) Pulz ★ oblíbenkyně")
+    print("2) Plnění energie")
+    print("3) Harém dýchá")
+    print("4) Noční obloha")
+    print("5) Okovy / trest")
+    print("6) Fade-in úvod")
+    print("7) Všechny za sebou")
+    print("0) Zpět")
+    try:
+        v = input("> ").strip()
+    except EOFError:
+        return
+    try:
+        if v == "1":
+            animuj(framy_hvezd_pulz(8, "Selene"), fps=7, cyklu=2)
+        elif v == "2":
+            animuj(framy_napln_energie(100, 80, 100, 100, 14), fps=14, cyklu=1)
+        elif v == "3":
+            animuj(framy_harem_dych(5, True, 8), fps=5, cyklu=2)
+        elif v == "4":
+            animuj(framy_noc(10), fps=6, cyklu=2)
+        elif v == "5":
+            animuj(framy_okovy_pulse(8), fps=5, cyklu=2)
+        elif v == "6":
+            animuj(framy_trailer_uvod(10), fps=8, cyklu=1)
+        elif v == "7":
+            animuj(framy_trailer_uvod(6), fps=10, cyklu=1)
+            animuj(framy_hvezd_pulz(6), fps=8, cyklu=1)
+            animuj(framy_napln_energie(kroku=10), fps=14, cyklu=1)
+            animuj(framy_harem_dych(4, True, 6), fps=5, cyklu=1)
+            animuj(framy_noc(6), fps=7, cyklu=1)
+    finally:
+        show_cursor()
+    try:
+        input(f"{GRAY}[Enter]{NC} ")
+    except EOFError:
+        pass
