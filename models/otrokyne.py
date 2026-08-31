@@ -102,8 +102,11 @@ class Otrokyně:
             return "Osud zatím neznámý"
         return f"{self.osud_id} ({self.osud_krok})"
 
-    def zaznamenej_volbu(self, kategorie, popis, den):
-        self.historie_voleb.append({"kategorie": kategorie, "popis": popis, "den": den})
+    def zaznamenej_volbu(self, kategorie, popis, den=None):
+        zaznam = {"typ": kategorie, "volba": popis}
+        if den is not None:
+            zaznam["den"] = den
+        self.historie_voleb.append(zaznam)
 
     def to_dict(self):
         return asdict(self)
@@ -111,17 +114,52 @@ class Otrokyně:
     @classmethod
     def from_dict(cls, data):
         if not isinstance(data, dict):
-            return None
-        valid = {f.name for f in fields(cls)}
-        filtered = {k: v for k, v in data.items() if k in valid}
-        otrok = cls(**filtered)
-        # sanitizace
+            raise ValueError("Data otrokyně musí být objekt.")
+        allowed = {f.name for f in fields(cls)}
+        values = {key: value for key, value in data.items() if key in allowed}
+        otrok = cls(**values)
+        for key, value in values.items():
+            setattr(otrok, key, value)
+        try:
+            otrok.vek = max(18, int(otrok.vek))
+        except (TypeError, ValueError):
+            otrok.vek = 18
+        if not isinstance(otrok.romance_volby, list):
+            otrok.romance_volby = []
+        if not isinstance(otrok.historie_voleb, list):
+            otrok.historie_voleb = []
+        if not isinstance(otrok.vybaveni, list):
+            otrok.vybaveni = []
+        if not isinstance(otrok.osud_zaver, str):
+            otrok.osud_zaver = ""
         if not isinstance(otrok.partnerka, bool):
             otrok.partnerka = False
         try:
             otrok.partner_od_den = max(0, int(otrok.partner_od_den))
         except (TypeError, ValueError):
             otrok.partner_od_den = 0
+        try:
+            otrok.lecba_zavislosti = max(0, min(100, int(otrok.lecba_zavislosti)))
+        except (TypeError, ValueError):
+            otrok.lecba_zavislosti = 0
+        if not isinstance(otrok.romance_stav, str):
+            otrok.romance_stav = "otevřená možnost"
+        try:
+            otrok.romance_body = max(0, min(100, int(otrok.romance_body)))
+        except (TypeError, ValueError):
+            otrok.romance_body = 0
         if not isinstance(getattr(otrok, "oblibena", False), bool):
-            otrok.oblibena = False
+            otrok.oblibena = bool(getattr(otrok, "oblibena", False))
+        try:
+            otrok.oblibena_od_den = max(0, int(getattr(otrok, "oblibena_od_den", 0) or 0))
+        except (TypeError, ValueError):
+            otrok.oblibena_od_den = 0
+        if not isinstance(getattr(otrok, "je_manzelkou", False), bool):
+            otrok.je_manzelkou = bool(getattr(otrok, "je_manzelkou", False))
+        if not isinstance(getattr(otrok, "owned_mark", False), bool):
+            otrok.owned_mark = bool(getattr(otrok, "owned_mark", False))
+        try:
+            otrok.loajalita = max(0, min(100, int(getattr(otrok, "loajalita", 30))))
+        except (TypeError, ValueError):
+            otrok.loajalita = 30
         return otrok
