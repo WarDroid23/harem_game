@@ -51,6 +51,13 @@ class Hra:
         self.kalendar = CalendarSystem(self.hrac.den)
         self.achievementy = AchievementSystem()
         self.marriage_system = {}
+        self.kronika = None
+        try:
+            from game.kronika import Kronika
+            self.kronika = Kronika()
+        except Exception:
+            self.kronika = None
+        self.denni_rezim = "laskavy"
 
     def to_dict(self):
         from datetime import datetime
@@ -89,6 +96,8 @@ class Hra:
             "achievementy": self.achievementy.to_dict(),
             "nastaveni": self.nastaveni.to_dict(),
             "marriage_system": {k: v.to_dict() for k, v in self.marriage_system.items()},
+            "kronika": self.kronika.to_dict() if getattr(self, "kronika", None) else {"zaznamy": []},
+            "denni_rezim": getattr(self, "denni_rezim", "laskavy"),
         }
 
     @classmethod
@@ -130,6 +139,16 @@ class Hra:
         hra.hrac.den = hra.kalendar.den
         if isinstance(data.get("achievementy"), dict):
             hra.achievementy = AchievementSystem.from_dict(data["achievementy"])
+        try:
+            from game.kronika import Kronika
+            hra.kronika = Kronika.from_dict(data.get("kronika", {}))
+        except Exception:
+            try:
+                from game.kronika import Kronika
+                hra.kronika = Kronika()
+            except Exception:
+                hra.kronika = None
+        hra.denni_rezim = data.get("denni_rezim", "laskavy")
         if isinstance(data.get("marriage_system"), dict):
             hra.marriage_system = {
                 k: Marriage.from_dict(v)
@@ -199,7 +218,6 @@ def nacti_slot(slot, hlavni_soubor=SAVE_FILE):
 
 
 def uloz_hru(hra: Hra, soubor=SAVE_FILE):
-    """Uloží hru atomicky do JSON a rotuje záložní kopie."""
     cesta = Path(soubor).expanduser()
     slozka = cesta.parent if str(cesta.parent) else Path(".")
     docasny = None
@@ -235,12 +253,10 @@ def uloz_hru(hra: Hra, soubor=SAVE_FILE):
 
 
 def nacti_hru(soubor=SAVE_FILE):
-    """Načte JSON sejv; při poškození zkusí zálohy .bak/.bak2/.bak3."""
     cesta = Path(soubor).expanduser()
     if not cesta.exists() and not cesta.with_name(cesta.name + ".bak").exists():
         print("Žádná uložená hra.")
         return None
-
     cesty = [
         cesta,
         cesta.with_name(cesta.name + ".bak"),
@@ -260,7 +276,6 @@ def nacti_hru(soubor=SAVE_FILE):
             return hra
         except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as chyba:
             posledni_chyba = chyba
-
     print(f"Načtení selhalo: {posledni_chyba}")
     return None
 
