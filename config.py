@@ -1,6 +1,6 @@
 # config.py
 SAVE_FILE = "harem_dark_v18_save.json"
-VERSION = "21.0"
+VERSION = "22.0-dark"
 
 USE_COLORS = True
 
