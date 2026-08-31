@@ -63,3 +63,8 @@ def _proved(hra, o):
         zaznamenej(hra, f"Veřejný výkon: {o.jmeno}")
     except Exception:
         pass
+    try:
+        from game.ai_dialog import vypis_dialog
+        vypis_dialog(o, hrac, "veřejný_výkon", nastaveni=getattr(hra, "nastaveni", None))
+    except Exception:
+        pass
