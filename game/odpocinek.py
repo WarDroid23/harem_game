@@ -39,25 +39,21 @@ def _bonus_energie_ze_vztahu(hra):
         aktivni = hra.harem.vsechny_aktivni()
     except Exception:
         return zpravy
-
     manzelky = [o for o in aktivni if getattr(o, "je_manzelkou", False)]
     if not manzelky and getattr(hra, "marriage_system", None):
         for o in aktivni:
             m = hra.marriage_system.get(o.jmeno)
             if m and hasattr(m, "je_vdana") and m.je_vdana():
                 manzelky.append(o)
-
     oblibene = [o for o in aktivni if getattr(o, "oblibena", False)]
     rust_sex = 0
     rust_temno = 0
-
     if manzelky:
         for m in manzelky[:2]:
             rust_sex += 1
             rust_temno += 1
         jmena = ", ".join(o.jmeno for o in manzelky[:2])
         zpravy.append(f"💍 {jmena}: manželská blízkost posílila tvou výdrž (+{min(2, len(manzelky))} max).")
-
     if oblibene:
         o = oblibene[0]
         rust_sex += 1
@@ -66,16 +62,11 @@ def _bonus_energie_ze_vztahu(hra):
             zpravy.append(f"★ {o.jmeno}: oddanost oblíbenkyně zvedá sex i temno (+1/+1 max).")
         else:
             zpravy.append(f"★ {o.jmeno}: přítomnost oblíbenkyně zvedá sexuální výdrž (+1 max).")
-
     if not manzelky:
-        partnerky = [
-            o for o in aktivni
-            if getattr(o, "partnerka", False) and not getattr(o, "je_manzelkou", False)
-        ]
+        partnerky = [o for o in aktivni if getattr(o, "partnerka", False) and not getattr(o, "je_manzelkou", False)]
         if partnerky:
             rust_sex += 1
             zpravy.append(f"♥ Partnerka {partnerky[0].jmeno}: jemné sbližování (+1 max sex).")
-
     if rust_sex:
         skutecny = hrac.zvys_max_sex(rust_sex)
         if skutecny == 0 and rust_sex:
@@ -101,14 +92,12 @@ def odpocinek(hra, rezim=None):
         rezim = "meditace" if volba == "2" else "spánek"
     elif rezim not in ("spánek", "meditace"):
         rezim = "spánek"
-
     hrac.den += 1
     if hasattr(hra, "kalendar"):
         hra.kalendar.dalsi_den(hrac.den - 1)
-
-    for z in _bonus_energie_ze_vztahu(hra):
+    vztahove = _bonus_energie_ze_vztahu(hra)
+    for z in vztahove:
         tisk_ok(z)
-
     hrac.dopln_energie_naplno()
     if rezim == "meditace":
         hrac.hp = min(hrac.max_hp, hrac.hp + 15)
@@ -116,12 +105,10 @@ def odpocinek(hra, rezim=None):
     else:
         hrac.hp = min(hrac.max_hp, hrac.hp + 20)
         tisk_ok("Klidný spánek. Probudil ses s plnou energií.")
-
     dokoncene_najmy = zpracuj_den(hra)
     prijem_harem = hra.harem.pasivni_prijem()
     prijem_mafie = hra.mafie.vypocet_prijmu()
     hrac.gold += prijem_harem + prijem_mafie
-
     bonus_marriage_gold = 0
     for jmeno, marriage in hra.marriage_system.items():
         if marriage.je_vdana():
@@ -131,7 +118,6 @@ def odpocinek(hra, rezim=None):
     if bonus_marriage_gold > 0:
         hrac.gold += bonus_marriage_gold
         tisk_ok(f"💍 Manželství: zlato +{bonus_marriage_gold}")
-
     tisk_ok(
         f"Energie naplněna: {hrac.sex_energy}/{hrac.max_sex()} (sex) | "
         f"{hrac.dark_energy}/{hrac.max_temno()} (temno)."
@@ -145,14 +131,29 @@ def odpocinek(hra, rezim=None):
         hra.achievementy.zaznamenej("dny", hrac.den)
     if hasattr(hra, "kalendar") and hra.kalendar.posledni_udalost:
         tisk_info(hra.kalendar.posledni_udalost)
-
+    try:
+        from game.denni_rozkazy import aplikuj_rezim_na_den
+        for z in aplikuj_rezim_na_den(hra):
+            tisk_info(z)
+    except Exception:
+        pass
+    try:
+        from game.nocni_eventy import spust_nocni_eventy
+        for z in spust_nocni_eventy(hra):
+            print(z)
+    except Exception as e:
+        tisk_chyba(f"Noční event: {e}")
+    try:
+        from game.kronika import zaznamenej
+        zaznamenej(hra, f"Odpočinek ({rezim}), den {hrac.den}")
+    except Exception:
+        pass
     try:
         from game.save_load import uloz_autosave
         if uloz_autosave(hra):
             tisk_info("Autosave uložen (JSON).")
     except Exception as e:
         tisk_chyba(f"Autosave selhal: {e}")
-
     try:
         input("Enter...")
     except EOFError:
