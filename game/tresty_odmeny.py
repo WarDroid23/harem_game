@@ -1,5 +1,5 @@
 # game/tresty_odmeny.py
-# Dark Expansion – trest/odměny + fáze, manželka, oblíbenkyně
+# Dark Expansion – trest/odměny + fáze, manželka, oblíbenkyně + auto eventy
 
 import random
 from data.tresty import TRESTY
@@ -126,14 +126,65 @@ def proved_odmenu(otrok, hrac, id_odmeny):
 
 
 def nastav_oblibenou(hra, otrok):
+    """Jmenuje otrokyni oblíbenkyní a spustí automatické reakce harému."""
+    stara = None
     for o in hra.harem.vsechny_aktivni():
+        if getattr(o, "oblibena", False) and o is not otrok:
+            stara = o
         o.oblibena = False
         o.oblibena_od_den = 0
+
     otrok.oblibena = True
     otrok.oblibena_od_den = hra.hrac.den
     otrok.zvysit_stat("loajalita", 8)
     otrok.zvysit_stat("duvera", 5)
-    tisk_ok(f"{otrok.jmeno} je nyní tvoje oblíbenkyně. Ostatní to cítí.")
+    if hasattr(otrok, "zaznamenej_volbu"):
+        otrok.zaznamenej_volbu("status", "Jmenována oblíbenkyní harému", hra.hrac.den)
+
+    tisk_ok(f"★ {otrok.jmeno} je nyní tvoje oblíbenkyně.")
+    print(f"{GOLD}Harém to vidí. Vzduch hustne.{NC}")
+
+    aktivni = [o for o in hra.harem.vsechny_aktivni() if o is not otrok]
+    if not aktivni:
+        print(f"{CYAN}Harém je prázdný kromě ní. Ticho a oddanost.{NC}")
+        return True
+
+    if stara is not None:
+        stara.zvysit_stat("loajalita", -6)
+        stara.zvysit_stat("strach", 4)
+        stara.zvysit_stat("humiliation", 8)
+        stara.nalada = "ponížená"
+        print(f"{RED}• {stara.jmeno} zbledla. Bývalá oblíbenkyně cítí pád.{NC}")
+
+    for o in aktivni:
+        if o is stara:
+            continue
+        r = random.random()
+        if o.loajalita >= 60 or o.submisivita >= 55:
+            o.zvysit_stat("loajalita", 3)
+            o.zvysit_stat("submisivita", 2)
+            o.nalada = "snaživá"
+            if random.random() < 0.4:
+                print(f"{GREEN}• {o.jmeno} sklonila hlavu hlouběji. Chce si získat tvou přízeň.{NC}")
+        elif o.loajalita < 35 or getattr(o, "charakter", "") in ("vzdorna", "odvazna"):
+            o.zvysit_stat("loajalita", -4)
+            o.zvysit_stat("strach", 5)
+            o.nalada = "žárlivá"
+            if random.random() < 0.5:
+                print(f"{YELLOW}• {o.jmeno} sevřela pěsti. Žárlivost ji hlodá.{NC}")
+        else:
+            o.zvysit_stat("humiliation", 3)
+            if random.random() < 0.25:
+                print(f"{CYAN}• {o.jmeno} se odvrátila. Ví, že není vyvolená.{NC}")
+
+    if len(aktivni) >= 2 and random.random() < 0.35:
+        rival = random.choice(aktivni)
+        print(f"\n{MAGENTA}✦ Noční šepot:{NC} {rival.jmeno} byla slyšet u dveří komnaty {otrok.jmeno}.")
+        print(f"   Ráno má {otrok.jmeno} stopy neklidu… a {rival.jmeno} se vyhýbá tvému pohledu.")
+        rival.zvysit_stat("strach", 6)
+        otrok.zvysit_stat("duvera", 2)
+
+    print(f"\n{GOLD}Status harému se posunul. Oblíbenkyně má výsady – a ostatní to vědí.{NC}")
     return True
 
 
