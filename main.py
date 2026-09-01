@@ -402,7 +402,14 @@ def hlavni_menu(hra: Hra):
         elif volba == "13":
             obchod(hra)
         elif volba == "14":
-            QuestSystem().menu(hra)
+            try:
+                hra.questy.menu(hra)
+            except Exception as e:
+                tisk_chyba(f"Questy selhaly: {e}")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
         elif volba == "15":
             drazba_otrokyn(hra.hrac, hra.harem)
             input("Enter...")
