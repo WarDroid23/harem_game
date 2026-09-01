@@ -2,7 +2,7 @@
 import random
 from models.otrokyne import Otrokyně
 from models.hrac import Hrac
-from utils.vypis import clear, tisk_ok, tisk_chyba
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
 
 class SubkyDomestikace:
     def __init__(self):
@@ -61,23 +61,86 @@ class SubkyDomestikace:
         tisk_ok(f"{otrok.jmeno} byla plně dehumanizována.")
 
     def zobraz_moznosti(self, otrok, hrac):
-        clear()
-        print(f"--- Subky / Domestikace: {otrok.jmeno} ---")
-        print(f"Poslušnost: {otrok.poslusnost} | Submisivita: {otrok.submisivita}")
-        print(f"Broken: {otrok.broken} | Mindbreak: {otrok.mindbreak} | Loajalita: {otrok.loajalita}")
-        print(f"Energie: {hrac.sex_energy} | Temná energie: {hrac.dark_energy}")
-        print()
-        print("1) Trénink poslušnosti (10 energie)")
-        print("2) Podminování (5 temné energie)")
-        print("3) Domestikace (vyžaduje broken 70, mindbreak 50)")
-        print("4) Dehumanizace (vyžaduje broken 90, mindbreak 80)")
-        print("0) Zpět")
-        volba = input("> ")
-        if volba == "1":
-            self.trenink_poslusnosti(otrok, hrac)
-        elif volba == "2":
-            self.podminovani(otrok, hrac)
-        elif volba == "3":
-            self.domestikace(otrok, hrac)
-        elif volba == "4":
-            self.dehumanizace(otrok, hrac)
+        while True:
+            clear()
+            print(f"--- Subky / Domestikace: {otrok.jmeno} ---")
+            print(f"Poslušnost: {otrok.poslusnost} | Submisivita: {otrok.submisivita}")
+            print(f"Broken: {otrok.broken} | Mindbreak: {otrok.mindbreak} | Loajalita: {otrok.loajalita}")
+            print(f"Energie: {hrac.sex_energy} | Temná energie: {hrac.dark_energy}")
+            print()
+            print("1) Trénink poslušnosti (10 energie)")
+            print("2) Podminování (5 temné energie)")
+            print("3) Domestikace (vyžaduje broken 70, mindbreak 50)")
+            print("4) Dehumanizace (vyžaduje broken 90, mindbreak 80)")
+            print("0) Zpět")
+            try:
+                volba = input("> ").strip()
+            except EOFError:
+                return
+            if volba == "0":
+                return
+            if volba == "1":
+                self.trenink_poslusnosti(otrok, hrac)
+            elif volba == "2":
+                self.podminovani(otrok, hrac)
+            elif volba == "3":
+                self.domestikace(otrok, hrac)
+            elif volba == "4":
+                self.dehumanizace(otrok, hrac)
+            else:
+                tisk_chyba("Neplatná volba.")
+            try:
+                input("Enter...")
+            except EOFError:
+                return
+
+    def menu(self, hra, aktivni=None):
+        """Menu pro volbu 7 — výběr otrokyně a domestikace."""
+        if aktivni is None:
+            try:
+                aktivni = [o for o in hra.harem.vsechny_aktivni() if o.hp > 0]
+            except Exception:
+                aktivni = []
+        if not aktivni:
+            tisk_chyba("Nemáš otrokyně pro domestikaci.")
+            try:
+                input("Enter...")
+            except EOFError:
+                pass
+            return
+
+        while True:
+            clear()
+            print("--- Subky / Domestikace ---")
+            print("Vyber otrokyni k tréninku:\n")
+            for i, o in enumerate(aktivni, 1):
+                h = "★ " if getattr(o, "oblibena", False) else ""
+                print(
+                    f"{i}) {h}{o.jmeno} "
+                    f"(posl:{o.poslusnost} sub:{o.submisivita} "
+                    f"broken:{o.broken} mind:{o.mindbreak})"
+                )
+            print("0) Zpět")
+            try:
+                volba = input("> ").strip()
+            except EOFError:
+                return
+            if volba == "0":
+                return
+            try:
+                idx = int(volba) - 1
+            except ValueError:
+                tisk_chyba("Zadej číslo.")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    return
+                continue
+            if not (0 <= idx < len(aktivni)):
+                tisk_chyba("Špatná volba.")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    return
+                continue
+            self.zobraz_moznosti(aktivni[idx], hra.hrac)
