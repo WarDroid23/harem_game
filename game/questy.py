@@ -205,6 +205,30 @@ class QuestSystem:
         volba = input("> ").strip()
         return volba
 
+    def menu(self, hra):
+        """Interaktivní menu questů — volá se z hlavního menu (14)."""
+        hrac = hra.hrac if hasattr(hra, "hrac") else hra
+        while True:
+            volba = self.zobraz_questy()
+            if volba in ("0", "q", ""):
+                return
+            if volba == "1":
+                if self.aktivni_quest is not None:
+                    tisk_chyba("Nejdřív dokonči aktivní quest.")
+                else:
+                    self.generuj_quest(hrac, hra if hasattr(hra, "hrac") else None)
+            elif volba == "2":
+                if hasattr(hra, "harem") and hasattr(hra, "mafie"):
+                    self.proved_quest(hrac, hra.harem, hra.mafie, hra)
+                else:
+                    tisk_chyba("Chybí kontext hry pro plnění questu.")
+            else:
+                tisk_chyba("Neplatná volba.")
+            try:
+                input("Enter...")
+            except EOFError:
+                return
+
     def to_dict(self):
         return {
             "aktivni_quest": self.aktivni_quest,
