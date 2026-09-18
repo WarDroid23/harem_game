@@ -2,3 +2,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.json.bak
+saves/
+*save*.json

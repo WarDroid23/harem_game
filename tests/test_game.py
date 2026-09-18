@@ -59,7 +59,7 @@ class HraTesty(unittest.TestCase):
         with redirect_stdout(io.StringIO()):
             self.assertTrue(meditace(hra))
         self.assertEqual(hra.hrac.sex_energy, 5)
-        self.assertEqual(hra.hrac.dark_energy, 18)
+        self.assertEqual(hra.hrac.dark_energy, 12)
         self.assertFalse(meditace(hra))
 
     def test_migrace_stareho_save_ma_bezpecne_defaulty(self):
@@ -71,7 +71,10 @@ class HraTesty(unittest.TestCase):
         hra = Hra.from_dict(stare_data)
         self.assertEqual(hra.hrac.gold, 123)
         self.assertGreaterEqual(hra.harem.otrokyne[0].vek, 18)
-        self.assertEqual(hra.nastaveni.to_dict(), {"barvy": True, "obtiznost": "normalni"})
+        self.assertTrue(hra.nastaveni.barvy)
+        self.assertEqual(hra.nastaveni.obtiznost, "normalni")
+        self.assertFalse(hra.nastaveni.ironman)
+        self.assertFalse(hra.nastaveni.ai_dialogy)
 
     def test_obtiznost_meni_silu_a_odmenu(self):
         self.assertLess(
@@ -135,6 +138,88 @@ class HraTesty(unittest.TestCase):
         self.assertGreaterEqual(hra.hrac.gold, MIN_ZLATO_REZERVA)
         self.assertEqual(vysledek.zlato_po, hra.hrac.gold)
 
+    def test_koupit_uzemi_oznaci_obsazeno_a_generuje_prijem(self):
+        from game.mafie import koupit_uzemi
+        hra = Hra()
+        hra.hrac.gold = 2000
+        uspech = koupit_uzemi(hra.hrac, hra.mafie, "Tržiště")
+        self.assertTrue(uspech)
+        self.assertEqual(len(hra.mafie.uzemi), 1)
+        uzemi = hra.mafie.uzemi[0]
+        self.assertTrue(uzemi.obsazeno)
+        self.assertEqual(uzemi.kontrola, 50)
+        prijem = hra.mafie.vypocet_prijmu()
+        self.assertEqual(prijem, 80 * 50 // 100)
+
+    def test_valka_uzemi_s_vitezstvim(self):
+        from game.mafie import valka_uzemi, koupit_uzemi
+        hra = Hra()
+        hra.hrac.gold = 2000
+        koupit_uzemi(hra.hrac, hra.mafie, "Přístav")
+        hra.mafie.vojaci = 20
+        hra.mafie.kapitanove = 3
+        zlato_pred = hra.hrac.gold
+        with patch("builtins.input", side_effect=["1", "1"]):
+            valka_uzemi(hra.hrac, hra.mafie, hra)
+        self.assertGreater(hra.hrac.gold, zlato_pred)
+        self.assertGreater(hra.mafie.vliv_ve_meste, 0)
+
+    def test_cerny_trh_okovy_a_ametyst(self):
+        from game.obchod import cerny_trh
+        hra = Hra()
+        hra.hrac.gold = 1000
+        hra.mafie.korupce = 30
+        o = Otrokyně("Zoe", loajalita=40)
+        hra.harem.pridat(o)
+        with patch("builtins.input", side_effect=["2", ""]):
+            cerny_trh(hra)
+        self.assertEqual(o.loajalita, 45)
+        self.assertEqual(hra.hrac.gold, 880)
+
+        temno_max_pred = hra.hrac.max_temno()
+        with patch("builtins.input", side_effect=["6", ""]):
+            cerny_trh(hra)
+        self.assertEqual(hra.hrac.max_temno(), temno_max_pred + 10)
+
+    def test_ai_dialog_fallback_variety(self):
+        from game.ai_dialog import generuj_dialog
+        hra = Hra()
+        o = Otrokyně("Kassandra", faze_zkazenosti=12, loajalita=90)
+        hra.nastaveni.ai_dialogy = True
+        dialog = generuj_dialog(o, hra.hrac, typ="trest", nastaveni=hra.nastaveni, ticho=True)
+        self.assertTrue(len(dialog) > 10)
+        self.assertIn("Kassandra", dialog)
+
+    def test_nove_questy_jsou_v_databazi(self):
+        from game.questy import QUESTY
+        nazvy = [q["nazev"] for q in QUESTY]
+        self.assertIn("Pád inkvizičního vyšetřovatele", nazvy)
+        self.assertIn("Krvavý rituál v podzemní kryptě", nazvy)
+        self.assertIn("Infiltrace šlechtického plesu", nazvy)
+        self.assertIn("Lov vzpurné rebelky", nazvy)
+        self.assertIn("Obsazení městské zbrojnice", nazvy)
+
+    def test_mapa_nove_lokace_a_cestovani(self):
+        from game.svet import LOKACE
+        hra = Hra()
+        self.assertIn("katakomby", LOKACE)
+        self.assertIn("svatyne_krvaveho_mesice", LOKACE)
+        self.assertIn("palac_bohatych", LOKACE)
+
+        self.assertEqual(hra.svet.aktualni_lokace, "pevnost")
+        self.assertTrue(hra.svet.cestuj("trh", hra))
+        self.assertEqual(hra.svet.aktualni_lokace, "trh")
+
+    def test_mapa_pruzkum_lokace(self):
+        hra = Hra()
+        hra.hrac.sex_energy = 20
+        zlato_pred = hra.hrac.gold
+        with patch("random.random", return_value=0.1), patch("builtins.input", return_value=""):
+            hra.svet.pruzkum_lokace(hra)
+        self.assertGreater(hra.hrac.gold, zlato_pred)
+
 
 if __name__ == "__main__":
     unittest.main()
+
+

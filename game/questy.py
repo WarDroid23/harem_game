@@ -100,6 +100,58 @@ QUESTY = [
         "odmena_energie": {"sex": 8, "temna": 18},
         "riziko": 0.3,
         "doba_trvani": 2
+    },
+    {
+        "nazev": "Pád inkvizičního vyšetřovatele",
+        "popis": "Vyhledej kompromitující materiály a zkorumpuj církevního vyšetřovatele pod hrozbou vydírání.",
+        "typ": "diplomacie",
+        "narocnost": 6,
+        "odmena_zlato": 450,
+        "odmena_energie": {"sex": 12, "temna": 25},
+        "riziko": 0.25,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Krvavý rituál v podzemní kryptě",
+        "popis": "Vedeš tajný temný obřad v opuštěných katakombách pod městem k posílení vlivu dominia.",
+        "typ": "boj",
+        "narocnost": 7,
+        "odmena_zlato": 520,
+        "odmena_energie": {"sex": 20, "temna": 35},
+        "odmena_predmet": "krvavy_ametyst",
+        "riziko": 0.3,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Infiltrace šlechtického plesu",
+        "popis": "Využij luxusně oděnou otrokyni v šlechtickém paláci k získání tajných smluv a svodu radních.",
+        "typ": "obchod",
+        "narocnost": 5,
+        "odmena_zlato": 380,
+        "odmena_energie": {"sex": 25, "temna": 15},
+        "riziko": 0.2,
+        "doba_trvani": 1
+    },
+    {
+        "nazev": "Lov vzpurné rebelky",
+        "popis": "Vystopuj hrdou velitelku pašeráckého gangu v přístavu, zlom její odpor a uvrhni ji do harému.",
+        "typ": "lov",
+        "narocnost": 6,
+        "odmena_zlato": 320,
+        "odmena_energie": {"sex": 15, "temna": 20},
+        "riziko": 0.35,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Obsazení městské zbrojnice",
+        "popis": "Noční úder mafiánských oddílů na posádku městské zbrojnice – zbraně a bohatství pro tvou armádu.",
+        "typ": "boj",
+        "narocnost": 8,
+        "odmena_zlato": 680,
+        "odmena_predmet": "signalni_roh",
+        "odmena_energie": {"sex": 15, "temna": 30},
+        "riziko": 0.35,
+        "doba_trvani": 2
     }
 ]
 
@@ -184,8 +236,15 @@ class QuestSystem:
             "den": getattr(hra.hrac, "den", 0) if hra is not None else 0,
         })
         self.historie = self.historie[-30:]
-        if uspech and hra is not None and hasattr(hra, "achievementy"):
-            hra.achievementy.zaznamenej("quest")
+        if uspech and hra is not None:
+            if hasattr(hra, "achievementy"):
+                hra.achievementy.zaznamenej("quest")
+            from game.kronika import zaznamenej
+            zaznamenej(hra, f"Dokončen quest: {quest['nazev']} (+{quest['odmena_zlato']} zl).")
+        elif not uspech and hra is not None:
+            from game.kronika import zaznamenej
+            zaznamenej(hra, f"Neúspěch v questu: {quest['nazev']} (−{pokuta} zl).")
+
 
     def zobraz_questy(self):
         clear()

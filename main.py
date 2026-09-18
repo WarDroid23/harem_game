@@ -61,6 +61,10 @@ def _vykresli_sloty(hlavni_soubor=None):
 
 def menu_ulozeni(hra):
     clear()
+    if getattr(hra.nastaveni, "ironman", False):
+        tisk_chyba("V režimu IRONMAN nelze manuálně ukládat do libovolných slotů!")
+        tisk_info("Hra se automaticky a trvale ukládá při odpočinku (nový den) nebo ukončení hry.")
+        return False
     print("--- Uložení hry (JSON) ---\n")
     _vykresli_sloty()
     print("0) Zpět")
@@ -76,6 +80,7 @@ def menu_ulozeni(hra):
     except (ValueError, EOFError):
         tisk_chyba("Zadej číslo slotu 1 až 5.")
         return False
+
 
 
 def menu_nacteni():
@@ -480,6 +485,18 @@ def hlavni_menu(hra: Hra):
                 pass
 
 
+def nova_hra(nastaveni=None):
+    """Vytvoří novou hru s výchozím nastavením a dvěma dospělými otrokyněmi."""
+    hra = Hra()
+    if nastaveni is not None:
+        hra.nastaveni = aplikuj_nastaveni(NastaveniHry.from_dict(nastaveni.to_dict()))
+    for _ in range(2):
+        jmeno = random.choice(JMENA)
+        otrok = Otrokyně(jmeno, vek=random.randint(18, 28))
+        hra.harem.pridat(otrok)
+    return hra
+
+
 def start():
     while True:
         clear()
@@ -499,7 +516,7 @@ def start():
                 prehraj_trailer(rychle=True, interaktivni=True)
             except Exception:
                 pass
-            hra = Hra()
+            hra = nova_hra()
             hlavni_menu(hra)
         elif volba == "2":
             hra = menu_nacteni()

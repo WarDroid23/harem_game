@@ -1,88 +1,158 @@
+import random
 from dataclasses import dataclass, field
 
+from config import (
+    GREEN, RED, YELLOW, BLUE, MAGENTA, CYAN, GOLD, NC, BOLD, DIM, GRAY, WHITE
+)
 from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok
 
 LOKACE = {
     "pevnost": {
         "nazev": "Černá pevnost",
-        "popis": "Bezpečné zázemí tvého harému a výchozí bod výprav.",
+        "kratky": "Pevnost",
+        "ikona": "🏰",
+        "popis": "Bezpečné zázemí tvého dominia a harému, chráněné kamennými valy.",
         "sousedni": ["trh", "les"],
         "uroven": 1,
+        "nebezpeci": "bezpečno",
     },
     "trh": {
         "nazev": "Starý trh",
+        "kratky": "Trh",
+        "ikona": "⚖",
         "popis": "Obchodníci, překupníci a lidé, kteří slyší víc, než říkají.",
         "sousedni": [
             "pevnost", "pristav", "ctvrt_remeselniku", "hostinec", "lazne",
-            "akademie"
+            "akademie", "katakomby", "palac_bohatych"
         ],
         "uroven": 1,
+        "nebezpeci": "nízké",
     },
     "les": {
         "nazev": "Mlžný les",
-        "popis": "Zkratka k hranici, kde se ztrácejí karavany.",
-        "sousedni": ["pevnost", "hranice", "haj_soumraku"],
+        "kratky": "Les",
+        "ikona": "🌲",
+        "popis": "Zkratka k hranici s hustými hvozdy, kde se v mlze ztrácejí karavany.",
+        "sousedni": ["pevnost", "hranice", "haj_soumraku", "svatyne_krvaveho_mesice"],
         "uroven": 2,
+        "nebezpeci": "střední",
     },
     "pristav": {
         "nazev": "Černý přístav",
+        "kratky": "Přístav",
+        "ikona": "⚓",
         "popis": "Místo pašeráků, lodí a zpráv z dalekých zemí.",
-        "sousedni": ["trh"],
+        "sousedni": ["trh", "molo_mesicniho_pristavu", "palac_bohatych"],
         "uroven": 2,
+        "nebezpeci": "střední",
     },
     "hranice": {
         "nazev": "Hraniční ves",
-        "popis": "Vesničané potřebují ochranu před nájezdy.",
-        "sousedni": ["les"],
+        "kratky": "Hranice",
+        "ikona": "⚔",
+        "popis": "Opevněná vesnice na pomezí říše, ohrožovaná nájezdy ze severu.",
+        "sousedni": ["les", "observator"],
         "uroven": 3,
+        "nebezpeci": "vysoké",
     },
     "ctvrt_remeselniku": {
         "nazev": "Čtvrť řemeslníků",
+        "kratky": "Řemesla",
+        "ikona": "🔨",
         "popis": "Dílny, cechy a lidé, kteří umí proměnit suroviny v užitečné vybavení.",
-        "sousedni": ["trh", "akademie"],
+        "sousedni": ["trh", "akademie", "palac_bohatych"],
         "uroven": 2,
+        "nebezpeci": "nízké",
     },
     "hostinec": {
         "nazev": "Hostinec U Tří svící",
+        "kratky": "Hostinec",
+        "ikona": "🍺",
         "popis": "Rušný hostinec, kde se najíš, vyspíš a zaslechneš nové zvěsti.",
         "sousedni": ["trh", "lazne"],
         "uroven": 1,
+        "nebezpeci": "bezpečno",
     },
     "lazne": {
         "nazev": "Městské lázně",
-        "popis": "Teplé prameny obnovují sílu poutníkům i vládcům.",
-        "sousedni": ["trh", "hostinec", "haj_soumraku"],
+        "kratky": "Lázně",
+        "ikona": "♨",
+        "popis": "Teplé prameny obnovují sílu poutníkům i pánům dominia.",
+        "sousedni": ["trh", "hostinec", "haj_soumraku", "sklenena_zahrada", "katakomby"],
         "uroven": 1,
+        "nebezpeci": "bezpečno",
     },
     "haj_soumraku": {
         "nazev": "Háj soumraku",
+        "kratky": "Háj",
+        "ikona": "🌿",
         "popis": "Tiché místo mezi lesem a prameny, vhodné k meditaci a temným rituálům.",
-        "sousedni": ["les", "lazne"],
+        "sousedni": ["les", "lazne", "svatyne_krvaveho_mesice"],
         "uroven": 2,
+        "nebezpeci": "střední",
     },
     "akademie": {
         "nazev": "Alchymistická akademie",
+        "kratky": "Akademie",
+        "ikona": "📜",
         "popis": "Učenci zde zkoumají esence a vyměňují je za vzácné suroviny.",
-        "sousedni": ["ctvrt_remeselniku", "trh"],
+        "sousedni": ["ctvrt_remeselniku", "trh", "sklenena_zahrada"],
         "uroven": 2,
+        "nebezpeci": "nízké",
     },
     "sklenena_zahrada": {
         "nazev": "Skleněná zahrada",
-        "popis": "Zastřešená zahrada plná světla, kde se dá mluvit bez publika a beze spěchu.",
-        "sousedni": ["lazne", "akademie", "observator"],
+        "kratky": "Zahrada",
+        "ikona": "🌺",
+        "popis": "Zastřešená zahrada plná světla a exotických květin, kde se dá mluvit beze spěchu.",
+        "sousedni": ["lazne", "akademie", "observator", "molo_mesicniho_pristavu"],
         "uroven": 2,
+        "nebezpeci": "bezpečno",
     },
     "observator": {
         "nazev": "Observatoř severní věže",
-        "popis": "Staré čočky ukazují cesty, které město raději zapomnělo.",
-        "sousedni": ["sklenena_zahrada", "hranice"],
+        "kratky": "Observatoř",
+        "ikona": "🔭",
+        "popis": "Staré čočky a astroláby odkrývají cesty, které město raději zapomnělo.",
+        "sousedni": ["sklenena_zahrada", "hranice", "molo_mesicniho_pristavu"],
         "uroven": 3,
+        "nebezpeci": "střední",
     },
     "molo_mesicniho_pristavu": {
         "nazev": "Molo Měsíčního přístavu",
-        "popis": "Tiché molo na okraji přístavu, kde se uzavírají dohody a loučí se s minulostí.",
-        "sousedni": ["pristav", "observator"],
+        "kratky": "Molo",
+        "ikona": "🌊",
+        "popis": "Tiché molo na okraji přístavu, kde se uzavírají dohody a odplouvá do dálek.",
+        "sousedni": ["pristav", "observator", "sklenena_zahrada"],
         "uroven": 3,
+        "nebezpeci": "střední",
+    },
+    "katakomby": {
+        "nazev": "Katakomby pod městem",
+        "kratky": "Katakomby",
+        "ikona": "💀",
+        "popis": "Starobylé podzemní hrobky pod starým městem, zřídlo temné energie a zapomenutých relikvií.",
+        "sousedni": ["trh", "lazne", "svatyne_krvaveho_mesice"],
+        "uroven": 3,
+        "nebezpeci": "vysoké",
+    },
+    "svatyne_krvaveho_mesice": {
+        "nazev": "Krvavá svatyně v lese",
+        "kratky": "Svatyně",
+        "ikona": "🩸",
+        "popis": "Opuštěná kultistická svatyně ukrytá v Mlžném lese pro temné rituály dominia.",
+        "sousedni": ["les", "haj_soumraku", "katakomby"],
+        "uroven": 3,
+        "nebezpeci": "velmi vysoké",
+    },
+    "palac_bohatych": {
+        "nazev": "Palác a čtvrť bohatých",
+        "kratky": "Palác",
+        "ikona": "👑",
+        "popis": "Sídlo městské smetánky a guvernérův palác, centrum intrik, luxusu a politického vlivu.",
+        "sousedni": ["trh", "ctvrt_remeselniku", "pristav"],
+        "uroven": 2,
+        "nebezpeci": "střední",
     },
 }
 
@@ -156,6 +226,33 @@ NPC = {
             "Pokud chceš plout se mnou, řekni mi nejdřív, kam skutečně míříš.",
         ],
     },
+    "mortis": {
+        "jmeno": "Mortis, strážce krypt",
+        "popis": "Nekromantský badatel v katakombách, který zná tajemství temných esencí.",
+        "lokace": "katakomby",
+        "vek": 48,
+        "dialogy": [
+            "Smrt je jen tichý spánek... pravá moc začíná tam, kde končí strach.",
+        ],
+    },
+    "morana": {
+        "jmeno": "Morana, velekněžka krve",
+        "popis": "Temná rituální kněžka ve svatyni, oddaná silám krvavého měsíce.",
+        "lokace": "svatyne_krvaveho_mesice",
+        "vek": 27,
+        "dialogy": [
+            "Tvůj harém je tvým chrámem. Čím hlouběji klesnou, tím výš stoupne tvé dominium.",
+        ],
+    },
+    "lord_vane": {
+        "jmeno": "Lord Vane, městský radní",
+        "popis": "Zkorumpovaný šlechtic v paláci, který za správnou cenu zařídí cokoliv.",
+        "lokace": "palac_bohatych",
+        "vek": 42,
+        "dialogy": [
+            "Zlato otevírá dveře, které ani inkvizice nedokáže zavřít.",
+        ],
+    },
 }
 
 
@@ -205,13 +302,231 @@ class SvetSystem:
         self.vztahy_npc[npc_id] = max(-100, min(100, self.vztahy_npc[npc_id] + delta))
         return True
 
-    def cestuj(self, cil):
+    def _format_uzel(self, lok_id, hra):
+        """Naformátuje uzel na mapě s ikonami statusu."""
+        info = LOKACE[lok_id]
+        kratky = info.get("kratky", info["nazev"][:7])
+        ikona = info.get("ikona", "•")
+
+        if lok_id not in self.odhalene_lokace:
+            return f"{GRAY}[? Neodhaleno ?]{NC}"
+
+        je_zde = (lok_id == self.aktualni_lokace)
+
+        je_mafie = False
+        if hasattr(hra, "mafie") and hasattr(hra.mafie, "uzemi"):
+            for u in getattr(hra.mafie, "uzemi", []):
+                if getattr(u, "obsazeno", False) and (
+                    u.nazev.lower() in info["nazev"].lower() or lok_id in u.nazev.lower()
+                ):
+                    je_mafie = True
+                    break
+
+        je_quest = False
+        if hasattr(hra, "questy") and hra.questy and getattr(hra.questy, "aktivni_quest", None):
+            q_lok = hra.questy.aktivni_quest.get("lokace")
+            if q_lok == lok_id:
+                je_quest = True
+
+        tag = ""
+        if je_quest:
+            tag += "🎯"
+        if je_mafie:
+            tag += "🛡️"
+
+        text = f"{ikona} {kratky}{tag}"
+        if je_zde:
+            return f"{GREEN}{BOLD}▶[{text:^13}]◀{NC}"
+        else:
+            return f"{CYAN}[{text:^13}]{NC}"
+
+    def vykresli_ascii_mapu(self, hra):
+        """Vykreslí přehlednou barevnou síťovou mapu království."""
+        u = lambda lid: self._format_uzel(lid, hra)
+
+        print(f"{GOLD}╔═══════════════════════════ ASCII MAPA KRÁLOVSTVÍ ═══════════════════════════╗{NC}")
+        print(f"║                                                                             ║")
+        print(f"║  {u('pevnost')} ═══════════ {u('les')} ═══════════ {u('hranice')}  ║")
+        print(f"║        ║                       ║                         ║                  ║")
+        print(f"║        ║                       ║                  {u('svatyne_krvaveho_mesice')}  ║")
+        print(f"║        ║                       ║                         ║                  ║")
+        print(f"║  {u('trh')} ═══════════ {u('haj_soumraku')} ═════════ {u('observator')}  ║")
+        print(f"║        ║                       ║                         ║                  ║")
+        print(f"║  {u('ctvrt_remeselniku')} ═════════ {u('lazne')} ═══════════ {u('sklenena_zahrada')}  ║")
+        print(f"║        ║                       ║                         ║                  ║")
+        print(f"║  {u('palac_bohatych')}           {u('katakomby')}          {u('molo_mesicniho_pristavu')}  ║")
+        print(f"║        ║                                                 ║                  ║")
+        print(f"║  {u('pristav')} ═════════════════════════════════════════╝                  ║")
+        print(f"║                                                                             ║")
+        print(f"{GOLD}╚═════════════════════════════════════════════════════════════════════════════╝{NC}")
+        print(f"{DIM}Legenda: {GREEN}▶[ ... ]◀{NC}{DIM} Jsi zde | {CYAN}[🛡️]{NC}{DIM} Území tvé mafie | {CYAN}[🎯]{NC}{DIM} Aktivní quest | {GRAY}[? Neodhaleno ?]{NC}\n")
+
+    def _generuj_cestovni_udalost(self, cil, hra):
+        """Spustí náhodnou událost při cestě mezi dvěma lokacemi."""
+        if random.random() > 0.35:
+            return
+
+        print(f"\n{YELLOW}⚡ Cestovní událost na stezce do: {LOKACE[cil]['nazev']}!{NC}")
+        event_typ = random.choice(["banditi", "kupec", "uprchlice", "inkvizice", "zridlo"])
+
+        if event_typ == "banditi":
+            print("Z křovin vyskočila banda hrdlořezů s tasenými zbraněmi!")
+            print("1) Zahnat je silou mafie (vyžaduje vojáky)")
+            print("2) Rozprášit je temnou aurou (stojí 8 temné energie)")
+            print("3) Zaplatit výkupné (35 🪙)")
+            volba = input("> ").strip()
+            if volba == "1":
+                vojaci = getattr(hra.mafie, "vojaci", 0)
+                if vojaci >= 2:
+                    korist = random.randint(30, 65)
+                    hra.hrac.gold += korist
+                    tisk_ok(f"Tví vojáci mafie bandity bez milosti rozehnali! Získáno +{korist} 🪙 kořisti.")
+                else:
+                    hra.hrac.hp = max(1, hra.hrac.hp - 18)
+                    tisk_chyba("Nemáš dost vojáků – v potyčce jsi byl zraněn (-18 HP).")
+            elif volba == "2":
+                if hra.hrac.dark_energy >= 8:
+                    hra.hrac.dark_energy -= 8
+                    tisk_ok("Tvé oči vzplály temným ohněm. Bandité se s křikem rozprchli do tmy!")
+                else:
+                    tisk_chyba("Nemáš dost temné energie – musel jsi zaplatit výkupné.")
+                    hra.hrac.gold = max(0, hra.hrac.gold - 35)
+            else:
+                hra.hrac.gold = max(0, hra.hrac.gold - 35)
+                tisk_info("Zaplatil jsi 35 zlaťáků výkupného a pokračuješ v cestě.")
+
+        elif event_typ == "kupec":
+            print("U cesty odpočívá krytý vůz potulného felčara a překupníka.")
+            print("1) Koupit léčivý elixír (25 🪙, +25 HP)")
+            print("2) Koupit bylinu měsíčnice (20 🪙)")
+            print("0) Pokračovat v cestě")
+            volba = input("> ").strip()
+            if volba == "1" and hra.hrac.gold >= 25:
+                hra.hrac.gold -= 25
+                hra.hrac.hp = min(hra.hrac.max_hp, hra.hrac.hp + 25)
+                tisk_ok("Elixír vypit. HP +25.")
+            elif volba == "2" and hra.hrac.gold >= 20:
+                hra.hrac.gold -= 20
+                if hasattr(hra, "alchymie"):
+                    hra.alchymie.pridat_surovinu("bylina_mesicni", 1)
+                tisk_ok("Získána bylina měsíčnice do alchymie.")
+
+        elif event_typ == "uprchlice":
+            print("Ve škarpě u cesty se chvěje vyčerpaná dívka v roztrhaných šatech.")
+            print("1) Vzít ji pod svou ochranu a odvést do dominia (nová otrokyně)")
+            print("2) Nechat ji osudu a pokračovat dál")
+            volba = input("> ").strip()
+            if volba == "1":
+                from models.otrokyne import Otrokyně
+                from data.jmena import JMENA
+                jmeno = random.choice(JMENA)
+                nova = Otrokyně(jmeno=jmeno, vek=random.randint(18, 24))
+                nova.charakter = random.choice(["subka", "nevinná", "ustrašená"])
+                nova.loajalita = 55
+                nova.poslusnost = 50
+                hra.harem.pridat(nova)
+                tisk_ok(f"★ Zachránil jsi dívku {jmeno}. Vděčně tě následuje do tvého harému!")
+                try:
+                    from game.kronika import zaznamenej
+                    zaznamenej(hra, f"Cesta: nalezena a zotročena uprchlice {jmeno}.")
+                except Exception:
+                    pass
+
+        elif event_typ == "inkvizice":
+            print("Cestu křižuje hlídka městské inkvizice v těžkých pláštích.")
+            vliv = getattr(hra.hrac, "vliv_inkvizice", 0)
+            if vliv < 30:
+                tisk_ok("Hlídka tě přehlédla s chladným pokývnutím. Cesta je volná.")
+            else:
+                print("Stráže tě podezíravě zastavují a dožadují se kontroly.")
+                if hra.hrac.gold >= 40:
+                    hra.hrac.gold -= 40
+                    tisk_ok("Zaplatil jsi úplatek 40 🪙 strážím. Pustili tě dál.")
+                else:
+                    hra.hrac.vliv_inkvizice = min(100, vliv + 6)
+                    tisk_chyba("Nemáš na úplatek – stráže si zapsaly tvůj popis. Vliv inkvizice vzrostl!")
+
+        elif event_typ == "zridlo":
+            print("Objevil jsi starobylé zřídlo vyvěrající ze skal, naplněné magickou silou.")
+            max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
+            max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
+            hra.hrac.sex_energy = min(max_s, hra.hrac.sex_energy + 15)
+            hra.hrac.dark_energy = min(max_t, hra.hrac.dark_energy + 15)
+            tisk_ok("Napil ses ze zřídla. Energie obnovena (+15 sex, +15 temno)!")
+
+        try:
+            input("Enter...")
+        except EOFError:
+            pass
+
+    def pruzkum_lokace(self, hra):
+        """Prozkoumá okolí aktuální lokace."""
+        cena = 5
+        if hra.hrac.sex_energy < cena and hra.hrac.dark_energy < cena:
+            tisk_chyba(f"Na důkladný průzkum potřebuješ alespoň {cena} energie.")
+            try:
+                input("Enter...")
+            except EOFError:
+                pass
+            return
+
+        if hra.hrac.sex_energy >= cena:
+            hra.hrac.sex_energy -= cena
+        else:
+            hra.hrac.dark_energy -= cena
+
+        clear()
+        info = LOKACE[self.aktualni_lokace]
+        print(f"{MAGENTA}--- Průzkum okolí: {info['nazev']} ---{NC}\n")
+
+        roll = random.random()
+        if roll < 0.35:
+            nalezeno = random.randint(25, 70)
+            hra.hrac.gold += nalezeno
+            tisk_ok(f"Ve skryté truhle u opuštěné zdi jsi našel {nalezeno} 🪙!")
+            try:
+                from game.kronika import zaznamenej
+                zaznamenej(hra, f"Průzkum v {info['nazev']}: nalezeno {nalezeno} zlata.")
+            except Exception:
+                pass
+        elif roll < 0.70:
+            suroviny = ["bylina_mesicni", "nocni_stin", "vzacna_houba", "krystal_sily"]
+            sur = random.choice(suroviny)
+            if hasattr(hra, "alchymie"):
+                hra.alchymie.pridat_surovinu(sur, 1)
+            tisk_ok(f"Při prohledávání houštin jsi nalezl vzácnou surovinu: {sur.replace('_', ' ').capitalize()}!")
+        else:
+            # Šance na odhalení skryté sousední lokace
+            zamcene_sousede = [
+                s for s in info["sousedni"] if s not in self.odhalene_lokace
+            ]
+            if zamcene_sousede:
+                nova_lok = random.choice(zamcene_sousede)
+                self.odhal_lokaci(nova_lok)
+                tisk_ok(f"★ ÚSPĚCH! Narazil jsi na skrytou stezku a odhalil lokaci: {LOKACE[nova_lok]['nazev']}!")
+                try:
+                    from game.kronika import zaznamenej
+                    zaznamenej(hra, f"Průzkumem odhalena nová lokace: {LOKACE[nova_lok]['nazev']}.")
+                except Exception:
+                    pass
+            else:
+                tisk_info("Okolí je důkladně zmapované. Nalezl jsi pár starých mincí (+15 🪙).")
+                hra.hrac.gold += 15
+
+        try:
+            input("Enter...")
+        except EOFError:
+            pass
+
+    def cestuj(self, cil, hra=None):
         if cil not in LOKACE or cil not in self.odhalene_lokace:
             tisk_chyba("Tato lokace zatím není dostupná.")
             return False
         if cil != self.aktualni_lokace and cil not in LOKACE[self.aktualni_lokace]["sousedni"]:
-            tisk_chyba("Z této lokace tam nevede bezpečná cesta.")
+            tisk_chyba("Z této lokace tam nevede přímá stezka.")
             return False
+        if cil != self.aktualni_lokace and hra is not None:
+            self._generuj_cestovni_udalost(cil, hra)
         self.aktualni_lokace = cil
         self.navstiveno[cil] = self.navstiveno.get(cil, 0) + 1
         tisk_ok(f"Dorazil jsi do lokace: {LOKACE[cil]['nazev']}.")
@@ -245,30 +560,49 @@ class SvetSystem:
     def menu(self, hra):
         while True:
             clear()
+            self.vykresli_ascii_mapu(hra)
             lokace = LOKACE[self.aktualni_lokace]
-            terminalni_obrazek("mapa")
-            print("\n--- Mapa a vztahy ---\n")
-            print(f"Pozice: {lokace['nazev']}")
-            print(lokace["popis"])
-            print("\nDostupné lokace:")
+            print(f"{GOLD}{BOLD}=== Aktuální pozice: {lokace['nazev']} {lokace.get('ikona', '')} ==={NC}")
+            print(f"{DIM}{lokace['popis']}{NC}")
+            print(f"Stupeň nebezpečí: {lokace.get('nebezpeci', 'střední')}")
+
+            # Kontrola území mafie
+            mafie_stav = "Pod kontrolou městské gardy"
+            if hasattr(hra, "mafie") and hasattr(hra.mafie, "uzemi"):
+                for u in getattr(hra.mafie, "uzemi", []):
+                    if getattr(u, "obsazeno", False) and (
+                        u.nazev.lower() in lokace["nazev"].lower() or self.aktualni_lokace in u.nazev.lower()
+                    ):
+                        mafie_stav = f"{GREEN}🛡️ Tvé podsvětní teritorium (kontrola: {u.kontrola}%){NC}"
+                        break
+            print(f"Vliv mafie: {mafie_stav}")
+
+            # Dostupné cesty
             dostupne = [
                 cil for cil in lokace["sousedni"]
                 if cil in self.odhalene_lokace
             ]
+            print(f"\n{CYAN}Dostupné stezky odtud:{NC}")
             for index, cil in enumerate(dostupne, 1):
-                print(f"{index}) {LOKACE[cil]['nazev']}")
-            print("\nNPC v okolí:")
+                c_info = LOKACE[cil]
+                print(f"  {index}) {c_info.get('ikona','•')} {c_info['nazev']}")
+
+            # NPC v okolí
             npc_v_lokaci = self.npc_v_lokaci()
             if npc_v_lokaci:
+                print(f"\n{MAGENTA}Postavy (NPC) v okolí:{NC}")
                 for npc_id, npc in npc_v_lokaci:
                     vek = f", {npc['vek']} let" if npc.get("vek") else ""
-                    print(f"  {npc['jmeno']} ({self.vztahy_npc[npc_id]:+d}{vek})")
-            else:
-                print("  Nikdo známý.")
-            print("\n1-9) Cestovat  |  N) setkat se s NPC  |  E) dobít energii  |  0) Zpět")
+                    print(f"  • {npc['jmeno']} ({self.vztahy_npc[npc_id]:+d}{vek})")
+
+            print(f"\n{GREEN}1-{len(dostupne)}) Cestovat{NC}  |  {YELLOW}P) Prozkoumat okolí (Scout){NC}  |  {MAGENTA}N) Rozhovor s NPC{NC}  |  {CYAN}E) Energie{NC}  |  {RED}0) Zpět{NC}")
             volba = input("> ").strip().lower()
+
             if volba == "0":
                 return
+            if volba == "p":
+                self.pruzkum_lokace(hra)
+                continue
             if volba == "n":
                 self.menu_npc(hra)
                 continue
@@ -276,16 +610,17 @@ class SvetSystem:
                 from game.energie import zobraz_menu as menu_energie
                 menu_energie(hra)
                 continue
+
             try:
                 index = int(volba) - 1
                 if 0 <= index < len(dostupne):
-                    self.cestuj(dostupne[index])
+                    self.cestuj(dostupne[index], hra)
                     input("Enter...")
                 else:
-                    tisk_chyba("Špatná volba.")
+                    tisk_chyba("Špatná volba cíle.")
                     input("Enter...")
             except ValueError:
-                tisk_chyba("Zadej číslo nebo N.")
+                tisk_chyba("Neplatná volba.")
                 input("Enter...")
 
     def menu_npc(self, hra):
@@ -316,6 +651,7 @@ class SvetSystem:
         print("1) Přátelsky si promluvit  2) Požádat o službu  3) Nabídnout pomoc")
         akce = input("> ").strip()
         vztah = self.vztahy_npc[npc_id]
+
         if akce == "1":
             self.zmen_vztah(npc_id, 4)
             hra.hrac.reputace_mesta += 1
@@ -324,6 +660,7 @@ class SvetSystem:
                 index_dialogu = 0 if vztah < 35 else min(len(dialogy) - 1, 1)
                 print(f"{npc['jmeno']}: „{dialogy[index_dialogu]}“")
             tisk_ok(f"{npc['jmeno']} si tě zapamatoval. Vztah +4.")
+
         elif akce == "2":
             if npc_id == "mira":
                 hra.hrac.hp = min(hra.hrac.max_hp, hra.hrac.hp + 25)
@@ -372,6 +709,27 @@ class SvetSystem:
                 hra.hrac.reputace_mesta += 2
                 self.zmen_vztah(npc_id, 4)
                 tisk_ok("Tereza s tebou sdílela klidnou směnu na molu. Energie +12, reputace +2.")
+            elif npc_id == "mortis":
+                hra.hrac.dark_energy = min(
+                    hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 120,
+                    hra.hrac.dark_energy + 20
+                )
+                self.zmen_vztah(npc_id, 4)
+                tisk_ok("Mortis ti odhalil tajemství hrobek. Temná energie +20, vztah +4.")
+            elif npc_id == "morana":
+                if hasattr(hra, "alchymie"):
+                    hra.alchymie.pridat_surovinu("esence_temna", 1)
+                self.zmen_vztah(npc_id, 5)
+                tisk_ok("Morana ti předala rituální temnou esenci svatyně. Vztah +5.")
+            elif npc_id == "lord_vane":
+                if hra.hrac.gold >= 100:
+                    hra.hrac.gold -= 100
+                    hra.hrac.vliv_inkvizice = max(0, hra.hrac.vliv_inkvizice - 12)
+                    self.zmen_vztah(npc_id, 5)
+                    tisk_ok("Lord Vane přiměl městskou radu odvolat inkviziční komisi. Inkvizice -12.")
+                else:
+                    tisk_chyba("Lord Vane nehne prstem za méně než 100 🪙.")
+
         elif akce == "3":
             if vztah < -20:
                 self.zmen_vztah(npc_id, -4)
@@ -386,6 +744,13 @@ class SvetSystem:
                     hra.alchymie.pridat_surovinu("koren_mandragory", 1)
                     self.zmen_vztah(npc_id, 6)
                     tisk_ok("Pomohl jsi Nele s destilací. Získal jsi 35 zlata a kořen mandragory.")
+                elif npc_id == "morana":
+                    hra.hrac.dark_energy = min(
+                        hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 120,
+                        hra.hrac.dark_energy + 15
+                    )
+                    self.zmen_vztah(npc_id, 6)
+                    tisk_ok("Společný rituál s Moranou proběhl úspěšně. Temná energie +15.")
                 else:
                     hra.hrac.gold += 30
                     self.zmen_vztah(npc_id, 6)
@@ -393,3 +758,4 @@ class SvetSystem:
         else:
             tisk_chyba("Neplatná volba.")
         input("Enter...")
+
