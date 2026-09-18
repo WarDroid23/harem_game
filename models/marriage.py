@@ -12,6 +12,15 @@ class Marriage:
     deti: list = field(default_factory=list)
     cerem_puvab: int = 50  # Jak poutavá byla svatba (0-100)
     intimita_level: int = 0  # 0-100, roste s každou interakcí
+    role_manzelky: str = "vedlejsi"  # "hlavni", "vedlejsi", "konkubina"
+    zarlivost: int = 0  # 0-100, roste při zanedbávání nebo preferování jiné
+    spokojenost: int = 70  # 0-100, ovlivňuje loajalitu a atmosféru v harému
+
+    def zmen_zarlivost(self, delta: int):
+        self.zarlivost = max(0, min(100, self.zarlivost + delta))
+
+    def zmen_spokojenost(self, delta: int):
+        self.spokojenost = max(0, min(100, self.spokojenost + delta))
     
     def je_vdana(self):
         """Vrátí True pokud je již vdaná (ne jen zasnoubená)."""
@@ -65,4 +74,7 @@ class Marriage:
     def from_dict(cls, data):
         if not isinstance(data, dict):
             raise ValueError("Data manželství musí být objekt.")
-        return cls(**data)
+        from dataclasses import fields
+        allowed = {f.name for f in fields(cls)}
+        clean = {k: v for k, v in data.items() if k in allowed}
+        return cls(**clean)

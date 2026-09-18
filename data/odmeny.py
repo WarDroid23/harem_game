@@ -150,4 +150,32 @@ ODMENY = {
         "cena_gold": 40, "cena_energie": 8, "vliv_inkvizice": 1,
         "typ": "oblibena", "min_faze": 2, "vyzaduje_oblibenou": True
     },
+    "sladke_privilegium": {
+        "nazev": "Sladká hostina a pochvala",
+        "popis": "Před celým harémem jí podáš sladké víno, ovoce a proneseš slova upřímné hrdosti na její službu.",
+        "efekty": {"loajalita": 12, "duvera": 10, "strach": -6, "srdce": 8},
+        "cena_gold": 20, "cena_energie": 4, "vliv_inkvizice": 0,
+        "typ": "zakladni", "min_faze": 0
+    },
+    "hedvabny_zupan": {
+        "nazev": "Hedvábný župan dominia",
+        "popis": "Oblečeš ji do průsvitného rudého hedvábí s vyšitým tvým znakem. Cítí se hýčkaná a výjimečná.",
+        "efekty": {"loajalita": 14, "duvera": 12, "touha": 10, "vlhkost": 10, "strach": -8},
+        "cena_gold": 55, "cena_energie": 5, "vliv_inkvizice": 0,
+        "typ": "stredni", "min_faze": 0
+    },
+    "intimni_laska": {
+        "nazev": "Hluboká intimní něha",
+        "popis": "Líčení bez bolesti a bez rozkazů. Tiché šeptání a držení v náručí po celou noc.",
+        "efekty": {"loajalita": 18, "duvera": 18, "srdce": 16, "strach": -14, "romance_body": 8},
+        "cena_gold": 0, "cena_energie": 15, "vliv_inkvizice": -2,
+        "typ": "stredni", "min_faze": 0
+    },
+    "pansky_slib": {
+        "nazev": "Panský slib ochrany",
+        "popis": "Vezmeš její ruku do své a slavnostně jí přísaháš, že v tvém dominiu jí nikdo cizí nezkřiví ani vlásek.",
+        "efekty": {"loajalita": 25, "duvera": 22, "srdce": 18, "poslusnost": 10, "strach": -16},
+        "cena_gold": 0, "cena_energie": 12, "vliv_inkvizice": -3,
+        "typ": "vyssi", "min_faze": 1
+    },
 }

@@ -289,6 +289,67 @@ class HraTesty(unittest.TestCase):
         self.assertIn("gladiator_gor", NPC)
         self.assertIn("lady_eleanor", NPC)
 
+    def test_nove_tresty_a_odmeny(self):
+        from data.tresty import TRESTY
+        from data.odmeny import ODMENY
+        from game.tresty_odmeny import proved_trest, proved_odmenu
+
+        self.assertIn("solna_komora", TRESTY)
+        self.assertIn("verejny_pranyr", TRESTY)
+        self.assertIn("krvave_znackovani", TRESTY)
+        self.assertIn("senzoricka_deprivace", TRESTY)
+
+        self.assertIn("sladke_privilegium", ODMENY)
+        self.assertIn("hedvabny_zupan", ODMENY)
+        self.assertIn("intimni_laska", ODMENY)
+        self.assertIn("pansky_slib", ODMENY)
+
+        hra = Hra()
+        hra.hrac.dark_energy = 30
+        hra.hrac.gold = 100
+        hra.hrac.sex_energy = 30
+        otrok = Otrokyně(jmeno="Vanda", charakter="amazonka")
+        hra.harem.pridat(otrok)
+
+        # Provedení solné komory
+        self.assertTrue(proved_trest(otrok, hra.hrac, "solna_komora"))
+        self.assertGreater(otrok.submisivita, 40)
+
+        # Provedení sladké hostiny
+        self.assertTrue(proved_odmenu(otrok, hra.hrac, "sladke_privilegium"))
+        self.assertGreater(otrok.loajalita, 30)
+
+    def test_vice_manzelek_zarlivost_a_spolecna_noc(self):
+        from models.marriage import Marriage
+        from game.manzelstvi import spolecna_noc_manzelek
+        hra = Hra()
+        m1 = Otrokyně(jmeno="Elena", je_manzelkou=True, partnerka=True)
+        m2 = Otrokyně(jmeno="Diana", je_manzelkou=True, partnerka=True)
+        hra.harem.pridat(m1)
+        hra.harem.pridat(m2)
+
+        mar1 = Marriage(partner_jmeno="Elena", den_zasnubin=1, den_svatby=1, stav="vdana", zarlivost=50)
+        mar2 = Marriage(partner_jmeno="Diana", den_zasnubin=1, den_svatby=1, stav="vdana", zarlivost=40)
+        hra.marriage_system["Elena"] = mar1
+        hra.marriage_system["Diana"] = mar2
+
+        hra.hrac.sex_energy = 50
+        with patch("builtins.input", return_value=""):
+            spolecna_noc_manzelek(hra)
+
+        self.assertLess(mar1.zarlivost, 50)
+        self.assertLess(mar2.zarlivost, 40)
+
+    def test_svet_nove_mestske_lokace(self):
+        from game.svet import LOKACE, NPC
+        self.assertIn("chram_cistoty", LOKACE)
+        self.assertIn("tajna_svatyne_stinu", LOKACE)
+        self.assertIn("zahradni_altan", LOKACE)
+
+        self.assertIn("vladyka_aurelius", NPC)
+        self.assertIn("stinovy_mistr_kage", NPC)
+        self.assertIn("knezka_valeria", NPC)
+
 
 if __name__ == "__main__":
     unittest.main()

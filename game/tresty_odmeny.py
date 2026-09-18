@@ -39,6 +39,14 @@ def proved_trest(otrok, hrac, id_trestu):
     hrac.reputace_mesta = max(-100, min(100, hrac.reputace_mesta + trest.get("reputace_mesta", 0)))
     otrok.aktualizuj_fazi()
     tisk_ok(f"Trest «{trest['nazev']}» byl aplikován na {otrok.jmeno}.")
+    if otrok.charakter == "subka":
+        print(f"   {CYAN}{otrok.jmeno} se choulí k zemi s pohledem plným posvátné bázně.{NC}")
+    elif otrok.charakter == "amazonka":
+        print(f"   {RED}{otrok.jmeno} zatíná zuby, odmítá vykřiknout, ale tělo se pod trestem chvěje.{NC}")
+    elif otrok.charakter == "kurtizana":
+        print(f"   {MAGENTA}{otrok.jmeno} prosí o slitování a slibuje nekonečnou oddanost.{NC}")
+    elif otrok.charakter == "fanaticka":
+        print(f"   {GOLD}{otrok.jmeno} líbá tvé boty a šeptá, že trest je požehnáním pána.{NC}")
     print(f"   {RED}Strach: {otrok.strach} | Submisivita: {otrok.submisivita} | Broken: {otrok.broken}{NC}")
     return True
 

@@ -23,7 +23,7 @@ LOKACE = {
         "popis": "Obchodníci, překupníci a lidé, kteří slyší víc, než říkají.",
         "sousedni": [
             "pevnost", "pristav", "ctvrt_remeselniku", "hostinec", "lazne",
-            "akademie", "katakomby", "palac_bohatych", "cervena_ctvrt"
+            "akademie", "katakomby", "palac_bohatych", "cervena_ctvrt", "chram_cistoty"
         ],
         "uroven": 1,
         "nebezpeci": "nízké",
@@ -87,7 +87,7 @@ LOKACE = {
         "kratky": "Háj",
         "ikona": "🌿",
         "popis": "Tiché místo mezi lesem a prameny, vhodné k meditaci a temným rituálům.",
-        "sousedni": ["les", "lazne", "svatyne_krvaveho_mesice"],
+        "sousedni": ["les", "lazne", "svatyne_krvaveho_mesice", "zahradni_altan"],
         "uroven": 2,
         "nebezpeci": "střední",
     },
@@ -105,7 +105,7 @@ LOKACE = {
         "kratky": "Zahrada",
         "ikona": "🌺",
         "popis": "Zastřešená zahrada plná světla a exotických květin, kde se dá mluvit beze spěchu.",
-        "sousedni": ["lazne", "akademie", "observator", "molo_mesicniho_pristavu"],
+        "sousedni": ["lazne", "akademie", "observator", "molo_mesicniho_pristavu", "zahradni_altan"],
         "uroven": 2,
         "nebezpeci": "bezpečno",
     },
@@ -132,7 +132,7 @@ LOKACE = {
         "kratky": "Katakomby",
         "ikona": "💀",
         "popis": "Starobylé podzemní hrobky pod starým městem, zřídlo temné energie a zapomenutých relikvií.",
-        "sousedni": ["trh", "lazne", "svatyne_krvaveho_mesice", "podzemni_arena"],
+        "sousedni": ["trh", "lazne", "svatyne_krvaveho_mesice", "podzemni_arena", "chram_cistoty", "tajna_svatyne_stinu"],
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
@@ -150,7 +150,7 @@ LOKACE = {
         "kratky": "Palác",
         "ikona": "👑",
         "popis": "Sídlo městské smetánky a guvernérův palác, centrum intrik, luxusu a politického vlivu.",
-        "sousedni": ["trh", "ctvrt_remeselniku", "pristav", "cervena_ctvrt", "stribrne_terasy"],
+        "sousedni": ["trh", "ctvrt_remeselniku", "pristav", "cervena_ctvrt", "stribrne_terasy", "chram_cistoty"],
         "uroven": 2,
         "nebezpeci": "střední",
     },
@@ -159,7 +159,7 @@ LOKACE = {
         "kratky": "Čtvrť",
         "ikona": "💋",
         "popis": "Srdce nočních rozkoší města, plné nevěstinců, mecenášů a obchodu s otrokyněmi.",
-        "sousedni": ["trh", "palac_bohatych", "pristav", "podzemni_arena"],
+        "sousedni": ["trh", "palac_bohatych", "pristav", "podzemni_arena", "tajna_svatyne_stinu"],
         "uroven": 1,
         "nebezpeci": "nízké",
     },
@@ -177,9 +177,36 @@ LOKACE = {
         "kratky": "Terasy",
         "ikona": "🏛",
         "popis": "Vyvýšené zahrady a promenáda aristokracie nad městem s výhledem na celé dominium.",
-        "sousedni": ["palac_bohatych", "sklenena_zahrada", "observator"],
+        "sousedni": ["palac_bohatych", "sklenena_zahrada", "observator", "zahradni_altan"],
         "uroven": 2,
         "nebezpeci": "nízké",
+    },
+    "chram_cistoty": {
+        "nazev": "Chrám Čistoty a Světla",
+        "kratky": "Chrám",
+        "ikona": "⛪",
+        "popis": "Monumentální mramorový chrám inkvizice, kde znějí chorály a vykupují se hříchy zlatem.",
+        "sousedni": ["trh", "palac_bohatych", "katakomby"],
+        "uroven": 2,
+        "nebezpeci": "střední",
+    },
+    "tajna_svatyne_stinu": {
+        "nazev": "Tajemné doupě Nočních stínů",
+        "kratky": "Doupě",
+        "ikona": "🗡",
+        "popis": "Skrytá podzemní síň Syndikátu stínů za padacími dveřmi, centrum pašeráků a nájemných vrahů.",
+        "sousedni": ["podzemni_arena", "katakomby", "cervena_ctvrt"],
+        "uroven": 3,
+        "nebezpeci": "vysoké",
+    },
+    "zahradni_altan": {
+        "nazev": "Zahradní romantický altán",
+        "kratky": "Altán",
+        "ikona": "🌹",
+        "popis": "Klidné mramorové loubí u leknínového jezírka, ideální útočiště pro rande s manželkami a odpočinek.",
+        "sousedni": ["sklenena_zahrada", "haj_soumraku", "stribrne_terasy"],
+        "uroven": 1,
+        "nebezpeci": "bezpečno",
     },
 }
 
@@ -317,6 +344,36 @@ NPC = {
             "Město je jako šachovnice. Každá tvá otrokyně i každý voják jsou pouhé figurky.",
         ],
     },
+    "vladyka_aurelius": {
+        "jmeno": "Velekněz Aurelius, hlas Inkvizice",
+        "popis": "Přísný církevní hodnostář v Chrámu Čistoty, který za tučné dary odpouští i nejtemnější hříchy.",
+        "lokace": "chram_cistoty",
+        "vek": 54,
+        "dialogy": [
+            "Každý hřích má svou váhu v mincích a zbožnosti, bratře.",
+            "Inkvizice vidí všechno, ale ruka plná zlata dokáže její zrak na chvíli zastřít.",
+        ],
+    },
+    "stinovy_mistr_kage": {
+        "jmeno": "Mistr Kage, šéf Nočních stínů",
+        "popis": "Mlčenlivý mistr vrahů a pašeráků v tajné svatyni pod městem.",
+        "lokace": "tajna_svatyne_stinu",
+        "vek": 39,
+        "dialogy": [
+            "V temnotě nejsou žádná pravidla, jen ti, co přežili, a ti, co udělali chybu.",
+            "Tvé dominium roste rychle. Syndikát stínů tě bedlivě sleduje.",
+        ],
+    },
+    "knezka_valeria": {
+        "jmeno": "Valeria, strážkyně altánu",
+        "popis": "Půvabná zahradnice a rádkyně pro vztahy v zahradním altánu u jezera.",
+        "lokace": "zahradni_altan",
+        "vek": 25,
+        "dialogy": [
+            "Květiny i ženy v harému potřebují stejnou péči – správné množství slunce, pozornosti a vody.",
+            "Klidná zahrada dokáže usmířit i nejdivočejší žárlivost mezi tvými manželkami.",
+        ],
+    },
 }
 
 
@@ -408,23 +465,25 @@ class SvetSystem:
         """Vykreslí přehlednou barevnou síťovou mapu království."""
         u = lambda lid: self._format_uzel(lid, hra)
 
-        print(f"{GOLD}╔═══════════════════════════ ASCII MAPA KRÁLOVSTVÍ ═══════════════════════════╗{NC}")
-        print(f"║                                                                             ║")
-        print(f"║  {u('pevnost')} ═══════════ {u('les')} ═══════════ {u('hranice')}  ║")
-        print(f"║        ║                       ║                         ║                  ║")
-        print(f"║        ║                       ║                  {u('svatyne_krvaveho_mesice')}  ║")
-        print(f"║        ║                       ║                         ║                  ║")
-        print(f"║  {u('trh')} ═══════════ {u('haj_soumraku')} ═════════ {u('observator')}  ║")
-        print(f"║    ║   ║                       ║                         ║                  ║")
-        print(f"║    ║ {u('ctvrt_remeselniku')} ═════════ {u('lazne')} ═══════════ {u('sklenena_zahrada')}  ║")
-        print(f"║    ║   ║                       ║                         ║                  ║")
-        print(f"║    ║ {u('palac_bohatych')} ═════ {u('stribrne_terasy')}          {u('molo_mesicniho_pristavu')}  ║")
-        print(f"║    ║   ║                       ║                         ║                  ║")
-        print(f"║  {u('cervena_ctvrt')} ═══ {u('pristav')} ═════════════════════════════╝                  ║")
-        print(f"║        ║                                                                    ║")
-        print(f"║  {u('podzemni_arena')} ════ {u('katakomby')}                                        ║")
-        print(f"║                                                                             ║")
-        print(f"{GOLD}╚═════════════════════════════════════════════════════════════════════════════╝{NC}")
+        print(f"{GOLD}╔═════════════════════════════ ASCII MAPA KRÁLOVSTVÍ ═════════════════════════════╗{NC}")
+        print(f"║                                                                                   ║")
+        print(f"║  {u('pevnost')} ═══════════ {u('les')} ═══════════ {u('hranice')}        ║")
+        print(f"║        ║                       ║                         ║                        ║")
+        print(f"║        ║                       ║                  {u('svatyne_krvaveho_mesice')}        ║")
+        print(f"║        ║                       ║                         ║                        ║")
+        print(f"║  {u('trh')} ═══════════ {u('haj_soumraku')} ═════════ {u('observator')}        ║")
+        print(f"║   ║ ║  ║                       ║                         ║                        ║")
+        print(f"║   ║ ║ {u('ctvrt_remeselniku')} ══════ {u('lazne')} ═══════════ {u('sklenena_zahrada')}        ║")
+        print(f"║   ║ ║  ║                       ║                         ║                        ║")
+        print(f"║   ║ ║ {u('palac_bohatych')} ═════ {u('stribrne_terasy')} ══════ {u('zahradni_altan')}        ║")
+        print(f"║   ║ ║  ║                       ║                         ║                        ║")
+        print(f"║  {u('cervena_ctvrt')} ═══ {u('pristav')}               ║                  {u('molo_mesicniho_pristavu')}        ║")
+        print(f"║   ║    ║                       ║                         ║                        ║")
+        print(f"║  {u('podzemni_arena')} ════ {u('katakomby')} ═════ {u('chram_cistoty')}                     ║")
+        print(f"║        ║                                                                          ║")
+        print(f"║  {u('tajna_svatyne_stinu')}                                                               ║")
+        print(f"║                                                                                   ║")
+        print(f"{GOLD}╚═══════════════════════════════════════════════════════════════════════════════════╝{NC}")
         print(f"{DIM}Legenda: {GREEN}▶[ ... ]◀{NC}{DIM} Jsi zde | {CYAN}[🛡️]{NC}{DIM} Území tvé mafie | {CYAN}[🎯]{NC}{DIM} Aktivní quest | {GRAY}[? Neodhaleno ?]{NC}\n")
 
     def _generuj_cestovni_udalost(self, cil, hra):
@@ -906,6 +965,35 @@ class SvetSystem:
                 hra.hrac.reputace_mesta += 3
                 self.zmen_vztah(npc_id, 4)
                 tisk_ok("Lady Eleanor využila svůj vliv u dvora ve tvůj prospěch. Reputace +3, vztah +4.")
+            elif npc_id == "vladyka_aurelius":
+                if hra.hrac.gold >= 70:
+                    hra.hrac.gold -= 70
+                    hra.hrac.vliv_inkvizice = max(0, hra.hrac.vliv_inkvizice - 15)
+                    self.zmen_vztah(npc_id, 5)
+                    if "cirkev" in hra.frakce.frakce:
+                        hra.frakce.frakce["cirkev"].zmenit(8)
+                    tisk_ok("Velekněz Aurelius ti udělil oficiální inkviziční odpustek! Vliv inkvizice -15, vztah církve +8.")
+                else:
+                    tisk_chyba("Velekněz požaduje dar chrámu ve výši 70 🪙.")
+            elif npc_id == "stinovy_mistr_kage":
+                if hra.hrac.dark_energy >= 12:
+                    hra.hrac.dark_energy -= 12
+                    hra.hrac.gold += 95
+                    self.zmen_vztah(npc_id, 5)
+                    if "syndikat_stinu" in hra.frakce.frakce:
+                        hra.frakce.frakce["syndikat_stinu"].zmenit(8)
+                    tisk_ok("Mistr Kage ti vyplatil 95 🪙 za spolupráci na podsvětní zakázce. Reputace Syndikátu +8.")
+                else:
+                    tisk_chyba("Kage vyžaduje 12 bodů temné energie k zapojení do stínové operace.")
+            elif npc_id == "knezka_valeria":
+                max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
+                hra.hrac.sex_energy = min(max_s, hra.hrac.sex_energy + 15)
+                self.zmen_vztah(npc_id, 4)
+                for marriage in getattr(hra, "marriage_system", {}).values():
+                    if hasattr(marriage, "zmen_zarlivost"):
+                        marriage.zmen_zarlivost(-10)
+                        marriage.zmen_spokojenost(10)
+                tisk_ok("Valeria tě pohostila jasmínovým čajem v altánu. Energie +15, žárlivost všech manželek -10%!")
 
         elif akce == "3":
             if vztah < -20:

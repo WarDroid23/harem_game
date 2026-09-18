@@ -118,14 +118,24 @@ def odpocinek(hra, rezim=None):
     if prijem_nevestinec > 0:
         tisk_ok(f"🏛️ Nevěstinec: denní tržba +{prijem_nevestinec} 🪙")
     bonus_marriage_gold = 0
+    vdane_choti = [m for m in hra.marriage_system.values() if m.je_vdana()]
+    hlavni_manzelka = next((m for m in vdane_choti if getattr(m, "role_manzelky", "") == "hlavni"), None)
+    
     for jmeno, marriage in hra.marriage_system.items():
         if marriage.je_vdana():
-            bonus_marriage_gold += 50
+            zaklad_gold = 70 if getattr(marriage, "role_manzelky", "") == "hlavni" else 50
+            bonus_marriage_gold += zaklad_gold
             marriage.intimita_level = min(100, marriage.intimita_level + 5)
             marriage.starne_deti()
+            # Pokud je víc manželek, mírně roste žárlivost, pokud není přítomna První dáma
+            if len(vdane_choti) > 1:
+                zarlivost_delta = 1 if hlavni_manzelka else 3
+                marriage.zmen_zarlivost(zarlivost_delta)
+
     if bonus_marriage_gold > 0:
         hrac.gold += bonus_marriage_gold
-        tisk_ok(f"💍 Manželství: zlato +{bonus_marriage_gold}")
+        dama_txt = f" (včetně První dámy {hlavni_manzelka.partner_jmeno})" if hlavni_manzelka else ""
+        tisk_ok(f"💍 Manželství{dama_txt}: věno a příspěvky +{bonus_marriage_gold} 🪙")
     tisk_ok(
         f"Energie naplněna: {hrac.sex_energy}/{hrac.max_sex()} (sex) | "
         f"{hrac.dark_energy}/{hrac.max_temno()} (temno)."

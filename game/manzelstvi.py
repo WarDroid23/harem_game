@@ -133,7 +133,8 @@ def zobraz_postaveni_partnerstvi(otrokyne, marriage):
     clear()
     print(f"{GOLD}{BOLD}=== Manželství {otrokyne.jmeno} ==={NC}\n")
     if marriage.je_vdana():
-        print(f"{GREEN}Stav: Vdaná{NC}")
+        role_txt = " (👑 Hlavní manželka)" if getattr(marriage, "role_manzelky", "") == "hlavni" else ""
+        print(f"{GREEN}Stav: Vdaná{role_txt}{NC}")
     elif marriage.je_rozvedena():
         print(f"{RED}Stav: Rozvedena{NC}")
     else:
@@ -143,6 +144,8 @@ def zobraz_postaveni_partnerstvi(otrokyne, marriage):
         print(f"Svatba: Den {marriage.den_svatby}")
         print(f"Krása ceremonie: {marriage.cerem_puvab}%")
     print(f"Intimita: {marriage.intimita_level}%")
+    print(f"Žárlivost na ostatní choti: {getattr(marriage, 'zarlivost', 0)}%")
+    print(f"Spokojenost v dominiu: {getattr(marriage, 'spokojenost', 70)}%")
     print(f"Počet dětí: {marriage.pocet_deti()}")
     if marriage.ma_dite():
         print(f"\n{CYAN}Děti:{NC}")
@@ -154,6 +157,147 @@ def zobraz_postaveni_partnerstvi(otrokyne, marriage):
                 )
             else:
                 print(f"  {i}) {dite['jmeno']} ({dite['status']})")
+
+def jmenovat_hlavni_manzelku(hra):
+    clear()
+    print(f"{GOLD}{BOLD}=== Jmenování První manželky (První dáma Dominia) ==={NC}\n")
+    aktivni = hra.harem.vsechny_aktivni()
+    vdane = [o for o in aktivni if getattr(o, "partnerka", False) and o.je_manzelkou]
+    if len(vdane) < 1:
+        tisk_chyba("Nemáš žádné vdané manželky.")
+        input("Enter...")
+        return
+
+    print("První manželka dozírá na chod komnat, zklidňuje žárlivost v harému a zvyšuje prestiž dominia.\n")
+    for i, o in enumerate(vdane, 1):
+        m = hra.marriage_system.get(o.jmeno)
+        je_hlavni = " ★ [AKTUÁLNÍ HLAVNÍ]" if getattr(m, "role_manzelky", "") == "hlavni" else ""
+        print(f"{i}) {o.jmeno}{je_hlavni} (loajalita: {o.loajalita}%, spokojenost: {getattr(m, 'spokojenost', 70)}%)")
+    print("0) Zpět")
+
+    try:
+        idx = int(input("> ")) - 1
+        if 0 <= idx < len(vdane):
+            vybrana = vdane[idx]
+            for o in vdane:
+                m = hra.marriage_system.get(o.jmeno)
+                if m:
+                    m.role_manzelky = "vedlejsi"
+            m_vybrana = hra.marriage_system.get(vybrana.jmeno)
+            if m_vybrana:
+                m_vybrana.role_manzelky = "hlavni"
+                m_vybrana.zarlivost = 0
+                m_vybrana.spokojenost = 100
+            vybrana.loajalita = min(100, vybrana.loajalita + 15)
+            tisk_ok(f"👑 {vybrana.jmeno} byla slavnostně korunována První manželkou Dominia!")
+            if hasattr(hra, "kronika"):
+                from game.kronika import zaznamenej
+                zaznamenej(hra, f"{vybrana.jmeno} byla jmenována První manželkou dominia.")
+            input("Enter...")
+    except ValueError:
+        tisk_chyba("Zadej číslo.")
+        input("Enter...")
+
+def spolecna_noc_manzelek(hra):
+    clear()
+    aktivni = hra.harem.vsechny_aktivni()
+    vdane = [o for o in aktivni if getattr(o, "partnerka", False) and o.je_manzelkou]
+    if len(vdane) < 2:
+        tisk_chyba("Ke společné noci manželek potřebuješ mít alespoň 2 vdané choti.")
+        input("Enter...")
+        return
+
+    cena_energie = 20
+    if hra.hrac.sex_energy < cena_energie:
+        tisk_chyba(f"Na společnou noc s více manželkami potřebuješ alespoň {cena_energie} sexuální energie.")
+        input("Enter...")
+        return
+
+    hra.hrac.sex_energy -= cena_energie
+    print(f"{MAGENTA}{BOLD}=== Společná noc tvých manželek ==={NC}\n")
+    jmena_manzelek = ", ".join(o.jmeno for o in vdane)
+    print(f"Pozval jsi do svých velkých komnat své drahé choti: {jmena_manzelek}.")
+    print("Zpočátku mezi nimi panuje napětí a měření sil, ale ve tvém náručí a pod tvou rukou")
+    print("se žárlivost mění v hluboké vzrušení, sdílenou vášeň a sesterské pouto.")
+
+    for o in vdane:
+        m = hra.marriage_system.get(o.jmeno)
+        if m:
+            m.zmen_zarlivost(-25)
+            m.zmen_spokojenost(20)
+            m.intimita_level = min(100, m.intimita_level + 10)
+        o.loajalita = min(100, o.loajalita + 8)
+        o.touha = min(100, o.touha + 10)
+
+    # Obnova sil a temna
+    max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
+    hra.hrac.dark_energy = min(max_t, hra.hrac.dark_energy + 20)
+
+    tisk_ok("Všechny tvé manželky nalezly soulad. Žárlivost prudce klesla (-25%), loajalita vzrostla!")
+    tisk_ok("Získal jsi +20 temné energie ze sdílené harémové extáze.")
+    if hasattr(hra, "kronika"):
+        from game.kronika import zaznamenej
+        zaznamenej(hra, f"Společná noc se všemi manželkami ({jmena_manzelek}) upevnila jednotu dominia.")
+    input("Enter...")
+
+def reseni_haremoveho_sporu(hra):
+    clear()
+    aktivni = hra.harem.vsechny_aktivni()
+    vdane = [o for o in aktivni if getattr(o, "partnerka", False) and o.je_manzelkou]
+    if len(vdane) < 2:
+        tisk_info("Všechny tvé komnaty jsou v klidu – nemáš více manželek pro vznik sporu.")
+        input("Enter...")
+        return
+
+    m1, m2 = random.sample(vdane, 2)
+    mar1 = hra.marriage_system.get(m1.jmeno)
+    mar2 = hra.marriage_system.get(m2.jmeno)
+
+    print(f"{RED}{BOLD}=== Spor v komnatách: {m1.jmeno} vs. {m2.jmeno} ==={NC}\n")
+    situace = random.choice([
+        f"{m1.jmeno} obviňuje {m2.jmeno}, že jí vzala vzácný hedvábný závoj z tvých darů.",
+        f"{m2.jmeno} žárlí na čas, který jsi včera v noci strávil o samotě s {m1.jmeno}.",
+        f"{m1.jmeno} se dožaduje lepších pokojů s výhledem do zahrady, které dosud obývá {m2.jmeno}."
+    ])
+    print(situace)
+    print("\nJak spor rozhodneš jako pán domu?")
+    print(f"1) Dát za pravdu {m1.jmeno} (potěší ji, {m2.jmeno} bude žárlit)")
+    print(f"2) Dát za pravdu {m2.jmeno} (potěší ji, {m1.jmeno} bude žárlit)")
+    print("3) Oběma darovat šperky a sjednat smír (stojí 60 🪙, zklidní obě)")
+    print("4) Pevná panská ruka: obě pokárat a nařídit poslušnost (vyžaduje temno)")
+
+    try:
+        v = input("> ").strip()
+        if v == "1":
+            if mar1: mar1.zmen_spokojenost(15); mar1.zmen_zarlivost(-15)
+            if mar2: mar2.zmen_zarlivost(25); mar2.zmen_spokojenost(-15)
+            tisk_ok(f"Rozhodl jsi ve prospěch {m1.jmeno}.")
+        elif v == "2":
+            if mar2: mar2.zmen_spokojenost(15); mar2.zmen_zarlivost(-15)
+            if mar1: mar1.zmen_zarlivost(25); mar1.zmen_spokojenost(-15)
+            tisk_ok(f"Rozhodl jsi ve prospěch {m2.jmeno}.")
+        elif v == "3":
+            if hra.hrac.gold >= 60:
+                hra.hrac.gold -= 60
+                if mar1: mar1.zmen_zarlivost(-15); mar1.zmen_spokojenost(15)
+                if mar2: mar2.zmen_zarlivost(-15); mar2.zmen_spokojenost(15)
+                tisk_ok("Šperky a vlídné slovo okamžitě urovnaly veškeré spory v harému.")
+            else:
+                tisk_chyba("Nemáš dostatek zlata na dary pro obě.")
+        elif v == "4":
+            if hra.hrac.dark_energy >= 10:
+                hra.hrac.dark_energy -= 10
+                m1.poslusnost = min(100, m1.poslusnost + 10)
+                m2.poslusnost = min(100, m2.poslusnost + 10)
+                if mar1: mar1.zmen_zarlivost(-10)
+                if mar2: mar2.zmen_zarlivost(-10)
+                tisk_ok("Tvá autorita a temná aura obě okamžitě srovnaly. V komnatách zavládlo posvátné ticho.")
+            else:
+                tisk_chyba("Nedostatek temné energie na zastrašení.")
+        input("Enter...")
+    except Exception as e:
+        tisk_chyba(f"Chyba: {e}")
+        input("Enter...")
 
 def menu_manzelstvi(hra):
     aktivni = hra.harem.vsechny_aktivni()
@@ -178,6 +322,9 @@ def menu_manzelstvi(hra):
         print("3) 👶 Mít dítě")
         print("4) 📋 Prohlédnout manželství")
         print("5) ⚖️ Rozvod")
+        print("6) 🌙 Společná noc manželek (stmelení chotí, snížení žárlivosti)")
+        print("7) ⚡ Řešení harémového sporu (urovnání žárlivosti a intrik)")
+        print("8) 👑 Jmenovat První manželku dominia")
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -281,6 +428,12 @@ def menu_manzelstvi(hra):
             else:
                 tisk_chyba("Žádné manželství.")
             input("Enter...")
+        elif volba == "6":
+            spolecna_noc_manzelek(hra)
+        elif volba == "7":
+            reseni_haremoveho_sporu(hra)
+        elif volba == "8":
+            jmenovat_hlavni_manzelku(hra)
         else:
             tisk_chyba("Neplatná volba.")
             input("Enter...")
