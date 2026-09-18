@@ -32,7 +32,7 @@ from game.manzelstvi import menu_manzelstvi
 from game.menu_extra import obsluz_extra_volbu
 from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
-    ukazatel,
+    ukazatel, hlavicka,
 )
 from data.jmena import JMENA
 from data.charaktery import CHARAKTERY
@@ -285,7 +285,7 @@ def hlavni_menu(hra: Hra):
             uloz_hru(hra)
             return
 
-        volba = {"s": "26", "l": "26", "q": "0", "a": "auto", "m": "26"}.get(volba, vytiskni_volbu)
+        volba = {"s": "26", "l": "26", "q": "0", "a": "auto", "m": "26"}.get(volba, volba)
 
         if volba == "auto":
             obsluz_automaticky_tah(hra)
@@ -296,7 +296,6 @@ def hlavni_menu(hra: Hra):
         elif volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
-                from utils.vypis import ukazatel, hlavicka
                 hlavicka("👑 HARÉM — Výběr otrokyně")
                 for i, o in enumerate(aktivni, 1):
                     faze_nazev = Faze[o.faze_zkazenosti]["nazev"]

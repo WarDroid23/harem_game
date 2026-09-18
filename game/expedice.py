@@ -239,7 +239,7 @@ class ExpeditionSystem:
                 input("Enter...")
                 continue
             jmena = [x.strip() for x in input("Členky týmu (jména oddělená čárkou): ").split(",") if x.strip()]
-            if self.zahaj(hra, vytiskni_volbu, jmena):
+            if self.zahaj(hra, volba, jmena):
                 tisk_info("Tým vyrazil. Proveď další etapy volbou P.")
             else:
                 tisk_chyba("Tým není vhodný, výprava už běží nebo je lokace nedostupná.")

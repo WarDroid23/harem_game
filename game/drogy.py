@@ -132,7 +132,7 @@ def menu_drog(otrok, hrac):
                 print(f"   {droga['popis']}")
             volba_droga = input("\nZadej ID drogy: ").strip().lower()
             if volba_droga in DROGY:
-                podat_drogu(otrok, hrac, vytiskni_volbu_droga)
+                podat_drogu(otrok, hrac, volba_droga)
             else:
                 tisk_chyba("Neznámá droga.")
             input("Enter...")
