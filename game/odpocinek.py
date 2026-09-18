@@ -108,7 +108,15 @@ def odpocinek(hra, rezim=None):
     dokoncene_najmy = zpracuj_den(hra)
     prijem_harem = hra.harem.pasivni_prijem()
     prijem_mafie = hra.mafie.vypocet_prijmu()
-    hrac.gold += prijem_harem + prijem_mafie
+    prijem_nevestinec = 0
+    try:
+        from game.nevestinec import vypocti_denni_prijem
+        prijem_nevestinec = vypocti_denni_prijem(hra)
+    except Exception:
+        prijem_nevestinec = 0
+    hrac.gold += prijem_harem + prijem_mafie + prijem_nevestinec
+    if prijem_nevestinec > 0:
+        tisk_ok(f"🏛️ Nevěstinec: denní tržba +{prijem_nevestinec} 🪙")
     bonus_marriage_gold = 0
     for jmeno, marriage in hra.marriage_system.items():
         if marriage.je_vdana():
@@ -122,7 +130,7 @@ def odpocinek(hra, rezim=None):
         f"Energie naplněna: {hrac.sex_energy}/{hrac.max_sex()} (sex) | "
         f"{hrac.dark_energy}/{hrac.max_temno()} (temno)."
     )
-    tisk_ok(f"Pasivní příjem: {prijem_harem + prijem_mafie + bonus_marriage_gold} zlaťáků.")
+    tisk_ok(f"Pasivní příjem: {prijem_harem + prijem_mafie + prijem_nevestinec + bonus_marriage_gold} zlaťáků.")
     if dokoncene_najmy:
         tisk_ok("Nájem skončil: " + ", ".join(dokoncene_najmy) + ".")
     if hra.questy.aktivni_quest:

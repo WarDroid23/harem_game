@@ -272,6 +272,7 @@ def hlavni_menu(hra: Hra):
         print(f"{YELLOW}18) ⚔️ Souboj")
         print(f"{BLUE}19) 🧪 Alchymie")
         print(f"{CYAN}20) 📋 Rychlý přehled")
+        print(f"{MAGENTA}21) 🏛️ Nevěstinec & prodej otrokyň")
         print(f"{GREEN}23) 🤝 Harem: péče, odměny, oblíbenkyně a osudy")
         print(f"{YELLOW}24) 🛠️ Předměty a crafting")
         print(f"{CYAN}25) ⚡ Dobít energie")
@@ -427,6 +428,16 @@ def hlavni_menu(hra: Hra):
             souboj.menu()
         elif volba == "19":
             hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
+        elif volba == "21":
+            try:
+                from game.nevestinec import menu_nevestinec
+                menu_nevestinec(hra)
+            except Exception as e:
+                tisk_chyba(f"Nevěstinec selhal: {e}")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
         elif volba == "23":
             menu_haremu(hra)
         elif volba == "24":

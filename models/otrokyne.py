@@ -33,6 +33,7 @@ class Otrokyně:
     max_hp: int = 100
     podezreni_manipulace: int = 0
     na_najmu: bool = False
+    v_nevestinci: bool = False
     klient: str = None
     typ_najmu: str = None
     dny_na_najmu: int = 0

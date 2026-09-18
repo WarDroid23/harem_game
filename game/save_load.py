@@ -22,6 +22,7 @@ from game.npc_questy import NPCQuestSystem
 from models.calendar import CalendarSystem
 from models.fortress import FortressDevelopment
 from models.achievements import AchievementSystem
+from models.nevestinec import Nevestinec
 
 POCET_SLOTU = 5
 NAZVY_SLOTU = {
@@ -50,6 +51,7 @@ class Hra:
         self.pevnost = FortressDevelopment()
         self.kalendar = CalendarSystem(self.hrac.den)
         self.achievementy = AchievementSystem()
+        self.nevestinec = Nevestinec()
         self.marriage_system = {}
         self.kronika = None
         try:
@@ -94,6 +96,7 @@ class Hra:
             "pevnost": self.pevnost.to_dict(),
             "kalendar": self.kalendar.to_dict(),
             "achievementy": self.achievementy.to_dict(),
+            "nevestinec": self.nevestinec.to_dict(),
             "nastaveni": self.nastaveni.to_dict(),
             "marriage_system": {k: v.to_dict() for k, v in self.marriage_system.items()},
             "kronika": self.kronika.to_dict() if getattr(self, "kronika", None) else {"zaznamy": []},
@@ -139,6 +142,8 @@ class Hra:
         hra.hrac.den = hra.kalendar.den
         if isinstance(data.get("achievementy"), dict):
             hra.achievementy = AchievementSystem.from_dict(data["achievementy"])
+        if isinstance(data.get("nevestinec"), dict):
+            hra.nevestinec = Nevestinec.from_dict(data["nevestinec"])
         try:
             from game.kronika import Kronika
             hra.kronika = Kronika.from_dict(data.get("kronika", {}))

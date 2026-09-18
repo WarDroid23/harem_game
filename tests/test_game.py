@@ -207,7 +207,8 @@ class HraTesty(unittest.TestCase):
         self.assertIn("palac_bohatych", LOKACE)
 
         self.assertEqual(hra.svet.aktualni_lokace, "pevnost")
-        self.assertTrue(hra.svet.cestuj("trh", hra))
+        with patch("random.random", return_value=0.99):
+            self.assertTrue(hra.svet.cestuj("trh", hra))
         self.assertEqual(hra.svet.aktualni_lokace, "trh")
 
     def test_mapa_pruzkum_lokace(self):
@@ -217,6 +218,76 @@ class HraTesty(unittest.TestCase):
         with patch("random.random", return_value=0.1), patch("builtins.input", return_value=""):
             hra.svet.pruzkum_lokace(hra)
         self.assertGreater(hra.hrac.gold, zlato_pred)
+
+    def test_nove_frakce_a_reputace(self):
+        hra = Hra()
+        self.assertIn("kult_krve", hra.frakce.frakce)
+        self.assertIn("syndikat_stinu", hra.frakce.frakce)
+        self.assertIn("cech_kurtizan", hra.frakce.frakce)
+        hra.frakce.frakce["cech_kurtizan"].zmenit(10)
+        self.assertEqual(hra.frakce.frakce["cech_kurtizan"].reputace, 25)
+
+    def test_nove_charaktery_v_databazi(self):
+        from data.charaktery import CHARAKTERY
+        self.assertIn("kurtizana", CHARAKTERY)
+        self.assertIn("fanaticka", CHARAKTERY)
+        self.assertIn("amazonka", CHARAKTERY)
+        self.assertIn("carodejka", CHARAKTERY)
+
+    def test_nevestinec_otevreni_a_zarazeni_divky(self):
+        from game.nevestinec import spocitej_denni_vynos_divky, vypocti_denni_prijem
+        hra = Hra()
+        hra.hrac.gold = 500
+        otrok = Otrokyně(jmeno="Roxana", charakter="kurtizana", vek=22)
+        otrok.touha = 80
+        otrok.vlhkost = 80
+        otrok.faze_zkazenosti = 2
+        hra.harem.pridat(otrok)
+
+        # Otevření nevěstince
+        with patch("builtins.input", return_value="1"):
+            from game.nevestinec import otevrit_nevestinec
+            otevrit_nevestinec(hra)
+
+        self.assertTrue(hra.nevestinec.otevreno)
+        self.assertEqual(hra.hrac.gold, 200)
+
+        # Zařazení otrokyně do nevěstince
+        otrok.v_nevestinci = True
+        vynos = spocitej_denni_vynos_divky(otrok, hra.nevestinec)
+        self.assertGreater(vynos, 40)
+
+        # Denní zisk
+        zisk = vypocti_denni_prijem(hra)
+        self.assertGreaterEqual(zisk, vynos)
+        self.assertEqual(hra.nevestinec.celkovy_zisk, zisk)
+
+    def test_nevestinec_prodej_otrokyně(self):
+        from game.nevestinec import vypocti_cenu_prodeje, prodat_otrokyni
+        hra = Hra()
+        otrok = Otrokyně(jmeno="Bella", poslusnost=70, submisivita=80, charakter="kurtizana")
+        hra.harem.pridat(otrok)
+        cena = vypocti_cenu_prodeje(otrok)
+        self.assertGreater(cena, 300)
+
+        # Provedení prodeje (volba 1 = první otrokyně, potvrdit = ano)
+        zlato_pred = hra.hrac.gold
+        with patch("builtins.input", side_effect=["1", "ano", ""]):
+            prodat_otrokyni(hra)
+
+        self.assertEqual(hra.hrac.gold, zlato_pred + cena)
+        self.assertEqual(len(hra.harem.vsechny_aktivni()), 0)
+
+    def test_svet_nove_lokace_a_npc(self):
+        from game.svet import LOKACE, NPC
+        self.assertIn("cervena_ctvrt", LOKACE)
+        self.assertIn("podzemni_arena", LOKACE)
+        self.assertIn("stribrne_terasy", LOKACE)
+
+        self.assertIn("madame_scarlett", NPC)
+        self.assertIn("baron_archibald", NPC)
+        self.assertIn("gladiator_gor", NPC)
+        self.assertIn("lady_eleanor", NPC)
 
 
 if __name__ == "__main__":

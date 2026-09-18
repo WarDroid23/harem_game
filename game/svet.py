@@ -23,7 +23,7 @@ LOKACE = {
         "popis": "Obchodníci, překupníci a lidé, kteří slyší víc, než říkají.",
         "sousedni": [
             "pevnost", "pristav", "ctvrt_remeselniku", "hostinec", "lazne",
-            "akademie", "katakomby", "palac_bohatych"
+            "akademie", "katakomby", "palac_bohatych", "cervena_ctvrt"
         ],
         "uroven": 1,
         "nebezpeci": "nízké",
@@ -42,7 +42,7 @@ LOKACE = {
         "kratky": "Přístav",
         "ikona": "⚓",
         "popis": "Místo pašeráků, lodí a zpráv z dalekých zemí.",
-        "sousedni": ["trh", "molo_mesicniho_pristavu", "palac_bohatych"],
+        "sousedni": ["trh", "molo_mesicniho_pristavu", "palac_bohatych", "cervena_ctvrt"],
         "uroven": 2,
         "nebezpeci": "střední",
     },
@@ -132,7 +132,7 @@ LOKACE = {
         "kratky": "Katakomby",
         "ikona": "💀",
         "popis": "Starobylé podzemní hrobky pod starým městem, zřídlo temné energie a zapomenutých relikvií.",
-        "sousedni": ["trh", "lazne", "svatyne_krvaveho_mesice"],
+        "sousedni": ["trh", "lazne", "svatyne_krvaveho_mesice", "podzemni_arena"],
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
@@ -150,9 +150,36 @@ LOKACE = {
         "kratky": "Palác",
         "ikona": "👑",
         "popis": "Sídlo městské smetánky a guvernérův palác, centrum intrik, luxusu a politického vlivu.",
-        "sousedni": ["trh", "ctvrt_remeselniku", "pristav"],
+        "sousedni": ["trh", "ctvrt_remeselniku", "pristav", "cervena_ctvrt", "stribrne_terasy"],
         "uroven": 2,
         "nebezpeci": "střední",
+    },
+    "cervena_ctvrt": {
+        "nazev": "Červená čtvrť nevěstinců",
+        "kratky": "Čtvrť",
+        "ikona": "💋",
+        "popis": "Srdce nočních rozkoší města, plné nevěstinců, mecenášů a obchodu s otrokyněmi.",
+        "sousedni": ["trh", "palac_bohatych", "pristav", "podzemni_arena"],
+        "uroven": 1,
+        "nebezpeci": "nízké",
+    },
+    "podzemni_arena": {
+        "nazev": "Podzemní gladiátorská aréna",
+        "kratky": "Aréna",
+        "ikona": "⚔",
+        "popis": "Krvavá aréna vytesaná do skal pod městem, kde bojují otroci i šampioni o zlato.",
+        "sousedni": ["cervena_ctvrt", "katakomby"],
+        "uroven": 3,
+        "nebezpeci": "vysoké",
+    },
+    "stribrne_terasy": {
+        "nazev": "Stříbrné terasy",
+        "kratky": "Terasy",
+        "ikona": "🏛",
+        "popis": "Vyvýšené zahrady a promenáda aristokracie nad městem s výhledem na celé dominium.",
+        "sousedni": ["palac_bohatych", "sklenena_zahrada", "observator"],
+        "uroven": 2,
+        "nebezpeci": "nízké",
     },
 }
 
@@ -253,6 +280,43 @@ NPC = {
             "Zlato otevírá dveře, které ani inkvizice nedokáže zavřít.",
         ],
     },
+    "madame_scarlett": {
+        "jmeno": "Madame Scarlett, vládkyně rozkoší",
+        "popis": "Majitelka nočních salónů v Červené čtvrti. Zná tajemství nejmocnějších mužů města.",
+        "lokace": "cervena_ctvrt",
+        "vek": 35,
+        "dialogy": [
+            "V mém podniku se prodává zapomnění, pane. A zapomnění je nejdražší komodita.",
+            "Otrokyně, která umí potěšit i mlčet, má větší cenu než truhla drahokamů.",
+        ],
+    },
+    "baron_archibald": {
+        "jmeno": "Baron Archibald, zhýralý mecenáš",
+        "popis": "Bohatý aristokrat vyhledávající exotická potěšení a nákup nových otrokyň.",
+        "lokace": "cervena_ctvrt",
+        "vek": 50,
+        "dialogy": [
+            "Peníze pro mě nic neznamenají. Hledám vášeň, poslušnost a půvab.",
+        ],
+    },
+    "gladiator_gor": {
+        "jmeno": "Gladiátor Gor, nezlomený šampion",
+        "popis": "Zjizvený válečník arény, který vyhrál sto soubojů na život a na smrt.",
+        "lokace": "podzemni_arena",
+        "vek": 33,
+        "dialogy": [
+            "Krev v písku nikdy nelže. Přežijí jen ti s ocelovou vůlí.",
+        ],
+    },
+    "lady_eleanor": {
+        "jmeno": "Lady Eleanor, intrikářka z teras",
+        "popis": "Chladná šlechtična ze Stříbrných teras, která z výšky tahá za nitky městské politiky.",
+        "lokace": "stribrne_terasy",
+        "vek": 28,
+        "dialogy": [
+            "Město je jako šachovnice. Každá tvá otrokyně i každý voják jsou pouhé figurky.",
+        ],
+    },
 }
 
 
@@ -351,23 +415,28 @@ class SvetSystem:
         print(f"║        ║                       ║                  {u('svatyne_krvaveho_mesice')}  ║")
         print(f"║        ║                       ║                         ║                  ║")
         print(f"║  {u('trh')} ═══════════ {u('haj_soumraku')} ═════════ {u('observator')}  ║")
-        print(f"║        ║                       ║                         ║                  ║")
-        print(f"║  {u('ctvrt_remeselniku')} ═════════ {u('lazne')} ═══════════ {u('sklenena_zahrada')}  ║")
-        print(f"║        ║                       ║                         ║                  ║")
-        print(f"║  {u('palac_bohatych')}           {u('katakomby')}          {u('molo_mesicniho_pristavu')}  ║")
-        print(f"║        ║                                                 ║                  ║")
-        print(f"║  {u('pristav')} ═════════════════════════════════════════╝                  ║")
+        print(f"║    ║   ║                       ║                         ║                  ║")
+        print(f"║    ║ {u('ctvrt_remeselniku')} ═════════ {u('lazne')} ═══════════ {u('sklenena_zahrada')}  ║")
+        print(f"║    ║   ║                       ║                         ║                  ║")
+        print(f"║    ║ {u('palac_bohatych')} ═════ {u('stribrne_terasy')}          {u('molo_mesicniho_pristavu')}  ║")
+        print(f"║    ║   ║                       ║                         ║                  ║")
+        print(f"║  {u('cervena_ctvrt')} ═══ {u('pristav')} ═════════════════════════════╝                  ║")
+        print(f"║        ║                                                                    ║")
+        print(f"║  {u('podzemni_arena')} ════ {u('katakomby')}                                        ║")
         print(f"║                                                                             ║")
         print(f"{GOLD}╚═════════════════════════════════════════════════════════════════════════════╝{NC}")
         print(f"{DIM}Legenda: {GREEN}▶[ ... ]◀{NC}{DIM} Jsi zde | {CYAN}[🛡️]{NC}{DIM} Území tvé mafie | {CYAN}[🎯]{NC}{DIM} Aktivní quest | {GRAY}[? Neodhaleno ?]{NC}\n")
 
     def _generuj_cestovni_udalost(self, cil, hra):
         """Spustí náhodnou událost při cestě mezi dvěma lokacemi."""
-        if random.random() > 0.35:
+        if random.random() > 0.45:
             return
 
         print(f"\n{YELLOW}⚡ Cestovní událost na stezce do: {LOKACE[cil]['nazev']}!{NC}")
-        event_typ = random.choice(["banditi", "kupec", "uprchlice", "inkvizice", "zridlo"])
+        event_typ = random.choice([
+            "banditi", "kupec", "uprchlice", "inkvizice", "zridlo",
+            "arena_vyzva", "kurtizana_noc", "kultiste", "tajna_schranka"
+        ])
 
         if event_typ == "banditi":
             print("Z křovin vyskočila banda hrdlořezů s tasenými zbraněmi!")
@@ -421,7 +490,7 @@ class SvetSystem:
                 from data.jmena import JMENA
                 jmeno = random.choice(JMENA)
                 nova = Otrokyně(jmeno=jmeno, vek=random.randint(18, 24))
-                nova.charakter = random.choice(["subka", "nevinná", "ustrašená"])
+                nova.charakter = random.choice(["subka", "ustrasena", "kurtizana"])
                 nova.loajalita = 55
                 nova.poslusnost = 50
                 hra.harem.pridat(nova)
@@ -453,6 +522,79 @@ class SvetSystem:
             hra.hrac.sex_energy = min(max_s, hra.hrac.sex_energy + 15)
             hra.hrac.dark_energy = min(max_t, hra.hrac.dark_energy + 15)
             tisk_ok("Napil ses ze zřídla. Energie obnovena (+15 sex, +15 temno)!")
+
+        elif event_typ == "arena_vyzva":
+            print("V cestě stojí potulný bijec v ostnaté zbroji z Podzemní arény.")
+            print("„Zaplať 20 zlaťáků mýtné, nebo si to se mnou rozdej na férovku!“")
+            print("1) Přijmout výzvu a srazit ho k zemi (test HP a síly)")
+            print("2) Zaplatit mu 20 🪙")
+            v = input("> ").strip()
+            if v == "1":
+                if hra.hrac.hp > 30:
+                    hra.hrac.hp -= 15
+                    vyhra = random.randint(45, 80)
+                    hra.hrac.gold += vyhra
+                    tisk_ok(f"Zpráskal jsi rváče do krve! Nechal ti svou brašnu (+{vyhra} 🪙).")
+                else:
+                    hra.hrac.hp = max(1, hra.hrac.hp - 20)
+                    hra.hrac.gold = max(0, hra.hrac.gold - 20)
+                    tisk_chyba("Byl jsi příliš oslabený – bijec tě přemohl a okradl!")
+            else:
+                hra.hrac.gold = max(0, hra.hrac.gold - 20)
+                tisk_info("Odevzdal jsi 20 mincí.")
+
+        elif event_typ == "kurtizana_noc":
+            print("Z postranní uličky vyšla svůdná kurtizána v hedvábném plášti.")
+            print("„Hledám pána s vkusem a štědrou dlaní...“")
+            print("1) Věnovat se jí chvíli na lavičce (stojí 15 🪙, +20 sexuální energie)")
+            print("2) Nabídnout jí útočiště v tvém nevěstinci / harému (požaduje 60 🪙)")
+            print("0) Odmítnout")
+            v = input("> ").strip()
+            if v == "1" and hra.hrac.gold >= 15:
+                hra.hrac.gold -= 15
+                max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
+                hra.hrac.sex_energy = min(max_s, hra.hrac.sex_energy + 20)
+                tisk_ok("Sladké rozptýlení na cestě ti vlilo novou energii do žil (+20 sex energie)!")
+            elif v == "2" and hra.hrac.gold >= 60:
+                hra.hrac.gold -= 60
+                from models.otrokyne import Otrokyně
+                from data.jmena import JMENA
+                jmeno = random.choice(JMENA)
+                nova = Otrokyně(jmeno=jmeno, charakter="kurtizana", vek=random.randint(20, 26))
+                nova.touha = 75
+                nova.vlhkost = 70
+                nova.poslusnost = 60
+                nova.loajalita = 60
+                hra.harem.pridat(nova)
+                tisk_ok(f"Kurtizána {jmeno} se s radostí připojila k tvému dominium!")
+                if "cech_kurtizan" in hra.frakce.frakce:
+                    hra.frakce.frakce["cech_kurtizan"].zmenit(5)
+
+        elif event_typ == "kultiste":
+            print("V mlze prochází procesí v kápích se zapálenými pochodněmi – Kult Krvavého Měsíce.")
+            print("1) Připojit se ke krátkému šeptanému rituálu (zisk temné energie a přízně)")
+            print("2) Pozorovat z úkrytu a nevstupovat do cesty")
+            v = input("> ").strip()
+            if v == "1":
+                max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
+                hra.hrac.dark_energy = min(max_t, hra.hrac.dark_energy + 15)
+                if "kult_krve" in hra.frakce.frakce:
+                    hra.frakce.frakce["kult_krve"].zmenit(8)
+                tisk_ok("Sdílel jsi krev s kultisty. Temná energie +15, reputace s Kultem krve +8.")
+            else:
+                tisk_info("Procesí prošlo kolem bez povšimnutí.")
+
+        elif event_typ == "tajna_schranka":
+            print("Pod uvolněným kamenným kvádrem jsi zahlédl značku Syndikátu Nočních stínů!")
+            print("1) Vypáčit schránku (šance na poklad, vyžaduje opatrnost)")
+            print("2) Nechat značku být")
+            v = input("> ").strip()
+            if v == "1":
+                nalezeno = random.randint(40, 90)
+                hra.hrac.gold += nalezeno
+                tisk_ok(f"V tajné schránce byla brašna s {nalezeno} 🪙 a drahokam!")
+                if "syndikat_stinu" in hra.frakce.frakce:
+                    hra.frakce.frakce["syndikat_stinu"].zmenit(3)
 
         try:
             input("Enter...")
@@ -595,11 +737,18 @@ class SvetSystem:
                     vek = f", {npc['vek']} let" if npc.get("vek") else ""
                     print(f"  • {npc['jmeno']} ({self.vztahy_npc[npc_id]:+d}{vek})")
 
-            print(f"\n{GREEN}1-{len(dostupne)}) Cestovat{NC}  |  {YELLOW}P) Prozkoumat okolí (Scout){NC}  |  {MAGENTA}N) Rozhovor s NPC{NC}  |  {CYAN}E) Energie{NC}  |  {RED}0) Zpět{NC}")
+            extra_prompt = ""
+            if self.aktualni_lokace == "cervena_ctvrt":
+                extra_prompt = f"  |  {MAGENTA}B) Nevěstinec Rudý samet{NC}"
+            print(f"\n{GREEN}1-{len(dostupne)}) Cestovat{NC}  |  {YELLOW}P) Prozkoumat okolí (Scout){NC}  |  {MAGENTA}N) Rozhovor s NPC{NC}  |  {CYAN}E) Energie{NC}{extra_prompt}  |  {RED}0) Zpět{NC}")
             volba = input("> ").strip().lower()
 
             if volba == "0":
                 return
+            if volba == "b" and self.aktualni_lokace == "cervena_ctvrt":
+                from game.nevestinec import menu_nevestinec
+                menu_nevestinec(hra)
+                continue
             if volba == "p":
                 self.pruzkum_lokace(hra)
                 continue
@@ -729,6 +878,34 @@ class SvetSystem:
                     tisk_ok("Lord Vane přiměl městskou radu odvolat inkviziční komisi. Inkvizice -12.")
                 else:
                     tisk_chyba("Lord Vane nehne prstem za méně než 100 🪙.")
+            elif npc_id == "madame_scarlett":
+                self.zmen_vztah(npc_id, 4)
+                if hasattr(hra, "nevestinec"):
+                    hra.nevestinec.reputace_podniku += 3
+                tisk_ok("Madame Scarlett se podělila o tipy na bohaté zákazníky. Reputace nevěstince +3, vztah +4.")
+            elif npc_id == "baron_archibald":
+                if hra.hrac.sex_energy >= 10:
+                    hra.hrac.sex_energy -= 10
+                    hra.hrac.gold += 80
+                    self.zmen_vztah(npc_id, 5)
+                    tisk_ok("Baron Archibald ti zaplatil 80 🪙 za exkluzivní doporučení tvých společnic!")
+                else:
+                    tisk_chyba("Baron Archibald tě nepřijme bez patřičné energie a vystupování.")
+            elif npc_id == "gladiator_gor":
+                if hra.hrac.gold >= 40:
+                    hra.hrac.gold -= 40
+                    hra.hrac.hp = min(hra.hrac.max_hp + 5, hra.hrac.hp + 20)
+                    hra.hrac.max_hp += 2
+                    self.zmen_vztah(npc_id, 5)
+                    tisk_ok("Gor tě naučil arénové triky přežití. Max HP +2, vztah +5.")
+                else:
+                    tisk_chyba("Gor požaduje za arénový trénink 40 🪙.")
+            elif npc_id == "lady_eleanor":
+                if "syndikat_stinu" in hra.frakce.frakce:
+                    hra.frakce.frakce["syndikat_stinu"].zmenit(4)
+                hra.hrac.reputace_mesta += 3
+                self.zmen_vztah(npc_id, 4)
+                tisk_ok("Lady Eleanor využila svůj vliv u dvora ve tvůj prospěch. Reputace +3, vztah +4.")
 
         elif akce == "3":
             if vztah < -20:

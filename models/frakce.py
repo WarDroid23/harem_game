@@ -28,6 +28,9 @@ class FrakcniSystem:
         "podsveti": Frakce("Podsvětí", "Otrokáři a sadisté", 20),
         "cirkev": Frakce("Inkvizice", "Svatí muži", -5),
         "obchodnici": Frakce("Obchodníci", "Kupci", 10),
+        "kult_krve": Frakce("Kult Krvavého Měsíce", "Fanatičtí uctívači temných sil a rituálů", 0),
+        "syndikat_stinu": Frakce("Syndikát Nočních stínů", "Cech zlodějů, špehů a nájemných vrahů", 5),
+        "cech_kurtizan": Frakce("Cech kurtizán", "Vlivná síť nevěstinců, společnic a šlechty", 15),
     })
 
     def to_dict(self):
@@ -38,4 +41,9 @@ class FrakcniSystem:
         fs = cls()
         for k, v in data.items():
             fs.frakce[k] = Frakce.from_dict(v)
+        # Zajištění nových výchozích frakcí i pro starší savy
+        vychozi = cls().frakce
+        for k, v in vychozi.items():
+            if k not in fs.frakce:
+                fs.frakce[k] = v
         return fs

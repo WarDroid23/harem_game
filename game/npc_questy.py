@@ -52,6 +52,30 @@ NPC_QUESTY = {
         "pozadavek": 55, "odmena": 220, "xp": 50, "reputace": 7,
         "temna_varianta": {"odmena": 300, "xp": 35, "reputace": -5, "dark": 8}
     },
+    "madame_scarlett": {
+        "nazev": "Hedvábí a tajemství",
+        "popis": "Madame Scarlett potřebuje zajistit luxusní parfémy a uklidnit zdivočelého hosta.",
+        "pozadavek": 30, "odmena": 160, "xp": 35, "reputace": 6,
+        "temna_varianta": {"odmena": 240, "xp": 25, "reputace": -4, "dark": 8}
+    },
+    "baron_archibald": {
+        "nazev": "Šlechtické choutky",
+        "popis": "Baron shání vzácný nápoj lásky a diskrétní společnost pro svůj večírek.",
+        "pozadavek": 45, "odmena": 210, "xp": 45, "reputace": 5,
+        "temna_varianta": {"odmena": 310, "xp": 30, "reputace": -7, "dark": 12}
+    },
+    "gladiator_gor": {
+        "nazev": "Krev v aréně",
+        "popis": "Gor hledá sparring partnera a dodávku hojivých mastí pro gladiátory.",
+        "pozadavek": 40, "odmena": 190, "xp": 50, "reputace": 4,
+        "temna_varianta": {"odmena": 270, "xp": 35, "reputace": -6, "dark": 10}
+    },
+    "lady_eleanor": {
+        "nazev": "Pavučina na terasách",
+        "popis": "Lady Eleanor potřebuje zcizit kompromitující dopis z paláce guvernéra.",
+        "pozadavek": 60, "odmena": 260, "xp": 60, "reputace": 8,
+        "temna_varianta": {"odmena": 360, "xp": 40, "reputace": -8, "dark": 14}
+    },
 }
 
 

@@ -184,4 +184,59 @@ CHARAKTERY = {
         "reakce_na_odmenu": 1.2,
         "utek_sance": 0.01
     },
+    "kurtizana": {
+        "nazev": "Kurtizána",
+        "popis": "Vytříbená společnice zvyklá na luxus, svádění a štědré zákazníky v nevěstinci.",
+        "modifikatory": {
+            "touha": 1.4,
+            "vlhkost": 1.3,
+            "submisivita": 1.1,
+            "poslusnost": 1.1,
+            "duvera": 1.1
+        },
+        "reakce_na_trest": 0.9,
+        "reakce_na_odmenu": 1.4,
+        "utek_sance": 0.04
+    },
+    "fanaticka": {
+        "nazev": "Fanatička",
+        "popis": "Hluboce oddaná temnému kultu. Vnímá pána jako boha na zemi a touží sloužit.",
+        "modifikatory": {
+            "submisivita": 1.4,
+            "poslusnost": 1.3,
+            "loajalita": 1.5,
+            "strach": 0.5,
+            "bloodlust": 1.3
+        },
+        "reakce_na_trest": 1.2,
+        "reakce_na_odmenu": 1.1,
+        "utek_sance": 0.01
+    },
+    "amazonka": {
+        "nazev": "Amazonka",
+        "popis": "Hrdá a svalnatá válečnice, která odmítá sklonit hlavu bez pořádného boje.",
+        "modifikatory": {
+            "submisivita": 0.5,
+            "poslusnost": 0.5,
+            "tolerance_bolesti": 1.4,
+            "strach": 0.6,
+            "bloodlust": 1.2
+        },
+        "reakce_na_trest": 0.65,
+        "reakce_na_odmenu": 0.85,
+        "utek_sance": 0.18
+    },
+    "carodejka": {
+        "nazev": "Čarodějka",
+        "popis": "Záhadná žena vládnoucí temným esencím. Její pohled proniká přímo do duše.",
+        "modifikatory": {
+            "submisivita": 0.75,
+            "poslusnost": 0.8,
+            "duvera": 0.85,
+            "mindbreak": 1.15
+        },
+        "reakce_na_trest": 0.8,
+        "reakce_na_odmenu": 1.2,
+        "utek_sance": 0.09
+    },
 }
