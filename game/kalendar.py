@@ -1,4 +1,4 @@
-from utils.vypis import clear, vytiskni_volbu
+from utils.vypis import hlavicka, clear, vytiskni_volbu
 
 
 def zobraz_kalendar(hra):

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from game.balance import profil_obtiznosti, uprav_odmenu, uprav_xp
 from models.equipment import EQUIPMENT
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
+from utils.vypis import hlavicka, clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 
 EXPEDICE = {

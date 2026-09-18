@@ -1,5 +1,5 @@
 from models.equipment import EQUIPMENT
-from utils.vypis import clear, tisk_chyba, tisk_ok, vytiskni_volbu
+from utils.vypis import hlavicka, clear, tisk_chyba, tisk_ok, vytiskni_volbu
 
 
 def kup_vybavu(hra, vybaveni_id):

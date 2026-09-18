@@ -1,4 +1,4 @@
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
+from utils.vypis import hlavicka, clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 from game.tresty_odmeny import nastav_oblibenou, menu_odmen
 
 

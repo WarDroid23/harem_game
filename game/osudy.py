@@ -1,5 +1,5 @@
 from data.osudy import OSUDY, OSUDY_PORADI
-from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
+from utils.vypis import hlavicka, clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 
 def vyber_osud(otrok):

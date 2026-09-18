@@ -2,7 +2,7 @@
 import random
 from models.otrokyne import Otrokyně
 from models.hrac import Hrac
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
+from utils.vypis import hlavicka, clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 
 class SubkyDomestikace:
     def __init__(self):
