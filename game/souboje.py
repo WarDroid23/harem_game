@@ -1,7 +1,7 @@
 # game/souboje.py
 import random
 from utils.vypis import clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
-from config import GOLD, GREEN, RED, CYAN, NC
+from config import GOLD, GREEN, RED, CYAN, NC, BOLD, DIM, MAGENTA, BLUE, YELLOW, WHITE
 from game.predmety import PREDMETY
 from game.balance import profil_obtiznosti, uprav_odmenu, uprav_xp
 
@@ -172,15 +172,25 @@ class Souboj:
 
         nepritel = self.nepritel
         terminalni_obrazek("souboj")
-        print(f"\n{NC}⚔️  Boj proti: {nepritel.jmeno} (HP {nepritel.hp}/{nepritel.max_hp})")
-        print(f"Tvé HP: {self.hrac.hp}/{self.hrac.max_hp}\n")
+
+        def _tisk_souboje():
+            from utils.vypis import ukazatel
+            hp_hrac = ukazatel(self.hrac.hp, self.hrac.max_hp, sirka=16)
+            hp_nep  = ukazatel(nepritel.hp, nepritel.max_hp, sirka=16)
+            print(f"\n{RED}{BOLD}╔══════════════════════════════════════════════════════════╗{NC}")
+            print(f"{RED}{BOLD}║{NC}  ⚔️  {BOLD}{nepritel.jmeno}{NC}")
+            print(f"{RED}{BOLD}║{NC}  👾 HP: {hp_nep}")
+            print(f"{RED}{BOLD}╠══════════════════════════════════════════════════════════╣{NC}")
+            print(f"{RED}{BOLD}║{NC}  🧍 Tvé HP: {hp_hrac}")
+            print(f"{RED}{BOLD}╚══════════════════════════════════════════════════════════╝{NC}")
+
+        _tisk_souboje()
 
         bonus_uteku = 0
         while self.hrac.hp > 0 and nepritel.je_nazivu():
-            print(
-                "1) Útok  2) Přesný útok  3) Obrana  "
-                "4) Temný úder (10 temné energie) 5) Předmět  "
-                "6) Zastrašení  7) Útěk"
+            print(f"\n  {GREEN}1){NC} Útok  {CYAN}2){NC} Přesný útok  {YELLOW}3){NC} Obrana  "
+                  f"{MAGENTA}4){NC} Temný úder  {BLUE}5){NC} Předmět  "
+                  f"{RED}6){NC} Zastrašení  {DIM}7){NC} Útěk"
             )
             try:
                 volba = input("> ").strip()
@@ -238,14 +248,16 @@ class Souboj:
             if utok_hrac:
                 poskozeni = max(1, utok_hrac - obrana_nepr + random.randint(-2, 2))
                 nepritel.hp -= poskozeni
-                print(f"{GREEN}Tvůj útok: {poskozeni} zranění. {nepritel.jmeno} HP: {max(0, nepritel.hp)}/{nepritel.max_hp}{NC}")
+                print(f"\n  {GREEN}⚔ Tvůj útok: -{poskozeni} HP → {nepritel.jmeno}: {max(0, nepritel.hp)}/{nepritel.max_hp}{NC}")
 
             if not nepritel.je_nazivu():
                 if self.dalsi_faze():
+                    _tisk_souboje()
                     continue
                 break
 
             if preskocit_utok_nepritele:
+                _tisk_souboje()
                 continue
             utok_nepr = nepritel.utok
             obrana_hrac = self.hracova_obrana() + obranny_bonus
@@ -255,7 +267,9 @@ class Souboj:
                 int(poskozeni * profil_obtiznosti(self._obtiznost())["poskozeni"]),
             )
             self.hrac.hp -= poskozeni
-            print(f"{RED}Nepřítel útočí: {poskozeni} zranění. Tvé HP: {max(0, self.hrac.hp)}/{self.hrac.max_hp}{NC}")
+            print(f"  {RED}💥 Nepřítel útočí: -{poskozeni} HP → Tvé HP: {max(0, self.hrac.hp)}/{self.hrac.max_hp}{NC}")
+
+            _tisk_souboje()
 
             if self.hrac.hp <= 0:
                 break

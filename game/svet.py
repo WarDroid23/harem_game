@@ -763,44 +763,72 @@ class SvetSystem:
             clear()
             self.vykresli_ascii_mapu(hra)
             lokace = LOKACE[self.aktualni_lokace]
-            print(f"{GOLD}{BOLD}=== Aktuální pozice: {lokace['nazev']} {lokace.get('ikona', '')} ==={NC}")
-            print(f"{DIM}{lokace['popis']}{NC}")
-            print(f"Stupeň nebezpečí: {lokace.get('nebezpeci', 'střední')}")
+            ikona = lokace.get('ikona', '📍')
+            nebezpeci_barva = {
+                "bezpečno": GREEN, "nízké": CYAN, "střední": YELLOW, "vysoké": RED
+            }.get(lokace.get('nebezpeci', 'střední'), YELLOW)
 
-            # Kontrola území mafie
-            mafie_stav = "Pod kontrolou městské gardy"
+            # ── Lokace info box ────────────────────────────────────────────
+            W = 72
+            print(f"{GOLD}{BOLD}╔{'═'*W}╗{NC}")
+            nazev_line = f"  {ikona}  {lokace['nazev'].upper()}  {ikona}"
+            pad = W - 2 - len(nazev_line)
+            print(f"{GOLD}{BOLD}║{NC}{BOLD}{WHITE}{nazev_line}{' '*pad}{GOLD}{BOLD}║{NC}")
+            print(f"{GOLD}{BOLD}╠{'═'*W}╣{NC}")
+            popis = lokace['popis']
+            print(f"{GOLD}{BOLD}║{NC}  {DIM}{popis[:W-4]}{NC}{' '*max(0,W-4-len(popis[:W-4]))}{GOLD}{BOLD}  ║{NC}")
+            neb = lokace.get('nebezpeci', 'střední')
+            neb_line = f"Nebezpečí: {neb}"
+            # Mafie status
+            mafie_stav = "Neutrální"
             if hasattr(hra, "mafie") and hasattr(hra.mafie, "uzemi"):
                 for u in getattr(hra.mafie, "uzemi", []):
                     if getattr(u, "obsazeno", False) and (
                         u.nazev.lower() in lokace["nazev"].lower() or self.aktualni_lokace in u.nazev.lower()
                     ):
-                        mafie_stav = f"{GREEN}🛡️ Tvé podsvětní teritorium (kontrola: {u.kontrola}%){NC}"
+                        mafie_stav = f"Tvé teritorium ({u.kontrola}%)"
                         break
-            print(f"Vliv mafie: {mafie_stav}")
+            status_line = f"{nebezpeci_barva}⚠ {neb_line}{NC}   🏴 {mafie_stav}"
+            print(f"{GOLD}{BOLD}║{NC}  {status_line}{GOLD}{BOLD}{'':>{W-4-len(neb_line)-len(mafie_stav)-8}}║{NC}")
+            print(f"{GOLD}{BOLD}╚{'═'*W}╝{NC}")
+            print()
 
             # Dostupné cesty
             dostupne = [
                 cil for cil in lokace["sousedni"]
                 if cil in self.odhalene_lokace
             ]
-            print(f"\n{CYAN}Dostupné stezky odtud:{NC}")
+            print(f"{CYAN}{BOLD}  🗺  Dostupné stezky:{NC}")
             for index, cil in enumerate(dostupne, 1):
                 c_info = LOKACE[cil]
-                print(f"  {index}) {c_info.get('ikona','•')} {c_info['nazev']}")
+                neb_c = c_info.get('nebezpeci', 'střední')
+                nb_barva = {
+                    "bezpečno": GREEN, "nízké": CYAN, "střední": YELLOW, "vysoké": RED
+                }.get(neb_c, YELLOW)
+                print(f"  {BOLD}{CYAN}{index}){NC} {c_info.get('ikona','•')} {c_info['nazev']}  {nb_barva}[{neb_c}]{NC}")
 
             # NPC v okolí
             npc_v_lokaci = self.npc_v_lokaci()
             if npc_v_lokaci:
-                print(f"\n{MAGENTA}Postavy (NPC) v okolí:{NC}")
+                print(f"\n{MAGENTA}{BOLD}  👤 Postavy v okolí:{NC}")
                 for npc_id, npc in npc_v_lokaci:
                     vek = f", {npc['vek']} let" if npc.get("vek") else ""
-                    print(f"  • {npc['jmeno']} ({self.vztahy_npc[npc_id]:+d}{vek})")
+                    vztah = self.vztahy_npc[npc_id]
+                    rel_barva = GREEN if vztah >= 0 else RED
+                    print(f"  {MAGENTA}•{NC} {npc['jmeno']}{vek}  {rel_barva}(vztah {vztah:+d}){NC}")
 
             extra_prompt = ""
             if self.aktualni_lokace == "cervena_ctvrt":
-                extra_prompt = f"  |  {MAGENTA}B) Nevěstinec Rudý samet{NC}"
-            print(f"\n{GREEN}1-{len(dostupne)}) Cestovat{NC}  |  {YELLOW}P) Prozkoumat okolí (Scout){NC}  |  {MAGENTA}N) Rozhovor s NPC{NC}  |  {CYAN}E) Energie{NC}{extra_prompt}  |  {RED}0) Zpět{NC}")
-            volba = input("> ").strip().lower()
+                extra_prompt = f"  {MAGENTA}B) 🌹 Nevěstinec{NC}  |"
+            print()
+            print(f"  {GREEN}{BOLD}1-{len(dostupne)}){NC} Cestovat"
+                  f"  |  {YELLOW}P){NC} Průzkum"
+                  f"  |  {MAGENTA}N){NC} Rozhovor s NPC"
+                  f"  |  {CYAN}E){NC} Energie"
+                  f"  |  {extra_prompt}"
+                  f"  {RED}0){NC} Zpět")
+            volba = input(f"\n{BOLD}>{NC} ").strip().lower()
+
 
             if volba == "0":
                 return

@@ -296,20 +296,27 @@ def hlavni_menu(hra: Hra):
         elif volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
-                print("\nVyber otrokyni:")
+                from utils.vypis import ukazatel, hlavicka
+                hlavicka("👑 HARÉM — Výběr otrokyně")
                 for i, o in enumerate(aktivni, 1):
                     faze_nazev = Faze[o.faze_zkazenosti]["nazev"]
                     char_nazev = CHARAKTERY[o.charakter]["nazev"]
-                    hvezda = "★ " if getattr(o, "oblibena", False) else ""
-                    print(
-                        f"{i}) {hvezda}{o.jmeno} [{char_nazev}, {faze_nazev}, věk {o.vek}] "
-                        f"(loajalita:{o.loajalita}% | osud: {o.popis_osudu()})"
-                    )
-                print("@) Vybrat všechny aktivní otrokyně")
+                    hvezda = f"{GOLD}★ {NC}" if getattr(o, "oblibena", False) else "  "
+                    manzel = f" {MAGENTA}💍{NC}" if getattr(o, "je_manzelkou", False) else ""
+                    partner = f" {RED}♥{NC}" if getattr(o, "partnerka", False) else ""
+                    loj_bar = ukazatel(o.loajalita, 100, sirka=12)
+                    print(f"  {BOLD}{CYAN}{i}){NC} {hvezda}{BOLD}{o.jmeno}{NC}{manzel}{partner}")
+                    print(f"      {DIM}{char_nazev} • {faze_nazev} • věk {o.vek}{NC}")
+                    print(f"      Loajalita: {loj_bar}  {DIM}Osud: {o.popis_osudu()}{NC}")
+                    print()
+                print(f"  {GOLD}@){NC} Vybrat všechny aktivní otrokyně")
+                print(f"  {RED}0){NC} Zpět")
                 try:
-                    volba_otrokyn = input("> ").strip()
+                    volba_otrokyn = input(f"\n{BOLD}>{NC} ").strip()
                     if volba_otrokyn == "@":
                         zobraz_hromadne_interakce(aktivni, hra.hrac)
+                        continue
+                    if volba_otrokyn == "0":
                         continue
                     idx = int(volba_otrokyn) - 1
                     if 0 <= idx < len(aktivni):
