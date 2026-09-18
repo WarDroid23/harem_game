@@ -1,6 +1,6 @@
 # game/mafie.py
 from models.mafie import Mafie, Uzemi
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, CYAN, MAGENTA, GREEN, RED, NC
 
 DOSTUPNA_UZEMI = (
@@ -82,11 +82,11 @@ def valka_uzemi(hrac, mafie, hra=None):
     clear()
     print(f"{MAGENTA}--- Válka o území a podsvětní syndikáty ---{NC}\n")
     print("Vyber soupeřící syndikát k útoku:")
-    print("1) Přístavní cech pašeráků (snadný cíl, nízké ztráty)")
-    print("2) Syndikát Nočních stínů (střední cíl, boj o vliv a kontrolu)")
-    print("3) Krvavý kult podsvětí (těžký cíl, vysoká kořist a temné rituály)")
-    print("4) Inkviziční represivní garda (extrémní riziko, oslabení církve)")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Přístavní cech pašeráků (snadný cíl, nízké ztráty)')
+    vytiskni_volbu('2', 'Syndikát Nočních stínů (střední cíl, boj o vliv a kontrolu)')
+    vytiskni_volbu('3', 'Krvavý kult podsvětí (těžký cíl, vysoká kořist a temné rituály)')
+    vytiskni_volbu('4', 'Inkviziční represivní garda (extrémní riziko, oslabení církve)')
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         vyber = input("> ").strip()
@@ -108,9 +108,9 @@ def valka_uzemi(hrac, mafie, hra=None):
 
     print(f"\nCíl: {GOLD}{cil['nazev']}{NC} (předpokládaná síla: ~{nepritel_sila})")
     print("Zvol strategii útoku:")
-    print("1) Frontální nápor armády (vojáci a kapitáni v plné síle)")
-    print("2) Skrytá sabotáž a úplatky (vyžaduje informátory a korupci)")
-    print("3) Temný úder dominia (spotřebuje 15 temné energie hráče pro bonus k síle)")
+    vytiskni_volbu('1', 'Frontální nápor armády (vojáci a kapitáni v plné síle)')
+    vytiskni_volbu('2', 'Skrytá sabotáž a úplatky (vyžaduje informátory a korupci)')
+    vytiskni_volbu('3', 'Temný úder dominia (spotřebuje 15 temné energie hráče pro bonus k síle)')
 
     try:
         taktika = input("Strategie [1/2/3]: ").strip()

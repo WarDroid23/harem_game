@@ -1,6 +1,6 @@
 # game/vyvoj.py
 from models.hrac import Hrac
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from data.zbrane import ZBRANE
 from models.inventory import Zbran
 from config import GREEN, CYAN, GOLD, MAGENTA, NC
@@ -25,9 +25,9 @@ def zobraz_vyvoj(hrac: Hrac):
             extra = f"  → max sex +{hodnota * SEX_ZA_VYTRVALOST}, temno +{hodnota * TEMNO_ZA_VYTRVALOST}"
         print(f"  {skill}: {hodnota}{extra}")
     print(f"\n1) Trénovat dovednost ({CENA_TRENINK} zlaťáků)")
-    print("2) Trénink výdrže (zvyšuje maximum energie)")
-    print("3) Koupit zbraň")
-    print("0) Zpět")
+    vytiskni_volbu('2', 'Trénink výdrže (zvyšuje maximum energie)')
+    vytiskni_volbu('3', 'Koupit zbraň')
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "1":
         print("Dostupné dovednosti:")
@@ -89,8 +89,8 @@ def _trenink_vytrvalosti(hrac):
     print(f"Aktuální výdrž: {hrac.skilly.get('vytrvalost', 0)}")
     print(f"Max energie: {hrac.sex_energy}/{hrac.max_sex()} sex | {hrac.dark_energy}/{hrac.max_temno()} temno")
     print(f"Cena: {CENA_TRENINK} zl. → +{SEX_ZA_VYTRVALOST} max sex, +{TEMNO_ZA_VYTRVALOST} max temno")
-    print("1) Trénovat výdrž")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Trénovat výdrž')
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba != "1":
         return

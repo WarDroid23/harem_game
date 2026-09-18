@@ -1,5 +1,5 @@
 from data.osudy import OSUDY, OSUDY_PORADI
-from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 
 def vyber_osud(otrok):
@@ -96,7 +96,7 @@ class OsudySystem:
             hra.hrac.inventar.pridej_predmet(odmena["id"], odmena.get("mnozstvi", 1))
 
         otrok.osud_volby.append({"krok": otrok.osud_krok, "volba": volba["nazev"]})
-        otrok.zaznamenej_volbu("osud", volba["nazev"], hra.hrac.den)
+        otrok.zaznamenej_volbu("osud", vytiskni_volbu["nazev"], hra.hrac.den)
         otrok.osud_krok += 1
         if self.hotovo(otrok):
             otrok.osud_dokonceno = True
@@ -126,7 +126,7 @@ class OsudySystem:
             osud = self._osud(otrok)
             krok = self.dalsi_krok(otrok)
             terminalni_obrazek("osudy")
-            print(f"--- Osud: {osud['nazev']} ({otrok.jmeno}) ---")
+            hlavicka(f'Osud: {osud['nazev']} ({otrok.jmeno})')
             print(osud["popis"])
             print(f"Stav: {otrok.osud_krok}/{len(osud['kroky'])} rozhodnutí")
             if krok is None:
@@ -134,9 +134,9 @@ class OsudySystem:
                 input("Enter...")
                 return
             print(f"\n{krok['text']}\n")
-            for index, volba in enumerate(krok["volby"], 1):
+            for index, vytiskni_volbu in enumerate(krok["volby"], 1):
                 print(f"{index}) {volba['nazev']} — {volba['popis']}")
-            print("0) Zpět")
+            vytiskni_volbu('0', 'Zpět')
             volba = input("> ").strip()
             if volba == "0":
                 return

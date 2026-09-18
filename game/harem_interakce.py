@@ -1,4 +1,4 @@
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 from game.tresty_odmeny import nastav_oblibenou, menu_odmen
 
 
@@ -22,7 +22,7 @@ def _vyber_otrokyni(hra):
             f"{index}) {hvezda}{otrok.jmeno}{zn} — role: {otrok.role}, "
             f"loajalita {otrok.loajalita}, důvěra {otrok.duvera}, osud {stav_osudu}"
         )
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     try:
         index = int(input("> ")) - 1
     except ValueError:
@@ -39,17 +39,17 @@ def _vyber_otrokyni(hra):
 
 
 def _osobni_akce(hra, otrok):
-    print(f"\n--- Péče o {otrok.jmeno} ---")
-    print("1) Rozhovor o minulosti (+důvěra, +loajalita)")
-    print("2) Péče a zotavení (20 zlata, +HP)")
-    print("3) Přidělit roli v pevnosti")
-    print("4) Otevřít osobní osud")
-    print("5) Nabídnout romantickou chvíli (8 energie, pouze se souhlasem)")
-    print("6) Nabídnout partnerský vztah (po vzájemném sblížení)")
-    print("7) Společná mise s partnerkou (+XP a reputace)")
-    print("8) Jmenovat oblíbenkyní harému")
-    print("9) Odměny (systém odměn)")
-    print("0) Zpět")
+    hlavicka(f'Péče o {otrok.jmeno}')
+    vytiskni_volbu('1', 'Rozhovor o minulosti (+důvěra, +loajalita)')
+    vytiskni_volbu('2', 'Péče a zotavení (20 zlata, +HP)')
+    vytiskni_volbu('3', 'Přidělit roli v pevnosti')
+    vytiskni_volbu('4', 'Otevřít osobní osud')
+    vytiskni_volbu('5', 'Nabídnout romantickou chvíli (8 energie, pouze se souhlasem)')
+    vytiskni_volbu('6', 'Nabídnout partnerský vztah (po vzájemném sblížení)')
+    vytiskni_volbu('7', 'Společná mise s partnerkou (+XP a reputace)')
+    vytiskni_volbu('8', 'Jmenovat oblíbenkyní harému')
+    vytiskni_volbu('9', 'Odměny (systém odměn)')
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "1":
         otrok.zvysit_stat("duvera", 6)
@@ -213,7 +213,7 @@ def proved_poradu(hra, postavy=None):
 
 
 def zobraz_profil(otrok):
-    print(f"\n--- Profil: {otrok.jmeno} ---")
+    hlavicka(f'Profil: {otrok.jmeno}')
     print(f"Věk: {max(18, int(otrok.vek))} | Role: {otrok.role}")
     print(f"Charakter: {otrok.charakter} | Osud: {otrok.popis_osudu()}")
     if getattr(otrok, "oblibena", False):
@@ -264,7 +264,7 @@ def menu_profily(hra):
                 f"{index}) {hvezda}{otrok.jmeno} — {max(18, int(otrok.vek))} let, "
                 f"{otrok.role}, vztah {otrok.romance_stav}"
             )
-        print("0) Zpět")
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
         if volba == "0":
             return
@@ -302,12 +302,12 @@ def menu_haremu(hra):
         if manzelky:
             print(f"💍 Manželka: {', '.join(o.jmeno for o in manzelky)}")
         print()
-        print("1) Osobní rozhovor, osud, odměny a oblíbenkyně")
-        print("2) Společná porada")
-        print("3) Profily postav a historie voleb")
-        print("4) Rychle jmenovat / změnit oblíbenkyni")
-        print("5) Odměny pro vybranou otrokyni")
-        print("0) Zpět")
+        vytiskni_volbu('1', 'Osobní rozhovor, osud, odměny a oblíbenkyně')
+        vytiskni_volbu('2', 'Společná porada')
+        vytiskni_volbu('3', 'Profily postav a historie voleb')
+        vytiskni_volbu('4', 'Rychle jmenovat / změnit oblíbenkyni')
+        vytiskni_volbu('5', 'Odměny pro vybranou otrokyni')
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
         if volba == "0":
             return

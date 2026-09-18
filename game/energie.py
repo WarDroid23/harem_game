@@ -1,7 +1,7 @@
 """Doplňkové způsoby obnovy energií hráče."""
 
 from config import CYAN, GOLD, GREEN, MAGENTA, NC
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 
 def _max_pro(hrac, atribut):
@@ -150,7 +150,7 @@ def zobraz_menu(hra):
         moznosti.append(("7", "Směna na molu (25 zlata, 1x denně)"))
     for cislo, popis in moznosti:
         print(f"{cislo}) {popis}")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "1":
         meditace(hra)

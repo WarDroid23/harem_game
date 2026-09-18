@@ -1,6 +1,6 @@
 # game/questy.py
 import random
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, GREEN, RED, CYAN, NC
 
 QUESTY = [
@@ -259,8 +259,8 @@ class QuestSystem:
             print("Nemáš žádný aktivní quest.\n")
         print(f"Dokončeno questů: {self.dokonceno}")
         print("\n1) Generovat nový quest")
-        print("2) Plnit quest")
-        print("0) Zpět")
+        vytiskni_volbu('2', 'Plnit quest')
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
         return volba
 

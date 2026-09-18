@@ -1,6 +1,6 @@
 # game/souboje.py
 import random
-from utils.vypis import clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, GREEN, RED, CYAN, NC
 from game.predmety import PREDMETY
 from game.balance import profil_obtiznosti, uprav_odmenu, uprav_xp
@@ -311,7 +311,7 @@ class Souboj:
         print("Předměty:")
         for index, (_, data, pocet) in enumerate(dostupne, 1):
             print(f"{index}) {data['nazev']} x{pocet} — {data['popis']}")
-        print("0) Zpět")
+        vytiskni_volbu('0', 'Zpět')
         try:
             index = int(input("> ")) - 1
         except ValueError:

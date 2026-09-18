@@ -2,7 +2,7 @@
 import random
 from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, WHITE, NC
 from models.marriage import Marriage
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from data.jmena import JMENA
 
 def je_mozne_zasnoubeni(otrokyne, hrac):
@@ -173,7 +173,7 @@ def jmenovat_hlavni_manzelku(hra):
         m = hra.marriage_system.get(o.jmeno)
         je_hlavni = " ★ [AKTUÁLNÍ HLAVNÍ]" if getattr(m, "role_manzelky", "") == "hlavni" else ""
         print(f"{i}) {o.jmeno}{je_hlavni} (loajalita: {o.loajalita}%, spokojenost: {getattr(m, 'spokojenost', 70)}%)")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         idx = int(input("> ")) - 1
@@ -261,10 +261,10 @@ def reseni_haremoveho_sporu(hra):
     ])
     print(situace)
     print("\nJak spor rozhodneš jako pán domu?")
-    print(f"1) Dát za pravdu {m1.jmeno} (potěší ji, {m2.jmeno} bude žárlit)")
-    print(f"2) Dát za pravdu {m2.jmeno} (potěší ji, {m1.jmeno} bude žárlit)")
-    print("3) Oběma darovat šperky a sjednat smír (stojí 60 🪙, zklidní obě)")
-    print("4) Pevná panská ruka: obě pokárat a nařídit poslušnost (vyžaduje temno)")
+    vytiskni_volbu('1', f'Dát za pravdu {m1.jmeno} (potěší ji, {m2.jmeno} bude žárlit)')
+    vytiskni_volbu('2', f'Dát za pravdu {m2.jmeno} (potěší ji, {m1.jmeno} bude žárlit)')
+    vytiskni_volbu('3', 'Oběma darovat šperky a sjednat smír (stojí 60 🪙, zklidní obě)')
+    vytiskni_volbu('4', 'Pevná panská ruka: obě pokárat a nařídit poslušnost (vyžaduje temno)')
 
     try:
         v = input("> ").strip()
@@ -317,15 +317,15 @@ def menu_manzelstvi(hra):
                     deti_text = f" ({marriage.pocet_deti()} dětí)" if marriage.ma_dite() else ""
                     print(f"  • {o.jmeno}{deti_text}")
         print(f"\n{CYAN}Volby:{NC}")
-        print("1) 💍 Zasnoubení")
-        print("2) 💒 Svatba")
-        print("3) 👶 Mít dítě")
-        print("4) 📋 Prohlédnout manželství")
-        print("5) ⚖️ Rozvod")
-        print("6) 🌙 Společná noc manželek (stmelení chotí, snížení žárlivosti)")
-        print("7) ⚡ Řešení harémového sporu (urovnání žárlivosti a intrik)")
-        print("8) 👑 Jmenovat První manželku dominia")
-        print("0) Zpět")
+        vytiskni_volbu('1', '💍 Zasnoubení')
+        vytiskni_volbu('2', '💒 Svatba')
+        vytiskni_volbu('3', '👶 Mít dítě')
+        vytiskni_volbu('4', '📋 Prohlédnout manželství')
+        vytiskni_volbu('5', '⚖️ Rozvod')
+        vytiskni_volbu('6', '🌙 Společná noc manželek (stmelení chotí, snížení žárlivosti)')
+        vytiskni_volbu('7', '⚡ Řešení harémového sporu (urovnání žárlivosti a intrik)')
+        vytiskni_volbu('8', '👑 Jmenovat První manželku dominia')
+        vytiskni_volbu('0', 'Zpět')
         try:
             volba = input("> ").strip().lower()
         except EOFError:

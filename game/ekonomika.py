@@ -102,7 +102,7 @@ def najem_otrokyně(hrac: Hrac, otrok: Otrokyně, obtiznost="normalni"):
         tisk_chyba("Neplatná doba.")
         return
     uspech = proved_najem_otrokyně(
-        hrac, otrok, volba, doba_volba, obtiznost
+        hrac, otrok, vytiskni_volbu, doba_volba, obtiznost
     )
     try:
         input("Enter...")

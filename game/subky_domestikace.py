@@ -2,7 +2,7 @@
 import random
 from models.otrokyne import Otrokyně
 from models.hrac import Hrac
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 
 class SubkyDomestikace:
     def __init__(self):
@@ -63,16 +63,16 @@ class SubkyDomestikace:
     def zobraz_moznosti(self, otrok, hrac):
         while True:
             clear()
-            print(f"--- Subky / Domestikace: {otrok.jmeno} ---")
+            hlavicka(f'Subky / Domestikace: {otrok.jmeno}')
             print(f"Poslušnost: {otrok.poslusnost} | Submisivita: {otrok.submisivita}")
             print(f"Broken: {otrok.broken} | Mindbreak: {otrok.mindbreak} | Loajalita: {otrok.loajalita}")
             print(f"Energie: {hrac.sex_energy} | Temná energie: {hrac.dark_energy}")
             print()
-            print("1) Trénink poslušnosti (10 energie)")
-            print("2) Podminování (5 temné energie)")
-            print("3) Domestikace (vyžaduje broken 70, mindbreak 50)")
-            print("4) Dehumanizace (vyžaduje broken 90, mindbreak 80)")
-            print("0) Zpět")
+            vytiskni_volbu('1', 'Trénink poslušnosti (10 energie)')
+            vytiskni_volbu('2', 'Podminování (5 temné energie)')
+            vytiskni_volbu('3', 'Domestikace (vyžaduje broken 70, mindbreak 50)')
+            vytiskni_volbu('4', 'Dehumanizace (vyžaduje broken 90, mindbreak 80)')
+            vytiskni_volbu('0', 'Zpět')
             try:
                 volba = input("> ").strip()
             except EOFError:
@@ -111,7 +111,7 @@ class SubkyDomestikace:
 
         while True:
             clear()
-            print("--- Subky / Domestikace ---")
+            hlavicka('Subky / Domestikace')
             print("Vyber otrokyni k tréninku:\n")
             for i, o in enumerate(aktivni, 1):
                 h = "★ " if getattr(o, "oblibena", False) else ""
@@ -120,7 +120,7 @@ class SubkyDomestikace:
                     f"(posl:{o.poslusnost} sub:{o.submisivita} "
                     f"broken:{o.broken} mind:{o.mindbreak})"
                 )
-            print("0) Zpět")
+            vytiskni_volbu('0', 'Zpět')
             try:
                 volba = input("> ").strip()
             except EOFError:

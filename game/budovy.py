@@ -1,5 +1,5 @@
 # game/budovy.py
-from utils.vypis import clear, tisk_ok, tisk_chyba
+from utils.vypis import clear, tisk_ok, tisk_chyba, vytiskni_volbu
 from config import GOLD, GREEN, RED, NC
 from models.building import Building
 
@@ -50,7 +50,7 @@ def spravovat_budovy(hrac, harem):
         print(f"   Efekt: {efekt}")
 
     print("\n1) Vylepšit budovu")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
 
     if volba == "1":

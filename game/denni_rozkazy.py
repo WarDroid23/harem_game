@@ -1,5 +1,5 @@
 # game/denni_rozkazy.py — ranní režim harému
-from utils.vypis import clear, tisk_ok, tisk_info, tisk_chyba
+from utils.vypis import clear, tisk_ok, tisk_info, tisk_chyba, vytiskni_volbu
 from config import GOLD, GREEN, RED, CYAN, MAGENTA, NC
 
 REZIMY = {
@@ -70,7 +70,7 @@ def menu_rozkazu(hra):
         mark = " ← aktivní" if k == akt else ""
         print(f"{i}) {v['nazev']}{mark}")
         print(f"   {v['popis']}")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     try:
         volba = input("> ").strip()
     except EOFError:

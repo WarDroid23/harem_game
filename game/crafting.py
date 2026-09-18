@@ -1,5 +1,5 @@
 from game.predmety import PREDMETY
-from utils.vypis import clear, tisk_chyba, tisk_ok
+from utils.vypis import clear, tisk_chyba, tisk_ok, vytiskni_volbu
 
 RECEPTY_PREDMETU = {
     "zdravotni_balicek": {
@@ -54,7 +54,7 @@ class CraftingSystem:
                 recept = RECEPTY_PREDMETU[predmet_id]
                 suroviny = ", ".join(f"{s} x{m}" for s, m in recept["suroviny"].items())
                 print(f"{index}) {recept['nazev']} — {suroviny}")
-            print("0) Zpět")
+            vytiskni_volbu('0', 'Zpět')
             volba = input("> ").strip()
             if volba == "0":
                 return

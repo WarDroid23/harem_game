@@ -1,16 +1,16 @@
 # game/obchod.py — zjednodušený obchod + černý trh
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, CYAN, MAGENTA, NC
 
 
 def obchod(hra):
     clear()
     print(f"{GOLD}--- Obchod ---{NC}\n")
-    print("1) Léčivý elixír (30 zl) — +20 HP")
-    print("2) Stimulant (40 zl) — +15 sex energie")
-    print("3) Temný katalyzátor (60 zl) — +15 temná energie")
-    print("9) Černý trh")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Léčivý elixír (30 zl) — +20 HP')
+    vytiskni_volbu('2', 'Stimulant (40 zl) — +15 sex energie')
+    vytiskni_volbu('3', 'Temný katalyzátor (60 zl) — +15 temná energie')
+    vytiskni_volbu('9', 'Černý trh')
+    vytiskni_volbu('0', 'Zpět')
     try:
         volba = input("> ").strip()
     except EOFError:
@@ -62,14 +62,14 @@ def cerny_trh(hra):
         return
 
     print(f"Zlato: {hra.hrac.gold} 🪙 | Temná energie: {temno} | Korupce: {kor}%\n")
-    print("1) Elixír temnoty (80 zl) — +20 temná energie")
-    print("2) Okovy luxusu (120 zl) — +5 loajalita všem otrokyním")
-    print("3) Sérum zlomené vůle (160 zl) — +25 poslušnost a +15 submisivita vybrané otrokyně")
-    print("4) Inkviziční falešný odpustek (180 zl) — zahlazení stop před církví a inkvizicí")
-    print("5) Pašerácká úmluva (220 zl) — dodávka kontrabandu (+300 🪙 okamžitě, +8 vliv ve městě)")
-    print("6) Krvavý ametyst (350 zl) — krystal podsvětí: trvale +10 k max temné energii")
-    print("7) Tajemná dražba z podsvětí (400 zl) — odkup vzácné exotické otrokyně")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Elixír temnoty (80 zl) — +20 temná energie')
+    vytiskni_volbu('2', 'Okovy luxusu (120 zl) — +5 loajalita všem otrokyním')
+    vytiskni_volbu('3', 'Sérum zlomené vůle (160 zl) — +25 poslušnost a +15 submisivita vybrané otrokyně')
+    vytiskni_volbu('4', 'Inkviziční falešný odpustek (180 zl) — zahlazení stop před církví a inkvizicí')
+    vytiskni_volbu('5', 'Pašerácká úmluva (220 zl) — dodávka kontrabandu (+300 🪙 okamžitě, +8 vliv ve městě)')
+    vytiskni_volbu('6', 'Krvavý ametyst (350 zl) — krystal podsvětí: trvale +10 k max temné energii')
+    vytiskni_volbu('7', 'Tajemná dražba z podsvětí (400 zl) — odkup vzácné exotické otrokyně')
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         v = input("> ").strip()

@@ -2,7 +2,7 @@
 import random
 from data.interakce import INTERAKCE
 from data.charaktery import CHARAKTERY
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from models.otrokyne import Otrokyně
 from models.hrac import Hrac
 
@@ -66,14 +66,14 @@ def zobraz_interakce(otrok, hrac, nastaveni=None):
         hrac._nastaveni_ref = nastaveni
     while True:
         clear()
-        print(f"--- Interakce s {otrok.jmeno} ---")
+        hlavicka(f'Interakce s {otrok.jmeno}')
         print(f"HP: {otrok.hp} | Touha: {otrok.touha} | Submisivita: {otrok.submisivita}")
         print(f"Energie: {hrac.sex_energy} | Temná energie: {hrac.dark_energy}\n")
         for i, akce in enumerate(INTERAKCE, 1):
             print(f"{i}) {akce['nazev']} (E:{akce.get('cena_energie',0)} T:{akce.get('cena_temnoty',0)})")
-        print("98) Drogy")
-        print("99) Tresty/odměny")
-        print("0) Zpět")
+        vytiskni_volbu('98', 'Drogy')
+        vytiskni_volbu('99', 'Tresty/odměny')
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ")
         if volba == "0":
             break
@@ -82,10 +82,10 @@ def zobraz_interakce(otrok, hrac, nastaveni=None):
         elif volba == "99":
             while True:
                 clear()
-                print(f"--- Tresty / Odměny pro {otrok.jmeno} ---")
-                print("1) Tresty")
-                print("2) Odměny")
-                print("0) Zpět")
+                hlavicka(f'Tresty / Odměny pro {otrok.jmeno}')
+                vytiskni_volbu('1', 'Tresty')
+                vytiskni_volbu('2', 'Odměny')
+                vytiskni_volbu('0', 'Zpět')
                 volba2 = input("> ")
                 if volba2 == "1":
                     menu_trestu(otrok, hrac)
@@ -112,7 +112,7 @@ def zobraz_hromadne_interakce(otrokyne, hrac):
 
     while True:
         clear()
-        print("--- Hromadná interakce se všemi otrokyněmi ---")
+        hlavicka('Hromadná interakce se všemi otrokyněmi')
         print(f"Počet postav: {len(otrokyne)}")
         for i, akce in enumerate(INTERAKCE, 1):
             print(
@@ -120,7 +120,7 @@ def zobraz_hromadne_interakce(otrokyne, hrac):
                 f"(E:{akce.get('cena_energie', 0)} "
                 f"T:{akce.get('cena_temnoty', 0)} za osobu)"
             )
-        print("0) Zpět")
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
         if volba == "0":
             return

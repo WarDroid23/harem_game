@@ -1,5 +1,5 @@
 # game/odpocinek.py
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GREEN, CYAN, MAGENTA, GOLD, NC
 
 
@@ -83,8 +83,8 @@ def odpocinek(hra, rezim=None):
     clear()
     print(f"{GREEN}--- Odpočinek / nový den ---{NC}\n")
     if rezim is None:
-        print("1) Klidný spánek (plná energie + HP)")
-        print("2) Meditativní spánek (plná energie, více temna v duchu)")
+        vytiskni_volbu('1', 'Klidný spánek (plná energie + HP)')
+        vytiskni_volbu('2', 'Meditativní spánek (plná energie, více temna v duchu)')
         try:
             volba = input("> ").strip()
         except EOFError:

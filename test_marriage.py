@@ -29,7 +29,7 @@ def test_marriage_system():
     print(f"  - {otrok.jmeno}: loajalita={otrok.loajalita}, romance_body={otrok.romance_body}")
     
     # Test 1: Zasnoubení
-    print("\n--- TEST 1: Zasnoubení ---")
+    hlavicka('TEST 1: Zasnoubení')
     mozne, zprava = je_mozne_zasnoubeni(otrok, hra.hrac)
     if mozne:
         print(f"✓ Zasnoubení je možné")
@@ -43,7 +43,7 @@ def test_marriage_system():
         return False
     
     # Test 2: Svatba
-    print("\n--- TEST 2: Svatba ---")
+    hlavicka('TEST 2: Svatba')
     marriage = hra.marriage_system.get(otrok.jmeno)
     if marriage:
         # Simulace 11 dní
@@ -65,7 +65,7 @@ def test_marriage_system():
         return False
     
     # Test 3: Potomstvo
-    print("\n--- TEST 3: Potomstvo ---")
+    hlavicka('TEST 3: Potomstvo')
     # Simulace dalších 61 dní pro jedno dítě
     hra.hrac.den = 73
     mozne, zprava = je_mozne_potomstvo(marriage, hra.hrac.den)
@@ -85,7 +85,7 @@ def test_marriage_system():
         print(f"✗ Potomstvo není možné: {zprava}")
     
     # Test 4: Manželské bonusy
-    print("\n--- TEST 4: Manželské bonusy ---")
+    hlavicka('TEST 4: Manželské bonusy')
     print(f"Sexuální energie před: {hra.hrac.sex_energy}")
     print(f"Zlato před: {hra.hrac.gold}")
     
@@ -101,7 +101,7 @@ def test_marriage_system():
     print(f"✓ Bonusy správně aplikovány: +{bonus_energie} energie, +{bonus_gold} zlata")
     
     # Test 5: Rozvod
-    print("\n--- TEST 5: Rozvod ---")
+    hlavicka('TEST 5: Rozvod')
     from game.manzelstvi import rozvod
     loajalita_pred = otrok.loajalita
     uspech = rozvod(otrok, hra.hrac, hra)

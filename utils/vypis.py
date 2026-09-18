@@ -68,18 +68,45 @@ def terminalni_obrazek(scena, hra=None, **kwargs):
     print(f"{GOLD}     ╚═════════════════╝{NC}")
 
 
-def ukazatel(hodnota, maximum, sirka=18):
+def ukazatel(hodnota, maximum, sirka=18, barva_plno=GREEN, barva_malo=RED):
     maximum = max(1, maximum)
     hodnota = max(0, min(maximum, hodnota))
     plno = int(sirka * hodnota / maximum)
-    return "[" + "#" * plno + "-" * (sirka - plno) + f"] {hodnota}/{maximum}"
+    pomer = hodnota / maximum
+    if pomer > 0.6:
+        bv = barva_plno
+    elif pomer > 0.3:
+        bv = YELLOW
+    else:
+        bv = barva_malo
+    blok_plno = "█" * plno
+    blok_prazdno = "░" * (sirka - plno)
+    return f"{bv}{blok_plno}{DIM}{blok_prazdno}{NC} {hodnota}/{maximum}"
 
 
 def hlavicka(stitek, podtitulek=""):
-    print(f"{BOLD}{GOLD}=== {stitek} ==={NC}")
+    print()
+    sirka = 60
+    # Clean up standard titles from existing hyphens/equals
+    stitek = stitek.replace("---", "").replace("===", "").strip()
+    mezera = sirka - 4 - len(stitek)
+    if mezera < 0:
+        mezera = 0
+    l_mezera = mezera // 2
+    p_mezera = mezera - l_mezera
+    
+    print(f"{CYAN}{BOLD}╔{'═' * (sirka-2)}╗{NC}")
+    print(f"{CYAN}{BOLD}║{NC} {' ' * l_mezera}{BOLD}{WHITE}{stitek}{NC}{' ' * p_mezera} {CYAN}{BOLD}║{NC}")
+    print(f"{CYAN}{BOLD}╚{'═' * (sirka-2)}╝{NC}")
     if podtitulek:
-        print(f"{DIM}{podtitulek}{NC}")
+        print(f"  {DIM}{podtitulek}{NC}")
 
+
+def vytiskni_volbu(cislo, text, barva=YELLOW):
+    print(f"  {BOLD}{barva}{cislo}){NC} {text}")
+
+def menu_cara():
+    print(f"{DIM}────────────────────────────────────────────────────────────{NC}")
 
 def ascii_art():
     print(

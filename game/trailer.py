@@ -8,7 +8,7 @@ import time
 from config import (
     BOLD, BLUE, CYAN, GOLD, GRAY, GREEN, MAGENTA, NC, ORANGE, RED, VIOLET, WHITE, YELLOW,
 )
-from utils.vypis import clear
+from utils.vypis import clear, vytiskni_volbu
 from utils.ascii_gen import generuj_harem, hrad, trun
 
 
@@ -137,10 +137,10 @@ def _scena_7_finale(rychle: bool) -> bool:
 def menu_trailer():
     clear()
     print(f"{GOLD}{BOLD}--- Trailer / animace ---{NC}\n")
-    print("1) Přehrát trailer")
-    print("2) Rychlá verze")
-    print("3) Animace (ukázky)")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Přehrát trailer')
+    vytiskni_volbu('2', 'Rychlá verze')
+    vytiskni_volbu('3', 'Animace (ukázky)')
+    vytiskni_volbu('0', 'Zpět')
     try:
         v = input("> ").strip()
     except EOFError:
@@ -161,14 +161,14 @@ def _menu_animace():
     )
     clear()
     print(f"{GOLD}--- Animace ---{NC}\n")
-    print("1) Pulz ★ oblíbenkyně")
-    print("2) Plnění energie")
-    print("3) Harém dýchá")
-    print("4) Noční obloha")
-    print("5) Okovy / trest")
-    print("6) Fade-in úvod")
-    print("7) Všechny za sebou")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Pulz ★ oblíbenkyně')
+    vytiskni_volbu('2', 'Plnění energie')
+    vytiskni_volbu('3', 'Harém dýchá')
+    vytiskni_volbu('4', 'Noční obloha')
+    vytiskni_volbu('5', 'Okovy / trest')
+    vytiskni_volbu('6', 'Fade-in úvod')
+    vytiskni_volbu('7', 'Všechny za sebou')
+    vytiskni_volbu('0', 'Zpět')
     try:
         v = input("> ").strip()
     except EOFError:

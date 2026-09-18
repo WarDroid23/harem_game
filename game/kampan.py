@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from game.svet import LOKACE
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 KAPITOLY = (
     {
@@ -241,17 +241,17 @@ class KampanSystem:
             print(f"Cíl: navštívit {LOKACE[kapitola['lokace']]['nazev']}")
             if kapitola["cil"] in ("navstiv_trh", "navstiv_zahradu"):
                 print(f"\nCestuj do lokace {LOKACE[kapitola['lokace']]['nazev']} a prozkoumej okolí.")
-                print("1) Zpět na mapu")
+                vytiskni_volbu('1', 'Zpět na mapu')
             elif kapitola["cil"] == "vyber_spojence":
                 print("\n1) Požádat Miru o pomoc (reputace a péče)")
-                print("2) Požádat Radana o pomoc (temná energie a zásoby)")
+                vytiskni_volbu('2', 'Požádat Radana o pomoc (temná energie a zásoby)')
             elif kapitola["cil"] == "uzavri_hvezdny_slib":
                 print("\n1) Pokračovat společně, s jasnými hranicemi a vzájemnou volbou")
-                print("2) Podpořit samostatné cesty a setkávat se bez vlastnění")
+                vytiskni_volbu('2', 'Podpořit samostatné cesty a setkávat se bez vlastnění')
             else:
                 print("\n1) Odhalit síť a očistit město")
-                print("2) Využít síť a posílit vlastní vliv")
-            print("0) Zpět")
+                vytiskni_volbu('2', 'Využít síť a posílit vlastní vliv')
+            vytiskni_volbu('0', 'Zpět')
             volba = input("> ").strip()
             if volba == "0":
                 return
@@ -260,7 +260,7 @@ class KampanSystem:
                 input("Enter...")
             elif kapitola["cil"] == "uzavri_hvezdny_slib":
                 print("\n1) Pokračovat společně, s jasnými hranicemi a vzájemnou volbou")
-                print("2) Podpořit samostatné cesty a setkávat se bez vlastnění")
+                vytiskni_volbu('2', 'Podpořit samostatné cesty a setkávat se bez vlastnění')
                 try:
                     if self.zvol(hra, int(volba) - 1):
                         input("Enter...")

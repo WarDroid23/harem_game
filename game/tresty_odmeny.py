@@ -6,7 +6,7 @@ from data.tresty import TRESTY
 from data.odmeny import ODMENY
 from data.charaktery import CHARAKTERY
 from data.degradace import Faze
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GREEN, RED, CYAN, MAGENTA, GOLD, YELLOW, NC
 
 
@@ -182,7 +182,7 @@ def menu_trestu(otrok, hrac):
         trest = TRESTY[id_trestu]
         print(f"{i}) {trest['nazev']} – {trest['popis']}")
         print(f"   Temná energie: {trest['dark_cost']} | Riziko smrti: {int(trest['riziko_smrti']*100)}% | Vliv inkvizice: +{trest['vliv_inkvizice']}\n")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "0":
         return
@@ -221,7 +221,7 @@ def menu_odmen(otrok, hrac):
         omezeni = f" {YELLOW}({duvod}){NC}" if not muze else ""
         print(f"{barva}{i}) {odmena['nazev']}{NC} – {odmena['popis']}{omezeni}")
         print(f"   Zlato: {odmena['cena_gold']} | Energie: {odmena['cena_energie']} | Min. fáze: {odmena.get('min_faze', 0)}\n")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "0":
         return

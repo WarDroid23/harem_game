@@ -1,5 +1,5 @@
 from models.equipment import EQUIPMENT
-from utils.vypis import clear, tisk_chyba, tisk_ok
+from utils.vypis import clear, tisk_chyba, tisk_ok, vytiskni_volbu
 
 
 def kup_vybavu(hra, vybaveni_id):
@@ -26,7 +26,7 @@ def prirad_tymu(hra, vybaveni_id, jmeno):
 def menu_vybavy(hra):
     while True:
         clear()
-        print("--- Výbava hráče a týmu ---")
+        hlavicka('Výbava hráče a týmu')
         print("Hráč:", ", ".join(
             EQUIPMENT[x]["nazev"] for x in hra.hrac.inventar.vybaveni.get("hrac", [])
             if x in EQUIPMENT
@@ -38,7 +38,7 @@ def menu_vybavy(hra):
         for ident, data in EQUIPMENT.items():
             print(f"{ident}) {data['nazev']} — {data['cena']} zlata "
                   f"(výpravy +{data['expedicni_bonus']}, boj +{data['bojovy_bonus']})")
-        print("K) koupit | T) přiřadit poslední kus člence týmu | 0) Zpět")
+        vytiskni_volbu('K', 'koupit | T) přiřadit poslední kus člence týmu | 0) Zpět')
         volba = input("> ").strip().lower()
         if volba == "0":
             return

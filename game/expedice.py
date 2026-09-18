@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from game.balance import profil_obtiznosti, uprav_odmenu, uprav_xp
 from models.equipment import EQUIPMENT
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 
 EXPEDICE = {
@@ -217,7 +217,7 @@ class ExpeditionSystem:
     def menu(self, hra):
         while True:
             clear()
-            print("--- Výpravy mapy a harému ---")
+            hlavicka('Výpravy mapy a harému')
             if self.aktivni:
                 for v in self.aktivni:
                     print(f"{v.id}: etapa {v.krok}/{EXPEDICE[v.id]['stages']} ({v.stav})")
@@ -226,7 +226,7 @@ class ExpeditionSystem:
             print("\nDostupné:")
             for ident, data in self.dostupne(hra):
                 print(f"{ident}) {data['nazev']} — tým do 4 osob, obtížnost {data['obtiznost']}")
-            print("P) pokračovat v aktivní výpravě | 0) Zpět")
+            vytiskni_volbu('P', 'pokračovat v aktivní výpravě | 0) Zpět')
             volba = input("> ").strip().lower()
             if volba == "0":
                 return
@@ -239,7 +239,7 @@ class ExpeditionSystem:
                 input("Enter...")
                 continue
             jmena = [x.strip() for x in input("Členky týmu (jména oddělená čárkou): ").split(",") if x.strip()]
-            if self.zahaj(hra, volba, jmena):
+            if self.zahaj(hra, vytiskni_volbu, jmena):
                 tisk_info("Tým vyrazil. Proveď další etapy volbou P.")
             else:
                 tisk_chyba("Tým není vhodný, výprava už běží nebo je lokace nedostupná.")

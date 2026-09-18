@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from config import (
     GREEN, RED, YELLOW, BLUE, MAGENTA, CYAN, GOLD, NC, BOLD, DIM, GRAY, WHITE
 )
-from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok
+from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 LOKACE = {
     "pevnost": {
@@ -499,9 +499,9 @@ class SvetSystem:
 
         if event_typ == "banditi":
             print("Z křovin vyskočila banda hrdlořezů s tasenými zbraněmi!")
-            print("1) Zahnat je silou mafie (vyžaduje vojáky)")
-            print("2) Rozprášit je temnou aurou (stojí 8 temné energie)")
-            print("3) Zaplatit výkupné (35 🪙)")
+            vytiskni_volbu('1', 'Zahnat je silou mafie (vyžaduje vojáky)')
+            vytiskni_volbu('2', 'Rozprášit je temnou aurou (stojí 8 temné energie)')
+            vytiskni_volbu('3', 'Zaplatit výkupné (35 🪙)')
             volba = input("> ").strip()
             if volba == "1":
                 vojaci = getattr(hra.mafie, "vojaci", 0)
@@ -525,9 +525,9 @@ class SvetSystem:
 
         elif event_typ == "kupec":
             print("U cesty odpočívá krytý vůz potulného felčara a překupníka.")
-            print("1) Koupit léčivý elixír (25 🪙, +25 HP)")
-            print("2) Koupit bylinu měsíčnice (20 🪙)")
-            print("0) Pokračovat v cestě")
+            vytiskni_volbu('1', 'Koupit léčivý elixír (25 🪙, +25 HP)')
+            vytiskni_volbu('2', 'Koupit bylinu měsíčnice (20 🪙)')
+            vytiskni_volbu('0', 'Pokračovat v cestě')
             volba = input("> ").strip()
             if volba == "1" and hra.hrac.gold >= 25:
                 hra.hrac.gold -= 25
@@ -541,8 +541,8 @@ class SvetSystem:
 
         elif event_typ == "uprchlice":
             print("Ve škarpě u cesty se chvěje vyčerpaná dívka v roztrhaných šatech.")
-            print("1) Vzít ji pod svou ochranu a odvést do dominia (nová otrokyně)")
-            print("2) Nechat ji osudu a pokračovat dál")
+            vytiskni_volbu('1', 'Vzít ji pod svou ochranu a odvést do dominia (nová otrokyně)')
+            vytiskni_volbu('2', 'Nechat ji osudu a pokračovat dál')
             volba = input("> ").strip()
             if volba == "1":
                 from models.otrokyne import Otrokyně
@@ -585,8 +585,8 @@ class SvetSystem:
         elif event_typ == "arena_vyzva":
             print("V cestě stojí potulný bijec v ostnaté zbroji z Podzemní arény.")
             print("„Zaplať 20 zlaťáků mýtné, nebo si to se mnou rozdej na férovku!“")
-            print("1) Přijmout výzvu a srazit ho k zemi (test HP a síly)")
-            print("2) Zaplatit mu 20 🪙")
+            vytiskni_volbu('1', 'Přijmout výzvu a srazit ho k zemi (test HP a síly)')
+            vytiskni_volbu('2', 'Zaplatit mu 20 🪙')
             v = input("> ").strip()
             if v == "1":
                 if hra.hrac.hp > 30:
@@ -605,9 +605,9 @@ class SvetSystem:
         elif event_typ == "kurtizana_noc":
             print("Z postranní uličky vyšla svůdná kurtizána v hedvábném plášti.")
             print("„Hledám pána s vkusem a štědrou dlaní...“")
-            print("1) Věnovat se jí chvíli na lavičce (stojí 15 🪙, +20 sexuální energie)")
-            print("2) Nabídnout jí útočiště v tvém nevěstinci / harému (požaduje 60 🪙)")
-            print("0) Odmítnout")
+            vytiskni_volbu('1', 'Věnovat se jí chvíli na lavičce (stojí 15 🪙, +20 sexuální energie)')
+            vytiskni_volbu('2', 'Nabídnout jí útočiště v tvém nevěstinci / harému (požaduje 60 🪙)')
+            vytiskni_volbu('0', 'Odmítnout')
             v = input("> ").strip()
             if v == "1" and hra.hrac.gold >= 15:
                 hra.hrac.gold -= 15
@@ -631,8 +631,8 @@ class SvetSystem:
 
         elif event_typ == "kultiste":
             print("V mlze prochází procesí v kápích se zapálenými pochodněmi – Kult Krvavého Měsíce.")
-            print("1) Připojit se ke krátkému šeptanému rituálu (zisk temné energie a přízně)")
-            print("2) Pozorovat z úkrytu a nevstupovat do cesty")
+            vytiskni_volbu('1', 'Připojit se ke krátkému šeptanému rituálu (zisk temné energie a přízně)')
+            vytiskni_volbu('2', 'Pozorovat z úkrytu a nevstupovat do cesty')
             v = input("> ").strip()
             if v == "1":
                 max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
@@ -645,8 +645,8 @@ class SvetSystem:
 
         elif event_typ == "tajna_schranka":
             print("Pod uvolněným kamenným kvádrem jsi zahlédl značku Syndikátu Nočních stínů!")
-            print("1) Vypáčit schránku (šance na poklad, vyžaduje opatrnost)")
-            print("2) Nechat značku být")
+            vytiskni_volbu('1', 'Vypáčit schránku (šance na poklad, vyžaduje opatrnost)')
+            vytiskni_volbu('2', 'Nechat značku být')
             v = input("> ").strip()
             if v == "1":
                 nalezeno = random.randint(40, 90)
@@ -841,7 +841,7 @@ class SvetSystem:
         for index, (npc_id, npc) in enumerate(npc_v_lokaci, 1):
             vek = f", {npc['vek']} let" if npc.get("vek") else ""
             print(f"{index}) {npc['jmeno']} (vztah {self.vztahy_npc[npc_id]:+d}{vek})")
-        print("0) Zpět")
+        vytiskni_volbu('0', 'Zpět')
         try:
             index = int(input("> ")) - 1
         except ValueError:
@@ -856,7 +856,7 @@ class SvetSystem:
             return
         npc_id, npc = npc_v_lokaci[index]
         print(f"\n{npc['jmeno']}: {npc['popis']}")
-        print("1) Přátelsky si promluvit  2) Požádat o službu  3) Nabídnout pomoc")
+        vytiskni_volbu('1', 'Přátelsky si promluvit  2) Požádat o službu  3) Nabídnout pomoc')
         akce = input("> ").strip()
         vztah = self.vztahy_npc[npc_id]
 

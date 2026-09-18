@@ -12,7 +12,7 @@ def test_save_load_marriage():
     print("💾 TEST ULOŽENÍ A NAČTENÍ MANŽELSTVÍ\n")
     
     # Vytvoření hry s manželstvím
-    print("--- Vytvoření hry ---")
+    hlavicka('Vytvoření hry')
     hra1 = Hra()
     hra1.hrac.gold = 10000
     hra1.hrac.den = 1
@@ -35,7 +35,7 @@ def test_save_load_marriage():
     print(f"✓ Hra 1 vytvořena: {len(hra1.marriage_system)} manželství")
     
     # Uložení
-    print("\n--- Uložení do JSON ---")
+    hlavicka('Uložení do JSON')
     data = hra1.to_dict()
     print(f"✓ Data konvertována do dict")
     print(f"  - marriage_system klíčů: {len(data.get('marriage_system', {}))}")
@@ -51,7 +51,7 @@ def test_save_load_marriage():
     print(f"✓ JSON vytvořen ({len(json_str)} znaků)")
     
     # Načtení z JSON
-    print("\n--- Načtení z JSON ---")
+    hlavicka('Načtení z JSON')
     data_loaded = json.loads(json_str)
     hra2 = Hra.from_dict(data_loaded)
     
@@ -60,7 +60,7 @@ def test_save_load_marriage():
     print(f"  - Hráč den: {hra2.hrac.den}")
     
     # Ověření dat
-    print("\n--- Ověření dat ---")
+    hlavicka('Ověření dat')
     if "Isabela" in hra2.marriage_system:
         marriage = hra2.marriage_system["Isabela"]
         print(f"✓ Manželství Isabely nalezeno")

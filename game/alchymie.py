@@ -1,6 +1,6 @@
 # game/alchymie.py
 import random
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, GREEN, RED, CYAN, MAGENTA, NC
 from data.drogy import DROGY
 
@@ -134,8 +134,8 @@ class AlchymieSystem:
             print(f"   Suroviny: {suroviny_popis}")
 
         print("\n1) Vyrobit lektvar")
-        print("2) Koupit surovinu")
-        print("0) Zpět")
+        vytiskni_volbu('2', 'Koupit surovinu')
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
 
         if volba == "1":

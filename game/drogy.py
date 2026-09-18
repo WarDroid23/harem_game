@@ -2,7 +2,7 @@
 import random
 from data.drogy import DROGY
 from data.charaktery import CHARAKTERY
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GREEN, RED, CYAN, MAGENTA, GOLD, NC
 
 def podat_drogu(otrok, hrac, id_drogy):
@@ -72,9 +72,9 @@ def podpora_zotaveni(otrok, hrac):
         tisk_info(f"{otrok.jmeno} nyní nepotřebuje léčbu závislosti.")
         return
     print("\nMožnosti podpory zotavení:")
-    print("1) Léčitel a bezpečný detox (50 zlata, -25 závislosti)")
-    print("2) Klidový program (zdarma, -10 závislosti, +důvěra)")
-    print("3) Podpůrná skupina (20 zlata, -15 závislosti, +loajalita)")
+    vytiskni_volbu('1', 'Léčitel a bezpečný detox (50 zlata, -25 závislosti)')
+    vytiskni_volbu('2', 'Klidový program (zdarma, -10 závislosti, +důvěra)')
+    vytiskni_volbu('3', 'Podpůrná skupina (20 zlata, -15 závislosti, +loajalita)')
     volba = input("> ").strip()
     ceny = {"1": 50, "2": 0, "3": 20}
     snizeni = {"1": 25, "2": 10, "3": 15}
@@ -121,9 +121,9 @@ def menu_drog(otrok, hrac):
         print(f"{MAGENTA}--- Drogy pro {otrok.jmeno} ---{NC}\n")
         zobraz_stav(otrok)
         print("\n1) Podat drogu")
-        print("2) Odvykání")
-        print("3) Podpora zotavení")
-        print("0) Zpět")
+        vytiskni_volbu('2', 'Odvykání')
+        vytiskni_volbu('3', 'Podpora zotavení')
+        vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
         if volba == "1":
             print("\nDostupné drogy:")
@@ -132,7 +132,7 @@ def menu_drog(otrok, hrac):
                 print(f"   {droga['popis']}")
             volba_droga = input("\nZadej ID drogy: ").strip().lower()
             if volba_droga in DROGY:
-                podat_drogu(otrok, hrac, volba_droga)
+                podat_drogu(otrok, hrac, vytiskni_volbu_droga)
             else:
                 tisk_chyba("Neznámá droga.")
             input("Enter...")

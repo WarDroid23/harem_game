@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # main.py
 import random
-from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, WHITE, NC
+from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, WHITE, NC, DIM, GRAY
 from game.save_load import (
     Hra, uloz_hru, uloz_slot, nacti_slot, seznam_slotu,
 )
@@ -228,56 +228,64 @@ def hlavni_menu(hra: Hra):
         clear()
         ascii_art()
         terminalni_obrazek("menu")
-        print(f"{GOLD}{BOLD}Den: {hra.hrac.den} | {GREEN}Zlato: {hra.hrac.gold} 🪙{NC}")
         max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
         max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
-        print(
-            f"{CYAN}Energie {ukazatel(hra.hrac.sex_energy, max_s)} | "
-            f"Temná energie {ukazatel(hra.hrac.dark_energy, max_t)}{NC}"
-        )
-        print(f"{RED}Reputace: {hra.hrac.reputace_mesta} | {BLUE}Vliv inkvizice: {hra.hrac.vliv_inkvizice}{NC}")
-        kapitola = hra.kampan.aktualni()
-        kapitola_text = kapitola["nazev"] if kapitola else "Kampaň dokončena"
         aktivni_harem = hra.harem.vsechny_aktivni()
         pocet_partnerek = sum(1 for o in aktivni_harem if getattr(o, "partnerka", False))
         oblibena = next((o for o in aktivni_harem if getattr(o, "oblibena", False)), None)
-        oblib_txt = f" | ★ {oblibena.jmeno}" if oblibena else ""
-        print(
-            f"{YELLOW}Harém: {hra.harem.pocet()} "
-            f"(partnerky: {pocet_partnerek}{oblib_txt}) | "
-            f"{MAGENTA}Území: {len(hra.mafie.uzemi)} 🏰{NC}"
-        )
-        print(f"{CYAN}Místo: {hra.svet.aktualni_lokace} | "
-            f"Kampaň: {kapitola_text} | Obtížnost: {hra.nastaveni.obtiznost_text}{NC}\n")
+        oblib_txt = f" ★{oblibena.jmeno}" if oblibena else ""
+        kapitola = hra.kampan.aktualni()
+        kapitola_text = kapitola["nazev"] if kapitola else "Kampaň dokončena"
 
-        # Optimalizované tematické sloupce / kategorie menu
-        print(f"{GOLD}{BOLD}─── 👑 HARÉM & DÍVKY ─────────────────────{NC}   {MAGENTA}{BOLD}─── 🏰 PANSTVÍ & IMPÉRIUM ────────────────{NC}")
-        print(f" {GREEN}1){NC} 👉 Interakce s otrokyněmi                 {MAGENTA}3){NC} 🏢 Mafie / gangy & území")
-        print(f" {GREEN}23){NC} 🤝 Péče, oblíbenkyně, osudy              {CYAN}16){NC} 🏗️ Budovy dominia")
-        print(f" {MAGENTA}28){NC} 💍 Manželství, žárlivost & rodina        {MAGENTA}21){NC} 🏛️ Nevěstinec & prodej dívek")
-        print(f" {RED}7){NC}  🧠 Subky & Domestikace                  {CYAN}2){NC}  💰 Nájem otrokyně")
-        print(f" {YELLOW}11){NC} 🎯 Lov otrokyň                           {BLUE}5){NC}  🤝 Diplomacie & frakce")
-        print(f" {GREEN}15){NC} 🏛️ Dražba otrokyň                         {GOLD}6){NC}  🔬 Výzkum dominia")
-        print(f" {GOLD}30){NC} 📋 Denní rozkazy harému                  {RED}31){NC} 🎭 Veřejný výkon")
+        # ── Status dashboard ────────────────────────────────────────────────
+        W = 76
+        print(f"{GOLD}{BOLD}╔{'═'*W}╗{NC}")
+        print(
+            f"{GOLD}{BOLD}║{NC} {BOLD}Den {hra.hrac.den:>3}{NC}  "
+            f"{GREEN}🪙 {hra.hrac.gold:<6}{NC}  "
+            f"{YELLOW}👑 Harém {hra.harem.pocet()} (partnerek {pocet_partnerek}{oblib_txt}){NC}  "
+            f"{MAGENTA}🏰 Území {len(hra.mafie.uzemi)}{NC}"
+            f"{GOLD}{BOLD}{'':>2}║{NC}"
+        )
+        bar_s = ukazatel(hra.hrac.sex_energy, max_s, sirka=16)
+        bar_t = ukazatel(hra.hrac.dark_energy, max_t, sirka=16, barva_plno=MAGENTA, barva_malo=RED)
+        print(
+            f"{GOLD}{BOLD}║{NC} ⚡ Energie   {bar_s}   🌑 Temno  {bar_t}  "
+            f"{RED}☩Inkvizice {hra.hrac.vliv_inkvizice:<3}{NC}  "
+            f"{CYAN}📍{hra.svet.aktualni_lokace}{NC}"
+            f"{GOLD}{BOLD}{'':>1}║{NC}"
+        )
+        print(f"{GOLD}{BOLD}╚{'═'*W}╝{NC}")
         print()
-        print(f"{CYAN}{BOLD}─── 🗺️ SVĚT & DOBRODRUŽSTVÍ ─────────────{NC}   {YELLOW}{BOLD}─── ⚙️ POSTAVA & PROVOZ ──────────────────{NC}")
-        print(f" {CYAN}8){NC}  🗺️ Mapa světa & lokace                  {YELLOW}4){NC}  📈 Vývoj postavy")
-        print(f" {GOLD}9){NC}  📖 Příběhová kampaň                     {YELLOW}18){NC} ⚔️ Souboj & aréna")
-        print(f" {RED}14){NC} 🎲 Questy & úkoly                       {BLUE}19){NC} 🧪 Alchymie & lektvary")
-        print(f" {GOLD}13){NC} 🛒 Obchod města                         {YELLOW}24){NC} 🛠️ Crafting & předměty")
-        print(f" {CYAN}29){NC} 📜 Kronika dominia                       {CYAN}25){NC} ⚡ Dobít energii")
-        print(f" {CYAN}20){NC} 📋 Rychlý přehled                      {BLUE}12){NC} 🛌 Odpočinek (nový den)")
-        print(f" {MAGENTA}17){NC} 📊 Statistiky                           {GREEN}A){NC}  🤖 Bezpečný automatický tah")
-        print()
-        print(f"{DIM}───────────────────────────────────────────────────────────────────────────────{NC}")
-        print(f"{YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   |   {RED}0) 🚪 Konec hry{NC}")
+
+        # Vycizelované tematické panely menu
+        print(f"{GOLD}{BOLD}╔════ 👑 HARÉM & DÍVKY ══════════════════╗{NC}   {MAGENTA}{BOLD}╔════ 🏰 PANSTVÍ & IMPÉRIUM ═════════════╗{NC}")
+        print(f"║ {GREEN} 1){NC} 👉 Interakce s otrokyněmi            ║   ║ {MAGENTA} 3){NC} 🏢 Mafie / gangy & území        ║")
+        print(f"║ {GREEN}23){NC} 🤝 Péče, oblíbenkyně, osudy         ║   ║ {CYAN}16){NC} 🏗️ Budovy dominia               ║")
+        print(f"║ {MAGENTA}28){NC} 💍 Manželství, žárlivost & rodina   ║   ║ {MAGENTA}21){NC} 🏛️ Nevěstinec & prodej dívek    ║")
+        print(f"║ {RED} 7){NC} 🧠 Subky & Domestikace             ║   ║ {CYAN} 2){NC} 💰 Nájem otrokyně               ║")
+        print(f"║ {YELLOW}11){NC} 🎯 Lov otrokyň                      ║   ║ {BLUE} 5){NC} 🤝 Diplomacie & frakce          ║")
+        print(f"║ {GREEN}15){NC} 🏛️ Dražba otrokyň                    ║   ║ {GOLD} 6){NC} 🔬 Výzkum dominia               ║")
+        print(f"║ {GOLD}30){NC} 📋 Denní rozkazy harému             ║   ║ {RED}31){NC} 🎭 Veřejný výkon                 ║")
+        print(f"{GOLD}{BOLD}╚════════════════════════════════════════╝{NC}   {MAGENTA}{BOLD}╚════════════════════════════════════════╝{NC}")
+        print(f"{CYAN}{BOLD}╔════ 🗺️ SVĚT & DOBRODRUŽSTVÍ ═══════════╗{NC}   {YELLOW}{BOLD}╔════ ⚙️ POSTAVA & PROVOZ ═══════════════╗{NC}")
+        print(f"║ {CYAN} 8){NC} 🗺️ Mapa světa & lokace             ║   ║ {YELLOW} 4){NC} 📈 Vývoj postavy                ║")
+        print(f"║ {GOLD} 9){NC} 📖 Příběhová kampaň                ║   ║ {YELLOW}18){NC} ⚔️ Souboj & aréna                ║")
+        print(f"║ {RED}14){NC} 🎲 Questy & úkoly                  ║   ║ {BLUE}19){NC} 🧪 Alchymie & lektvary          ║")
+        print(f"║ {GOLD}13){NC} 🛒 Obchod města                    ║   ║ {YELLOW}24){NC} 🛠️ Crafting & předměty          ║")
+        print(f"║ {CYAN}29){NC} 📜 Kronika dominia                  ║   ║ {CYAN}25){NC} ⚡ Dobít energii                ║")
+        print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {BLUE}12){NC} 🛌 Odpočinek (nový den)         ║")
+        print(f"║ {MAGENTA}17){NC} 📊 Statistiky a rekordy            ║   ║ {GREEN} A){NC} 🤖 Bezpečný automatický tah     ║")
+        print(f"{CYAN}{BOLD}╚════════════════════════════════════════╝{NC}   {YELLOW}{BOLD}╚════════════════════════════════════════╝{NC}")
+        print(f"{DIM}──────────────────────────────────────────────────────────────────────────────────{NC}")
+        print(f"  {YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   │   {RED}0) 🚪 Konec hry{NC}")
         try:
             volba = input("> ").strip().lower()
         except EOFError:
             uloz_hru(hra)
             return
 
-        volba = {"s": "26", "l": "26", "q": "0", "a": "auto", "m": "26"}.get(volba, volba)
+        volba = {"s": "26", "l": "26", "q": "0", "a": "auto", "m": "26"}.get(volba, vytiskni_volbu)
 
         if volba == "auto":
             obsluz_automaticky_tah(hra)

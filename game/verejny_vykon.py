@@ -1,6 +1,6 @@
 # game/verejny_vykon.py — veřejný výkon na trhu / přístavu
 import random
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, MAGENTA, RED, CYAN, NC
 
 
@@ -22,7 +22,7 @@ def menu_verejneho_vykonu(hra):
     for i, o in enumerate(aktivni, 1):
         h = "★ " if getattr(o, "oblibena", False) else ""
         print(f"{i}) {h}{o.jmeno} (loajalita {o.loajalita}%, fáze {o.faze_zkazenosti})")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
     try:
         volba = input("> ").strip()
     except EOFError:

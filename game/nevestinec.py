@@ -1,7 +1,7 @@
 ﻿# game/nevestinec.py
 import random
 from config import GREEN, RED, YELLOW, BLUE, MAGENTA, CYAN, GOLD, NC, BOLD
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from data.charaktery import CHARAKTERY
 
 CENA_OTEVRENI = 300
@@ -13,8 +13,8 @@ def otevrit_nevestinec(hra) -> bool:
     print("Můžeš ji zrenovovat a vybudovat z ní nejvyhledávanější nevěstinec ve městě.")
     print(f"Cena licence a renovace: {GOLD}{CENA_OTEVRENI} 🪙{NC}")
     print(f"Tvé zlato: {hra.hrac.gold} 🪙\n")
-    print("1) Koupit a otevřít nevěstinec")
-    print("0) Zpět")
+    vytiskni_volbu('1', 'Koupit a otevřít nevěstinec')
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         volba = input("> ").strip()
@@ -68,7 +68,7 @@ def prodat_otrokyni(hra):
         char = CHARAKTERY.get(o.charakter, {}).get("nazev", o.charakter)
         v_nev = " [V nevěstinci]" if getattr(o, "v_nevestinci", False) else ""
         print(f"{i}) {o.jmeno} ({char}, poslušnost {o.poslusnost}%, zkaženost fáze {o.faze_zkazenosti}){v_nev} -> Nabídka: {GOLD}{cena} 🪙{NC}")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         volba = input("> ").strip()
@@ -117,7 +117,7 @@ def pridat_divku_do_nevestince(hra):
         char = CHARAKTERY.get(o.charakter, {}).get("nazev", o.charakter)
         bonus = " ★ (+40% zisk)" if o.charakter == "kurtizana" else ""
         print(f"{i}) {o.jmeno} [{char}{bonus}] (touha: {o.touha}, loajalita: {o.loajalita}%)")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         idx = int(input("> ")) - 1
@@ -142,7 +142,7 @@ def odebrat_divku_z_nevestince(hra):
     print(f"{CYAN}{BOLD}=== Stažení otrokyně zpět do Černé pevnosti ==={NC}\n")
     for i, o in enumerate(v_nevestinci, 1):
         print(f"{i}) {o.jmeno}")
-    print("0) Zpět")
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         idx = int(input("> ")) - 1
@@ -163,10 +163,10 @@ def vylepsi_nevestinec(hra):
     cena_luxus = nev.cena_luxusu()
     cena_guard = nev.cena_ochranky()
 
-    print(f"1) Přistavět další pokoj ({nev.pocet_pokoju} -> {nev.pocet_pokoju + 1}): {GOLD}{cena_pokoje} 🪙{NC}")
-    print(f"2) Zvýšit luxus a výzdobu (úroveň {nev.uroven_luxusu} -> {nev.uroven_luxusu + 1}): {GOLD}{cena_luxus} 🪙{NC} (zvyšuje tržby o 20%)")
-    print(f"3) Najmout vyhazovače a ochranku (úroveň {nev.ochranka} -> {nev.ochranka + 1}): {GOLD}{cena_guard} 🪙{NC} (chrání před nájezdy a opilci)")
-    print("0) Zpět")
+    vytiskni_volbu('1', f'Přistavět další pokoj ({nev.pocet_pokoju} -> {nev.pocet_pokoju + 1}): {GOLD}{cena_pokoje} 🪙{NC}')
+    vytiskni_volbu('2', f'Zvýšit luxus a výzdobu (úroveň {nev.uroven_luxusu} -> {nev.uroven_luxusu + 1}): {GOLD}{cena_luxus} 🪙{NC} (zvyšuje tržby o 20%)')
+    vytiskni_volbu('3', f'Najmout vyhazovače a ochranku (úroveň {nev.ochranka} -> {nev.ochranka + 1}): {GOLD}{cena_guard} 🪙{NC} (chrání před nájezdy a opilci)')
+    vytiskni_volbu('0', 'Zpět')
 
     try:
         v = input("> ").strip()
