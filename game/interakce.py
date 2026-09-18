@@ -1,7 +1,7 @@
 # game/interakce.py
 import random
 from data.interakce import INTERAKCE
-from data.charaktery import CHARAKTERY
+from data.charaktery import CHARAKTERY, nazev_charakteru
 from utils.vypis import hlavicka, clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from models.otrokyne import Otrokyně
 from models.hrac import Hrac
@@ -50,7 +50,7 @@ def proved_interakci(otrok: Otrokyně, hrac: Hrac, akce_id: str):
 
     otrok.aktualizuj_fazi()
     otrok.zaznamenej_volbu("interakce", akce["nazev"])
-    tisk_ok(f"Provedeno: {akce['nazev']} (charakter: {CHARAKTERY[otrok.charakter]['nazev']})")
+    tisk_ok(f"Provedeno: {akce['nazev']} (charakter: {nazev_charakteru(getattr(otrok, 'charakter', 'subka'))})")
     try:
         from game.ai_dialog import vypis_dialog, typ_z_akce
         nast = getattr(hrac, "_nastaveni_ref", None)

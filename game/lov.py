@@ -2,7 +2,7 @@
 import random
 from models.otrokyne import Otrokyně
 from data.jmena import JMENA
-from data.charaktery import CHARAKTERY
+from data.charaktery import CHARAKTERY, nazev_charakteru
 from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
 from config import RED, GREEN, CYAN, MAGENTA, GOLD, NC
 from game.alchymie import SUROVINY
@@ -160,7 +160,7 @@ def lov_otrokyn(hra):
         )
         hrac.gold += random.randint(10, 50)
         print(f"\n✅ {tisk_ok(f'Úspěch! Chytil jsi otrokyni jménem {jmeno}.')}")
-        print(f"   Charakter: {CHARAKTERY[charakter]['nazev']}")
+        print(f"   Charakter: {nazev_charakteru(charakter)}")
         print(f"   Vlastnosti: submisivita {otrok.submisivita}, poslušnost {otrok.poslusnost}, loajalita {otrok.loajalita}")
         return otrok
     else:

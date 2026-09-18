@@ -108,6 +108,20 @@ Faze = {
 }
 
 
+def normalizuj_fazi(faze_id):
+    """Vrátí platnou fázi nebo bezpečný fallback."""
+    try:
+        faze = int(faze_id)
+    except (TypeError, ValueError):
+        return 0
+    return faze if faze in Faze else 0
+
+
+def nazev_faze(faze_id):
+    """Vrátí název fáze i pro neznámé/poškozené hodnoty."""
+    return Faze.get(normalizuj_fazi(faze_id), Faze[0])["nazev"]
+
+
 def ziskat_fazi(otrok):
     """Vrátí aktuální fázi zkaženosti podle vlastností otrokyně."""
     for faze_id in range(16, -1, -1):

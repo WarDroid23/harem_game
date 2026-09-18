@@ -88,6 +88,74 @@ class Souboj:
         self.hra = hra
         self.nepritel = None
 
+    def menu(self):
+        """Hlavní menu soubojů a bossů."""
+        if self.hra is None:
+            tisk_chyba("Souboj nemá přístup k světu hry.")
+            return
+
+        while True:
+            clear()
+            terminalni_obrazek("souboj")
+            print(f"{GOLD}{BOLD}=== Aréna a souboje ==={NC}\n")
+            print(f"{GREEN}1){NC} Normální souboj")
+            bossove = dostupni_bossove(self.hra)
+            if bossove:
+                print(f"{MAGENTA}2){NC} Bossové v aktuální lokaci")
+            print(f"{RED}0){NC} Zpět")
+            try:
+                volba = input("> ").strip()
+            except EOFError:
+                return
+
+            if volba == "0":
+                return
+            if volba == "1":
+                self.generuj_nepritele(self.hrac.level)
+                self.proved_boj()
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
+            elif volba == "2":
+                if not bossove:
+                    tisk_chyba("V této lokaci není žádný boss k dispozici.")
+                    try:
+                        input("Enter...")
+                    except EOFError:
+                        pass
+                    continue
+                print("\nDostupní bossové:")
+                for index, (boss_id, data) in enumerate(bossove, 1):
+                    print(f"{index}) {data['jmeno']} — {data['lokace']}")
+                print("0) Zpět")
+                try:
+                    vyber = input("> ").strip()
+                except EOFError:
+                    return
+                if vyber == "0":
+                    continue
+                try:
+                    idx = int(vyber) - 1
+                    if 0 <= idx < len(bossove):
+                        boss_id, _ = bossove[idx]
+                        self.generuj_bosse(self.hrac.level, boss_id)
+                        self.proved_boj()
+                    else:
+                        tisk_chyba("Špatná volba.")
+                except ValueError:
+                    tisk_chyba("Zadej číslo.")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
+            else:
+                tisk_chyba("Neplatná volba.")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    pass
+
     def generuj_nepritele(self, uroven):
         typy = [
             {"jmeno": "Bandita", "hp": 30 + uroven * 5, "utok": 5 + uroven, "obrana": 2 + uroven // 2, "zlato": 30 + uroven * 10, "xp": 15 + uroven * 5},

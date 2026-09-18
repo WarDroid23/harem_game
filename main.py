@@ -35,8 +35,8 @@ from utils.vypis import (
     ukazatel, hlavicka,
 )
 from data.jmena import JMENA
-from data.charaktery import CHARAKTERY
-from data.degradace import Faze
+from data.charaktery import nazev_charakteru
+from data.degradace import nazev_faze
 from models.otrokyne import Otrokyně
 
 
@@ -298,8 +298,8 @@ def hlavni_menu(hra: Hra):
             if aktivni:
                 hlavicka("👑 HARÉM — Výběr otrokyně")
                 for i, o in enumerate(aktivni, 1):
-                    faze_nazev = Faze[o.faze_zkazenosti]["nazev"]
-                    char_nazev = CHARAKTERY[o.charakter]["nazev"]
+                    faze_nazev = nazev_faze(getattr(o, "faze_zkazenosti", 0))
+                    char_nazev = nazev_charakteru(getattr(o, "charakter", "subka"))
                     hvezda = f"{GOLD}★ {NC}" if getattr(o, "oblibena", False) else "  "
                     manzel = f" {MAGENTA}💍{NC}" if getattr(o, "je_manzelkou", False) else ""
                     partner = f" {RED}♥{NC}" if getattr(o, "partnerka", False) else ""

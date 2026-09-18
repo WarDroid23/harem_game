@@ -240,3 +240,15 @@ CHARAKTERY = {
         "utek_sance": 0.09
     },
 }
+
+
+def normalizuj_charakter(charakter):
+    """Vrátí platný klíč charakteru nebo bezpečný fallback."""
+    if isinstance(charakter, str) and charakter in CHARAKTERY:
+        return charakter
+    return "subka"
+
+
+def nazev_charakteru(charakter):
+    """Vrátí název charakteru i pro neznámé nebo poškozené hodnoty."""
+    return CHARAKTERY.get(normalizuj_charakter(charakter), CHARAKTERY["subka"])['nazev']

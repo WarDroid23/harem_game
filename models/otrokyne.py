@@ -1,8 +1,8 @@
 # models/otrokyne.py
 from dataclasses import dataclass, asdict, field, fields
 import random
-from data.charaktery import CHARAKTERY
-from data.degradace import ziskat_fazi, aplikuj_bonusy, Faze
+from data.charaktery import CHARAKTERY, normalizuj_charakter
+from data.degradace import ziskat_fazi, aplikuj_bonusy, Faze, normalizuj_fazi
 
 @dataclass
 class Otrokyně:
@@ -69,6 +69,7 @@ class Otrokyně:
     oblibena_od_den: int = 0
 
     def __post_init__(self):
+        self.charakter = normalizuj_charakter(self.charakter)
         if self.charakter == "subka" and random.random() < 0.7:
             self.charakter = random.choice(list(CHARAKTERY.keys()))
         if self.vek == 18:
@@ -77,6 +78,7 @@ class Otrokyně:
             self.vek = max(18, int(self.vek))
         except (TypeError, ValueError):
             self.vek = 18
+        self.faze_zkazenosti = normalizuj_fazi(self.faze_zkazenosti)
         self.aktualizuj_fazi()
 
     def zvysit_stat(self, stat, hodnota):
@@ -93,7 +95,7 @@ class Otrokyně:
         if nova_faze > self.faze_zkazenosti:
             self.faze_zkazenosti = nova_faze
             aplikuj_bonusy(self)
-            print(f"★ {self.jmeno} postoupila do fáze: {Faze[nova_faze]['nazev']}")
+            print(f"★ {self.jmeno} postoupila do fáze: {Faze.get(nova_faze, Faze[0])['nazev']}")
 
     def je_broken(self):
         return self.broken >= 85 or self.mindbreak >= 90
@@ -118,6 +120,10 @@ class Otrokyně:
             raise ValueError("Data otrokyně musí být objekt.")
         allowed = {f.name for f in fields(cls)}
         values = {key: value for key, value in data.items() if key in allowed}
+        if "charakter" in values:
+            values["charakter"] = normalizuj_charakter(values["charakter"])
+        if "faze_zkazenosti" in values:
+            values["faze_zkazenosti"] = normalizuj_fazi(values["faze_zkazenosti"])
         otrok = cls(**values)
         for key, value in values.items():
             setattr(otrok, key, value)
