@@ -325,6 +325,48 @@ CHARAKTERY = {
         "reakce_na_odmenu": 1.35,
         "utek_sance": 0.15
     },
+    "kralovska_knezka": {
+        "nazev": "Královská kněžka",
+        "popis": "Posvátná služebnice pradávných bohů. Vládne léčivou aurou a vysokou důstojností.",
+        "modifikatory": {
+            "submisivita": 0.8,
+            "poslusnost": 0.9,
+            "duvera": 1.3,
+            "loajalita": 1.25,
+            "touha": 1.1
+        },
+        "reakce_na_trest": 0.7,
+        "reakce_na_odmenu": 1.4,
+        "utek_sance": 0.04
+    },
+    "draci_misenka": {
+        "nazev": "Dračí míšenka",
+        "popis": "Nespoutaná válečnice s dračí krví v žilách. Obrovská síla v boji a žhavá vášeň.",
+        "modifikatory": {
+            "submisivita": 0.6,
+            "poslusnost": 0.7,
+            "tolerance_bolesti": 1.6,
+            "bloodlust": 1.4,
+            "touha": 1.3
+        },
+        "reakce_na_trest": 1.1,
+        "reakce_na_odmenu": 1.1,
+        "utek_sance": 0.08
+    },
+    "temna_elfka": {
+        "nazev": "Temná elfka",
+        "popis": "Podlá a smyslná vražedkyně z podzemních říší. Mistr stínů, mučení a nebezpečné rozkoše.",
+        "modifikatory": {
+            "submisivita": 0.7,
+            "poslusnost": 0.8,
+            "pain_addiction": 1.3,
+            "touha": 1.4,
+            "humiliation": 0.8
+        },
+        "reakce_na_trest": 0.9,
+        "reakce_na_odmenu": 1.2,
+        "utek_sance": 0.10
+    },
 }
 
 

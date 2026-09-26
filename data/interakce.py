@@ -275,4 +275,49 @@ INTERAKCE = [
         "cena_temnoty": 12,
         "riziko": 0.04
     },
+    {
+        "id": "olejova_masaz_extaze",
+        "nazev": "Smyslná masáž posvátnými oleji",
+        "typ": "odmena",
+        "efekty": {"hp": 20, "touha": 18, "vlhkost": 20, "duvera": 8, "strach": -6},
+        "cena_energie": 12,
+        "cena_temnoty": 0,
+        "riziko": 0.0
+    },
+    {
+        "id": "hypnoza_mysli",
+        "nazev": "Temná hypnóza & sugesce",
+        "typ": "odmena",
+        "efekty": {"submisivita": 20, "poslusnost": 18, "mindbreak": 4, "strach": -10},
+        "cena_energie": 10,
+        "cena_temnoty": 15,
+        "riziko": 0.02
+    },
+    {
+        "id": "soukromy_tanec",
+        "nazev": "Soukromý tanec závojů",
+        "typ": "odmena",
+        "efekty": {"touha": 25, "loajalita": 10, "duvera": 6},
+        "cena_energie": 6,
+        "cena_temnoty": 0,
+        "riziko": 0.0
+    },
+    {
+        "id": "znacka_dominia",
+        "nazev": "Vypálení magické runy vlastnictví",
+        "typ": "trest",
+        "efekty": {"broken": 8, "submisivita": 25, "loajalita": 15, "scarred": 5, "hp": -10},
+        "cena_energie": 15,
+        "cena_temnoty": 20,
+        "riziko": 0.05
+    },
+    {
+        "id": "zkouska_oddanosti",
+        "nazev": "Zkouška absolutní oddanosti",
+        "typ": "trest",
+        "efekty": {"poslusnost": 25, "loajalita": 20, "strach": 5, "duvera": 10},
+        "cena_energie": 14,
+        "cena_temnoty": 8,
+        "riziko": 0.03
+    },
 ]

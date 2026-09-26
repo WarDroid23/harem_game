@@ -37,6 +37,20 @@ SPECIALIZACE_POKOJU = {
         "bonus_vynosu": 1.4,
         "bonus_charakteru": ["knezka_temnoty", "carodejka", "fanaticka", "sukuba_hybrid"],
     },
+    "zrcadla": {
+        "nazev": "Zrcadlový palác rozkoše",
+        "popis": "Stěny i stropy pokryté křišťálovými zrcadly. Hosté sledují každý detail extáze ze všech úhlů.",
+        "cena": 350,
+        "bonus_vynosu": 1.6,
+        "bonus_charakteru": ["kurtizana", "draci_misenka", "temna_elfka", "nymfomanka"],
+    },
+    "astralni_komnata": {
+        "nazev": "Astrální komnata snů",
+        "popis": "Zářící mlžné zřídlo a iluze hvězdné oblohy. Poskytuje transcendentální sexuální zážitky.",
+        "cena": 320,
+        "bonus_vynosu": 1.45,
+        "bonus_charakteru": ["kralovska_knezka", "carodejka", "sukuba_hybrid", "princezna_ruin"],
+    },
 }
 
 @dataclass
