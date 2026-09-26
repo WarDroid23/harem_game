@@ -33,6 +33,7 @@ Hra obsahuje **explicitní erotický a temný obsah** — dominance, otroctví v
 git clone https://github.com/WarDroid23/harem_game.git
 cd harem_game
 python launcher.py
+python main.py
 ```
 
 ### Požadavky
@@ -70,6 +71,7 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `7` | **Domestikace** | Hloubkové zlomení vůle a psychologické podmínění |
 | `8` | **Mapa světa** | Cestování po 26 lokacích, NPC, questy |
 | `9` | **Kampaň** | Hlavní příběhová linie s kapitolami |
+| `10` | --TEST-- přidá jednu otrokyni
 | `11` | **Lov otrokyň** | Získání nových žen (trh, únos, duel) |
 | `12` | **Odpočinek / Nový den** | Regenerace energie + autosave |
 | `13` | **Obchod** | Nákup a prodej předmětů |
