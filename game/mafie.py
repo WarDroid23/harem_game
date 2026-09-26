@@ -1,7 +1,7 @@
 # game/mafie.py
 from models.mafie import Mafie, Uzemi
 from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
-from config import GOLD, CYAN, MAGENTA, GREEN, RED, NC
+from config import GOLD, CYAN, MAGENTA, GREEN, RED, YELLOW, WHITE, BOLD, DIM, NC
 
 DOSTUPNA_UZEMI = (
     ("Přístav", 100, 0, 5),
@@ -310,7 +310,7 @@ def spravovat_mafii(arg0, arg1=None):
                 input("Enter...")
             except EOFError:
                 return
-        elif volba in ("7", "5"):
+        elif volba == "7":
             valka_uzemi(hrac, mafie, hra)
             try:
                 input("Enter...")

@@ -97,6 +97,40 @@ def _fallback(otrok, typ: str) -> str:
     faze = getattr(otrok, "faze_zkazenosti", 0)
     is_star = bool(getattr(otrok, "oblibena", False))
     is_wife = bool(getattr(otrok, "je_manzelkou", False) or getattr(otrok, "partnerka", False))
+    char = getattr(otrok, "charakter", "")
+
+    # Speciální reakce pro unikátní archetypy
+    if random.random() < 0.45:
+        if char == "sukuba_hybrid":
+            if "trest" in typ:
+                return f"{j} se smyslně zachvěje, oči jí planou rudým žárem. „Tvůj hněv mě jen víc rozpaluje, pane… cítím tvou sílu.“"
+            elif "odměn" in typ or "oddan" in typ:
+                return f"{j} si olízne rty a obtočí se kolem tebe jako had. „Tvá rozkoš je má potrava… vezmi si mě celou.“"
+        elif char == "knezka_temnoty":
+            if "trest" in typ:
+                return f"{j} sepne ruce a s extází v hlase zašeptá: „Přijímám tvou vůli jako temný křest, můj bože.“"
+            elif "odměn" in typ or "oddan" in typ:
+                return f"{j} ti pokorně políbí prsty. „Tvá přízeň je svatější než všechny chrámy, které jsem kdy znesvětila.“"
+        elif char == "princezna_ruin":
+            if "trest" in typ and faze < 6:
+                return f"{j} hrdě pozvedne bradu, ač se jí chvějí rty: „Můžeš mi spoutat tělo, ale královskou krev ve mně neuhasíš.“"
+            elif "odměn" in typ or "oddan" in typ:
+                return f"{j} sklopí zrak a tiše vydechne: „Mé království shořelo na popel… ale v tvé náruči začínám nacházet nový trůn.“"
+        elif char == "zlodejka":
+            if "odměn" in typ or "oddan" in typ:
+                return f"{j} se lišácky usměje a mrkne na tebe: „Víš přesně, jak si mě získat, pane. A teď se podívej do své kapsy… dělám si legraci.“"
+            elif "trest" in typ:
+                return f"{j} uskočí s kočičí mrštností a zasyčí: „Auvajs! Jsi tvrdý šéf, ale příště ti nebudu stát v ráně.“"
+        elif char == "padla_paladinka":
+            if "trest" in typ:
+                return f"{j} zatne zuby, svaly na těle se jí napnou: „Můj řád mě učil snášet bolest. Neprosím o milost, pane.“"
+            elif "odměn" in typ or "oddan" in typ:
+                return f"{j} zrudne a sklopí zrak. „Můj štít dříve patřil světlu… nyní je tvůj, až do mého posledního dechu.“"
+        elif char == "alchymistka":
+            if "odměn" in typ or "oddan" in typ:
+                return f"{j} se vzrušeně pousměje: „Tvá dobrota ve mně vyvolává tak sladkou chemickou reakci… namíchám ti ten nejopojnější elixír!“"
+            elif "trest" in typ:
+                return f"{j} sleduje kapky svého potu se zájmem: „Fascinující stimulace nervových zakončení… příště zkus ještě silnější ránu, pane.“"
 
     if "trest" in typ or "vzdor" in typ:
         if faze >= 10:

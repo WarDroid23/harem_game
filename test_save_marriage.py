@@ -6,6 +6,7 @@ import tempfile
 from pathlib import Path
 from game.save_load import Hra, uloz_hru, nacti_slot
 from models.otrokyne import Otrokyně
+from utils.vypis import hlavicka
 
 def test_save_load_marriage():
     """Test uložení a načtení manželství."""

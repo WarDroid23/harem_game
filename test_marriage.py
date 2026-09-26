@@ -9,6 +9,7 @@ from game.manzelstvi import (
     je_mozne_zasnoubeni, je_mozne_svatba, je_mozne_potomstvo,
     zasnoubeni, svatba, mat_dite
 )
+from utils.vypis import hlavicka
 
 def test_marriage_system():
     """Test kompletního manželství systému."""

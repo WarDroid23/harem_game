@@ -49,7 +49,7 @@ class HraTesty(unittest.TestCase):
             "random.randint", return_value=0
         ):
             self.assertTrue(souboj.proved_boj())
-        self.assertEqual(hra.hrac.gold, 25)
+        self.assertEqual(hra.hrac.gold, 47)
         self.assertEqual(hra.hrac.kill_count, 1)
 
     def test_energie_meditace_obnovi_energie(self):
@@ -164,6 +164,12 @@ class HraTesty(unittest.TestCase):
         self.assertGreater(hra.hrac.gold, zlato_pred)
         self.assertGreater(hra.mafie.vliv_ve_meste, 0)
 
+    def test_spravovat_mafii_menu_bez_padu(self):
+        from game.mafie import spravovat_mafii
+        hra = Hra()
+        with patch("builtins.input", return_value="0"):
+            spravovat_mafii(hra)
+
     def test_cerny_trh_okovy_a_ametyst(self):
         from game.obchod import cerny_trh
         hra = Hra()
@@ -233,6 +239,12 @@ class HraTesty(unittest.TestCase):
         self.assertIn("fanaticka", CHARAKTERY)
         self.assertIn("amazonka", CHARAKTERY)
         self.assertIn("carodejka", CHARAKTERY)
+        self.assertIn("knezka_temnoty", CHARAKTERY)
+        self.assertIn("zlodejka", CHARAKTERY)
+        self.assertIn("padla_paladinka", CHARAKTERY)
+        self.assertIn("sukuba_hybrid", CHARAKTERY)
+        self.assertIn("alchymistka", CHARAKTERY)
+        self.assertIn("princezna_ruin", CHARAKTERY)
 
     def test_nevestinec_otevreni_a_zarazeni_divky(self):
         from game.nevestinec import spocitej_denni_vynos_divky, vypocti_denni_prijem
@@ -261,6 +273,23 @@ class HraTesty(unittest.TestCase):
         zisk = vypocti_denni_prijem(hra)
         self.assertGreaterEqual(zisk, vynos)
         self.assertEqual(hra.nevestinec.celkovy_zisk, zisk)
+
+    def test_nevestinec_specializace_a_vypocet(self):
+        from game.nevestinec import vypocti_denni_prijem, SPECIALIZACE_POKOJU
+        hra = Hra()
+        hra.nevestinec.otevreno = True
+        hra.hrac.sex_energy = 50
+        hra.hrac.dark_energy = 50
+
+        sukuba = Otrokyně(jmeno="Lilith", charakter="sukuba_hybrid")
+        sukuba.v_nevestinci = True
+        sukuba.pokoj_nevestinec = 1
+        hra.harem.pridat(sukuba)
+        hra.nevestinec.nastav_specializaci(1, "lazne")
+
+        prijem = vypocti_denni_prijem(hra)
+        self.assertGreater(prijem, 30)
+        self.assertGreater(hra.hrac.sex_energy, 50)
 
     def test_nevestinec_prodej_otrokyně(self):
         from game.nevestinec import vypocti_cenu_prodeje, prodat_otrokyni

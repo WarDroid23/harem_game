@@ -239,6 +239,92 @@ CHARAKTERY = {
         "reakce_na_odmenu": 1.2,
         "utek_sance": 0.09
     },
+    "knezka_temnoty": {
+        "nazev": "Kněžka temnoty",
+        "popis": "Odpadlá duchovní, která své modlitby vyměnila za hříšné rituály a temnou rozkoš.",
+        "modifikatory": {
+            "submisivita": 1.35,
+            "poslusnost": 1.25,
+            "loajalita": 1.4,
+            "touha": 1.25,
+            "strach": 0.5,
+            "bloodlust": 1.1
+        },
+        "reakce_na_trest": 1.25,
+        "reakce_na_odmenu": 1.2,
+        "utek_sance": 0.02
+    },
+    "zlodejka": {
+        "nazev": "Stínová zlodějka",
+        "popis": "Mrštná a drzá dívka z uliček podsvětí. Ráda provokuje a zkouší pánovy hranice.",
+        "modifikatory": {
+            "submisivita": 0.7,
+            "poslusnost": 0.65,
+            "duvera": 0.8,
+            "touha": 1.25,
+            "strach": 0.85
+        },
+        "reakce_na_trest": 0.75,
+        "reakce_na_odmenu": 1.3,
+        "utek_sance": 0.12
+    },
+    "padla_paladinka": {
+        "nazev": "Padlá paladinka",
+        "popis": "Bývalá svatá bojovnice. Hrdá, svalnatá a neoblomná, dokud její pevnou víru nezlomí temná vášeň.",
+        "modifikatory": {
+            "submisivita": 0.55,
+            "poslusnost": 0.5,
+            "tolerance_bolesti": 1.45,
+            "strach": 0.5,
+            "bloodlust": 1.35
+        },
+        "reakce_na_trest": 0.6,
+        "reakce_na_odmenu": 0.85,
+        "utek_sance": 0.16
+    },
+    "sukuba_hybrid": {
+        "nazev": "Sukuba (démonka)",
+        "popis": "Dívka s kapkou démonické krve. Její tělo plane neuhasitelným ohněm a svádění má v krvi.",
+        "modifikatory": {
+            "touha": 1.7,
+            "vlhkost": 1.6,
+            "submisivita": 1.05,
+            "poslusnost": 0.9,
+            "duvera": 1.05,
+            "strach": 0.4
+        },
+        "reakce_na_trest": 0.95,
+        "reakce_na_odmenu": 1.5,
+        "utek_sance": 0.03
+    },
+    "alchymistka": {
+        "nazev": "Travička / Alchymistka",
+        "popis": "Zvrácená učenka fascinovaná afrodiziaky, jedy a zakázanými lektvary tělesné rozkoše.",
+        "modifikatory": {
+            "submisivita": 0.85,
+            "poslusnost": 0.9,
+            "duvera": 0.95,
+            "mindbreak": 1.2,
+            "touha": 1.15
+        },
+        "reakce_na_trest": 0.85,
+        "reakce_na_odmenu": 1.25,
+        "utek_sance": 0.07
+    },
+    "princezna_ruin": {
+        "nazev": "Exilová princezna",
+        "popis": "Urozená dcera padlé dynastie. Zvyklá poroučet celým armádám, nyní ponížena do role otrokyně.",
+        "modifikatory": {
+            "submisivita": 0.45,
+            "poslusnost": 0.4,
+            "duvera": 0.6,
+            "strach": 0.9,
+            "humiliation": 1.55
+        },
+        "reakce_na_trest": 0.65,
+        "reakce_na_odmenu": 1.35,
+        "utek_sance": 0.15
+    },
 }
 
 
