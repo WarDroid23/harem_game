@@ -32,7 +32,9 @@ class Mafie:
     vliv_ve_meste: int = 0
 
     def vypocet_prijmu(self):
-        self.prijem_celkem = sum(u.prijem * u.kontrola // 100 for u in self.uzemi if u.obsazeno)
+        zaklad = sum(u.prijem * u.kontrola // 100 for u in self.uzemi if u.obsazeno)
+        bonus = self.vojaci // 5 + self.kapitanove * 3 + self.vliv_ve_meste // 20 + self.informatori // 2
+        self.prijem_celkem = zaklad + bonus
         return self.prijem_celkem
 
     def bojova_sila(self):

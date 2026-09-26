@@ -343,10 +343,13 @@ class Souboj:
                 break
 
         if self.hrac.hp > 0:
-            self.hrac.gold += nepritel.odmena_zlato
+            bonus_souboje = 20 + max(0, min(60, nepritel.odmena_xp // 4))
+            self.hrac.gold += nepritel.odmena_zlato + bonus_souboje
             self.hrac.pridej_xp(nepritel.odmena_xp)
             self.hrac.kill_count += 1
-            tisk_ok(f"Zvítězil jsi! Odměna: {nepritel.odmena_zlato} zlaťáků, +{nepritel.odmena_xp} XP.")
+            self.hrac.bonus_za_souboje += bonus_souboje
+            self.hrac.streak_uspesnych_dnu = getattr(self.hrac, "streak_uspesnych_dnu", 0) + 1
+            tisk_ok(f"Zvítězil jsi! Odměna: {nepritel.odmena_zlato} zlaťáků + {bonus_souboje} vítězný bonus, +{nepritel.odmena_xp} XP.")
             if nepritel.boss and self.hra is not None:
                 if hasattr(self.hra, "achievementy"):
                     self.hra.achievementy.zaznamenej("boss")

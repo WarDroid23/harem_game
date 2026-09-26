@@ -39,6 +39,14 @@ from data.charaktery import nazev_charakteru
 from data.degradace import nazev_faze
 from models.otrokyne import Otrokyně
 
+import logging
+import os
+import traceback
+from datetime import datetime
+
+# Current active game (used for crash-save)
+_CURRENT_GAME = None
+
 
 def _vykresli_sloty(hlavni_soubor=None):
     for slot in seznam_slotu(hlavni_soubor) if hlavni_soubor else seznam_slotu():
@@ -217,12 +225,41 @@ def menu_meta_hlavni(hra):
             input("Enter...")
 
 
+def _pockej_na_enter():
+    try:
+        input("Enter...")
+    except EOFError:
+        pass
+
+
+def _obnov_hru_runtime(hra: Hra):
+    global _CURRENT_GAME
+    _CURRENT_GAME = hra
+    return {
+        "diplo": Diplomacie(hra.frakce),
+        "vyzkum": hra.vyzkum,
+        "subky": SubkyDomestikace(),
+        "souboj": Souboj(hra.hrac, hra.mafie, hra),
+        "crafting": CraftingSystem(),
+    }
+
+
+def _bezpecne_volba(nazev, akce, *args, **kwargs):
+    try:
+        return akce(*args, **kwargs)
+    except Exception as exc:
+        tisk_chyba(f"{nazev} selhalo: {exc}")
+        _pockej_na_enter()
+        return None
+
+
 def hlavni_menu(hra: Hra):
-    diplo = Diplomacie(hra.frakce)
-    vyzkum = hra.vyzkum
-    subky = SubkyDomestikace()
-    souboj = Souboj(hra.hrac, hra.mafie, hra)
-    crafting = CraftingSystem()
+    runtime = _obnov_hru_runtime(hra)
+    diplo = runtime["diplo"]
+    vyzkum = runtime["vyzkum"]
+    subky = runtime["subky"]
+    souboj = runtime["souboj"]
+    crafting = runtime["crafting"]
 
     while True:
         clear()
@@ -279,6 +316,10 @@ def hlavni_menu(hra: Hra):
         print(f"{CYAN}{BOLD}╚════════════════════════════════════════╝{NC}   {YELLOW}{BOLD}╚════════════════════════════════════════╝{NC}")
         print(f"{DIM}──────────────────────────────────────────────────────────────────────────────────{NC}")
         print(f"  {YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   │   {RED}0) 🚪 Konec hry{NC}")
+        if getattr(hra.hrac, "bonus_za_questy", 0):
+            print(f"  {GREEN}✨ Quest bonus: +{hra.hrac.bonus_za_questy} zl. k dispozici{NC}")
+        if getattr(hra.hrac, "bonus_za_souboje", 0):
+            print(f"  {RED}⚔️ Souboj bonus: +{hra.hrac.bonus_za_souboje} zl. k dispozici{NC}")
         try:
             volba = input("> ").strip().lower()
         except EOFError:
@@ -289,10 +330,7 @@ def hlavni_menu(hra: Hra):
 
         if volba == "auto":
             obsluz_automaticky_tah(hra)
-            try:
-                input("Enter...")
-            except EOFError:
-                pass
+            _pockej_na_enter()
         elif volba == "1":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
@@ -324,10 +362,10 @@ def hlavni_menu(hra: Hra):
                         tisk_chyba("Špatná volba.")
                 except ValueError:
                     tisk_chyba("Zadej číslo.")
-                input("Enter...")
+                _pockej_na_enter()
             else:
                 tisk_chyba("Nemáš žádné otrokyně.")
-                input("Enter...")
+                _pockej_na_enter()
         elif volba == "2":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
@@ -346,46 +384,25 @@ def hlavni_menu(hra: Hra):
                         tisk_chyba("Zadej číslo.")
                 else:
                     tisk_chyba("Všechny otrokyně jsou na najmu.")
-                input("Enter...")
+                _pockej_na_enter()
             else:
                 tisk_chyba("Nemáš otrokyně.")
-                input("Enter...")
+                _pockej_na_enter()
         elif volba == "3":
-            try:
-                spravovat_mafii(hra)
-            except Exception as e:
-                tisk_chyba(f"Mafie selhala: {e}")
-                try:
-                    input("Enter...")
-                except EOFError:
-                    pass
+            _bezpecne_volba("Mafie", spravovat_mafii, hra)
         elif volba == "4":
             zobraz_vyvoj(hra.hrac)
         elif volba == "5":
-            try:
-                diplo.menu(hra)
-            except Exception as e:
-                tisk_chyba(f"Diplomacie selhala: {e}")
-                try:
-                    input("Enter...")
-                except EOFError:
-                    pass
+            _bezpecne_volba("Diplomacie", diplo.menu, hra)
         elif volba == "6":
-            try:
-                vyzkum.menu(hra)
-            except Exception as e:
-                tisk_chyba(f"Výzkum selhal: {e}")
-                try:
-                    input("Enter...")
-                except EOFError:
-                    pass
+            _bezpecne_volba("Výzkum", vyzkum.menu, hra)
         elif volba == "7":
             aktivni = hra.harem.vsechny_aktivni()
             if aktivni:
                 subky.menu(hra, aktivni)
             else:
                 tisk_chyba("Nemáš otrokyně pro domestikaci.")
-                input("Enter...")
+                _pockej_na_enter()
         elif volba == "8":
             hra.svet.menu(hra)
         elif volba == "9":
@@ -395,12 +412,12 @@ def hlavni_menu(hra: Hra):
             otrok = Otrokyně(jmeno=jmeno)
             hra.harem.pridat(otrok)
             tisk_ok(f"Přidána testovací otrokyně: {jmeno}")
-            input("Enter...")
+            _pockej_na_enter()
         elif volba == "11":
             otrok = lov_otrokyn(hra)
             if otrok:
                 hra.harem.pridat(otrok)
-            input("Enter...")
+            _pockej_na_enter()
         elif volba == "12":
             odpocinek(hra)
             try:
@@ -410,36 +427,21 @@ def hlavni_menu(hra: Hra):
         elif volba == "13":
             obchod(hra)
         elif volba == "14":
-            try:
-                hra.questy.menu(hra)
-            except Exception as e:
-                tisk_chyba(f"Questy selhaly: {e}")
-                try:
-                    input("Enter...")
-                except EOFError:
-                    pass
+            _bezpecne_volba("Questy", hra.questy.menu, hra)
         elif volba == "15":
             drazba_otrokyn(hra.hrac, hra.harem)
-            input("Enter...")
+            _pockej_na_enter()
         elif volba == "16":
             spravovat_budovy(hra.hrac, hra.harem)
         elif volba == "17":
             zobraz_statistiky(hra)
-            input("Enter...")
+            _pockej_na_enter()
         elif volba == "18":
             souboj.menu()
         elif volba == "19":
             hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
         elif volba == "21":
-            try:
-                from game.nevestinec import menu_nevestinec
-                menu_nevestinec(hra)
-            except Exception as e:
-                tisk_chyba(f"Nevěstinec selhal: {e}")
-                try:
-                    input("Enter...")
-                except EOFError:
-                    pass
+            _bezpecne_volba("Nevěstinec", lambda: __import__("game.nevestinec", fromlist=["menu_nevestinec"]).menu_nevestinec(hra))
         elif volba == "23":
             menu_haremu(hra)
         elif volba == "24":
@@ -457,11 +459,12 @@ def hlavni_menu(hra: Hra):
                 return
             if vysledek is not None:
                 hra = vysledek
-                diplo = Diplomacie(hra.frakce)
-                vyzkum = hra.vyzkum
-                subky = SubkyDomestikace()
-                souboj = Souboj(hra.hrac, hra.mafie, hra)
-                crafting = CraftingSystem()
+                runtime = _obnov_hru_runtime(hra)
+                diplo = runtime["diplo"]
+                vyzkum = runtime["vyzkum"]
+                subky = runtime["subky"]
+                souboj = runtime["souboj"]
+                crafting = runtime["crafting"]
         elif volba == "0":
             uloz_hru(hra)
             print("Hra uložena. Konec hry.")
@@ -489,13 +492,10 @@ def hlavni_menu(hra: Hra):
             oblib = next((o for o in hra.harem.vsechny_aktivni() if getattr(o, "oblibena", False)), None)
             if oblib:
                 print(f"★ Oblíbenkyně: {oblib.jmeno}")
-            input("Enter...")
+            _pockej_na_enter()
         else:
             tisk_chyba("Neplatná volba.")
-            try:
-                input("Enter...")
-            except EOFError:
-                pass
+            _pockej_na_enter()
 
 
 def nova_hra(nastaveni=None):
@@ -507,10 +507,13 @@ def nova_hra(nastaveni=None):
         jmeno = random.choice(JMENA)
         otrok = Otrokyně(jmeno, vek=random.randint(18, 28))
         hra.harem.pridat(otrok)
+    global _CURRENT_GAME
+    _CURRENT_GAME = hra
     return hra
 
 
 def start():
+    global _CURRENT_GAME
     while True:
         clear()
         ascii_art()
@@ -530,10 +533,12 @@ def start():
             except Exception:
                 pass
             hra = nova_hra()
+            _CURRENT_GAME = hra
             hlavni_menu(hra)
         elif volba == "2":
             hra = menu_nacteni()
             if hra:
+                _CURRENT_GAME = hra
                 hlavni_menu(hra)
         elif volba == "3":
             h = Hra()
@@ -546,4 +551,22 @@ def start():
 
 
 if __name__ == "__main__":
-    start()
+    try:
+        start()
+    except Exception as e:
+        # Ensure logs directory exists next to this file
+        logdir = os.path.join(os.path.dirname(__file__), "logs")
+        os.makedirs(logdir, exist_ok=True)
+        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        logpath = os.path.join(logdir, f"crash_{ts}.log")
+        with open(logpath, "w", encoding="utf-8") as fh:
+            fh.write("Unhandled exception:\n")
+            traceback.print_exc(file=fh)
+        try:
+            if _CURRENT_GAME and not getattr(_CURRENT_GAME.nastaveni, "ironman", False):
+                uloz_hru(_CURRENT_GAME)
+                print(f"Nečekaný pád: hra byla uložena. Log: {logpath}")
+        except Exception:
+            pass
+        print(f"Nečekaná chyba: {e}. Trace uložen do {logpath}.")
+        raise

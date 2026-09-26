@@ -201,7 +201,11 @@ class QuestSystem:
 
         if uspech:
             hrac.gold += quest["odmena_zlato"]
+            bonus_questu = 25 + quest["narocnost"] * 12
             hrac.pridej_xp(20 + quest["narocnost"] * 10)
+            hrac.bonus_za_questy += bonus_questu
+            hrac.gold += bonus_questu
+            hrac.streak_uspesnych_dnu = getattr(hrac, "streak_uspesnych_dnu", 0) + 1
             if quest["typ"] == "lov":
                 from models.otrokyne import Otrokyně
                 from data.jmena import JMENA
@@ -221,7 +225,7 @@ class QuestSystem:
                 hrac.dark_energy = min(100, hrac.dark_energy + max(0, int(energie.get("temna", 0))))
             if quest.get("npc_id") and hra is not None and hasattr(hra, "svet"):
                 hra.svet.zmen_vztah(quest["npc_id"], 8)
-            tisk_ok(f"Quest '{quest['nazev']}' dokončen! Odměna: {quest['odmena_zlato']} zlaťáků, +20 XP.")
+            tisk_ok(f"Quest '{quest['nazev']}' dokončen! Odměna: {quest['odmena_zlato']} zlaťáků + {bonus_questu} bonusu za výkon, +20 XP.")
         else:
             pokuta = int(quest["odmena_zlato"] * 0.5)
             hrac.gold = max(0, hrac.gold - pokuta)

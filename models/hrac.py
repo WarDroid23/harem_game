@@ -48,6 +48,10 @@ class Hrac:
     zpravodajska_uroven: int = 1
     aukcni_bonus: int = 0
     dobiti_dnes: dict = field(default_factory=dict)
+    streak_uspesnych_dnu: int = 0
+    bonus_za_questy: int = 0
+    bonus_za_souboje: int = 0
+    bonus_denni_streak: int = 0
     inventar: Inventory = field(default_factory=Inventory)
 
     def bojovy_bonus_vybavy(self):

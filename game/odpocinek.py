@@ -78,6 +78,18 @@ def _bonus_energie_ze_vztahu(hra):
     return zpravy
 
 
+def _bonus_za_streak(hra):
+    hrac = hra.hrac
+    streak = max(0, int(getattr(hrac, "streak_uspesnych_dnu", 0)))
+    if streak <= 0:
+        return 0, []
+    bonus = min(60, 10 + streak * 5)
+    hrac.gold += bonus
+    hrac.bonus_denni_streak += bonus
+    hrac.streak_uspesnych_dnu = 0
+    return bonus, [f"🔥 Úspěšný denní streak: +{bonus} zlata za {streak} dokončených akcí v řadě."]
+
+
 def odpocinek(hra, rezim=None):
     hrac = hra.hrac
     clear()
@@ -97,6 +109,9 @@ def odpocinek(hra, rezim=None):
         hra.kalendar.dalsi_den(hrac.den - 1)
     vztahove = _bonus_energie_ze_vztahu(hra)
     for z in vztahove:
+        tisk_ok(z)
+    streak_bonus, streak_zpravy = _bonus_za_streak(hra)
+    for z in streak_zpravy:
         tisk_ok(z)
     hrac.dopln_energie_naplno()
     if rezim == "meditace":
@@ -140,7 +155,9 @@ def odpocinek(hra, rezim=None):
         f"Energie naplněna: {hrac.sex_energy}/{hrac.max_sex()} (sex) | "
         f"{hrac.dark_energy}/{hrac.max_temno()} (temno)."
     )
-    tisk_ok(f"Pasivní příjem: {prijem_harem + prijem_mafie + prijem_nevestinec + bonus_marriage_gold} zlaťáků.")
+    if streak_bonus:
+        tisk_ok(f"Streak bonus: +{streak_bonus} zlaťáků.")
+    tisk_ok(f"Pasivní příjem: {prijem_harem + prijem_mafie + prijem_nevestinec + bonus_marriage_gold + streak_bonus} zlaťáků.")
     if dokoncene_najmy:
         tisk_ok("Nájem skončil: " + ", ".join(dokoncene_najmy) + ".")
     if hra.questy.aktivni_quest:

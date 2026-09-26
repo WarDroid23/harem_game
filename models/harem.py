@@ -37,7 +37,15 @@ class Harem:
         return [o for o in self.otrokyne if o.hp > 0]
 
     def pasivni_prijem(self):
-        return 10 * self.harem_level + sum(b.uroven * 3 for b in self.budovy.values())
+        zaklad = 10 * self.harem_level + sum(b.uroven * 3 for b in self.budovy.values())
+        aktivni = self.vsechny_aktivni()
+        if not aktivni:
+            return zaklad
+        oblibena = sum(1 for o in aktivni if getattr(o, "oblibena", False))
+        partnerky = sum(1 for o in aktivni if getattr(o, "partnerka", False))
+        loajalita_avg = sum(getattr(o, "loajalita", 0) for o in aktivni) / len(aktivni)
+        bonus = oblibena * 8 + partnerky * 6 + int(loajalita_avg / 10)
+        return zaklad + bonus
 
     def to_dict(self):
         return {
