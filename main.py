@@ -432,7 +432,7 @@ def hlavni_menu(hra: Hra):
             drazba_otrokyn(hra.hrac, hra.harem)
             _pockej_na_enter()
         elif volba == "16":
-            spravovat_budovy(hra.hrac, hra.harem)
+            spravovat_budovy(hra)
         elif volba == "17":
             zobraz_statistiky(hra)
             _pockej_na_enter()

@@ -132,6 +132,15 @@ def odpocinek(hra, rezim=None):
     hrac.gold += prijem_harem + prijem_mafie + prijem_nevestinec
     if prijem_nevestinec > 0:
         tisk_ok(f"🏛️ Nevěstinec: denní tržba +{prijem_nevestinec} 🪙")
+    if hasattr(hra, "pevnost") and hra.pevnost is not None:
+        try:
+            vynos_pevnost = hra.pevnost.denni_produkce(hra)
+            if vynos_pevnost and (vynos_pevnost.get("dane", 0) > 0 or vynos_pevnost.get("drevo", 0) > 0):
+                tisk_ok(f"🏰 Dominium (hospodářství): +{vynos_pevnost['dane']} 🪙, +{vynos_pevnost['drevo']} 🪵, +{vynos_pevnost['kamen']} 🪨, +{vynos_pevnost['zelezo']} ⚒️")
+            for zp in vynos_pevnost.get("zpravy", []):
+                tisk_info(f"🏰 {zp}")
+        except Exception:
+            pass
     bonus_marriage_gold = 0
     vdane_choti = [m for m in hra.marriage_system.values() if m.je_vdana()]
     hlavni_manzelka = next((m for m in vdane_choti if getattr(m, "role_manzelky", "") == "hlavni"), None)

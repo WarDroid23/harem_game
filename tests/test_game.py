@@ -379,6 +379,68 @@ class HraTesty(unittest.TestCase):
         self.assertIn("stinovy_mistr_kage", NPC)
         self.assertIn("knezka_valeria", NPC)
 
+    def test_budovatelska_strategie_produkce_a_pracovnice(self):
+        from models.fortress import FortressDevelopment
+        hra = Hra()
+        pevnost = hra.pevnost
+        pevnost.drevo = 100
+        pevnost.kamen = 100
+        pevnost.zelezo = 50
+        pevnost.zasoby = 50
+        pevnost.budovy["pila"] = 2
+        pevnost.budovy["kamenolom"] = 1
+        pevnost.budovy["statek"] = 2
+
+        # Přiřazení dohlížitelky
+        otrok = Otrokyně(jmeno="Valeria", charakter="Amazonka (bojovnice)")
+        hra.harem.pridat(otrok)
+        pevnost.pracovnici["pila"] = "Valeria"
+
+        # Denní produkce
+        puvodni_drevo = pevnost.drevo
+        vysledky = pevnost.denni_produkce(hra)
+
+        self.assertGreater(pevnost.drevo, puvodni_drevo)
+        self.assertIn("drevo", vysledky)
+        self.assertIn("dane", vysledky)
+
+    def test_budovatelska_strategie_stavba_a_obrana(self):
+        from models.fortress import FortressDevelopment
+        pevnost = FortressDevelopment()
+        pevnost.drevo = 500
+        pevnost.kamen = 500
+        pevnost.zelezo = 200
+
+        # Kontrola možnosti stavby a vylepšení
+        lze, _ = pevnost.muze_postavit("hradby", zlato_hrace=500)
+        self.assertTrue(lze)
+
+        uspelo, _ = pevnost.vylepsi_budovu("hradby", zlato_hrace=500)
+        self.assertTrue(uspelo)
+        self.assertEqual(pevnost.budovy.get("hradby"), 1)
+
+        obrana = pevnost.celkova_obrana_pevnosti()
+        self.assertGreater(obrana, 0)
+
+    def test_souboj_s_bojovou_partnerkou(self):
+        from game.souboje import Souboj, Nepritel
+        hra = Hra()
+        partnerka = Otrokyně(jmeno="Aria", charakter="Amazonka (bojovnice)", poslusnost=90, hp=100, max_hp=100)
+        hra.harem.pridat(partnerka)
+        hra.pevnost.bojova_partnerka = "Aria"
+
+        nepritel = Nepritel("Tréninkový golem", 1, 1, 0, 10, 5)
+        souboj = Souboj(hra.hrac, nepritel, hra=hra)
+
+        # Ověření načtení bojové partnerky
+        self.assertIsNotNone(souboj.partnerka)
+        self.assertEqual(souboj.partnerka.jmeno, "Aria")
+
+        # Provedení tahu s útokem
+        with patch("builtins.input", side_effect=["1", ""]):
+            vysledek = souboj.proved_boj()
+        self.assertTrue(vysledek)
+
 
 if __name__ == "__main__":
     unittest.main()

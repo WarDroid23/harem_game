@@ -4,9 +4,11 @@
 
 | Volba | Co dělá |
 |-------|--------|
+| **16 Správa budov** | **Budovatelská strategie dominia**: suroviny (dřevo, kámen, železo, zásoby, krystaly), sektory staveb, dohlížitelky, daňová politika, tržnice a karavany |
+| **8 / 24 Souboje & Aréna**| **Taktický soubojový systém**: bojové partnerky z harému s unikátními skilly, gladiátorský žebříček (Arena Ladder), temný vampirismus, obranné bonusy z pevnosti |
 | **21 Nevěstinec** | **Komplexní impérium rozkoše**: specializace pokojů, VIP mecenáši, špionáž & kompro, Noc neřesti, wellness & výcvik kurtizán |
 | **3 Mafie** | Správa podsvětí, najímání vojáků, kapitánů a informátorů, války syndikátů |
-| **12 Odpočinek** | Plná energie + **noční eventy** (žárlivost ★/manželka, zrádkyně, razie) + tržby z nevěstince & mafie + kronika |
+| **12 Odpočinek** | Plná energie + denní sklizeň surovin & daní pevnosti + noční eventy + tržby |
 | **29 Kronika** | Záznam významných historických událostí dominia |
 | **30 Denní rozkazy** | Tvrdý / Laskavý / Výstavní režim harému |
 | **31 Veřejný výkon** | Otrokyně na očích města — reputace vs inkvizice |
@@ -38,6 +40,76 @@
 5. **Wellness & Kurtizánský výcvik**:
    - Koupel v kozím mléce a vonných olejích (plné HP, růst touhy a loajality).
    - Lekce svádění a etikety kurtizán (růst poslušnosti, submisivity a tržeb).
+
+---
+
+## 🏰 Budovatelská strategie dominia (Volba 16)
+
+1. **Surovinové hospodářství**:
+   - **🪙 Zlato**: Měna pro výstavbu, žoldáky a trh.
+   - **🪵 Dřevo**: Těžba na pile (`pila`). Základní stavební materiál pro hradby a dílny.
+   - **🪨 Kámen**: Těžba v kamenolomu (`kamenolom`). Nutný pro citadely, strážní věže a pevná opevnění.
+   - **⚒️ Železo**: Těžba v hlubinném dole (`dul`). Nezbytné pro kovárnu, zbroj a pokročilou válečnou mašinérii.
+   - **🌾 Zásoby jídla**: Sklizeň na panském statku (`statek`). Každá dívka v dominia denně spotřebuje 1 jednotku zásob. Hladovění vede k poklesu nálady a poslušnosti.
+   - **🔮 Temné krystaly**: Rituály v Oltáři stínů (`oltar_stinu`). Umožňují magický výzkum a temné útoky.
+
+2. **Sektory a rozvojové budovy**:
+   - **Hospodářství & Těžba**: Pila, Kamenolom, Železný důl, Panský statek.
+   - **Vojenství & Obrana**: Kamenné hradby, Strážní a balistické věže, Kasárna gardy, Zbrojířská kovárna.
+   - **Výroba & Řemesla**: Řemeslná dílna, Klenotnický ateliér.
+   - **Mystika & Výzkum**: Oltář stínů, Okultní archiv a knihovna.
+   - **Harém & Regenerace**: Zahrada rozkoše, Parní lázně dominia.
+   - **Úroveň Citadely panství**: Odemyká vyšší stupně všech budov v dominiu.
+
+3. **Dohlížitelky (Worker Placement)**:
+   - Možnost dosadit konkrétní otrokyni z harému do vybrané budovy jako vrchní dohlížitelku.
+   - **Synergie archetypů**:
+     - *Amazonka* v kasárnách či kamenolomu (+40% výkon).
+     - *Kněžka temnoty* u oltáře stínů (+50% produkce krystalů a temné energie).
+     - *Alchymistka* v řemeslné dílně.
+     - *Kurtizána / Princezna* v zahradě či lázních (zvyšuje spokojenost a důvěru).
+
+4. **Hospodářská & Daňová politika**:
+   - **Laskavá**: Nízké daně, +poslušnost a loajalita poddaných, nulové riziko nepokojů.
+   - **Vyvážená**: Standardní výběr daní dle úrovně citadely panství.
+   - **Krutá**: Maximální daňový výnos, riziko vzpour a pokles nálady v dominiu.
+
+5. **Tržnice surovin & Obchodní karavany**:
+   - **Tržnice**: Dynamický nákup a prodej surovin za tržní ceny.
+   - **Karavany**: Vypravování obchodních výprav (Říční cech, Obyvatelé pouště, Císařský konvoj) s rizikem přepadení, prověřující obrannou sílu dominia.
+
+6. **Zkouška obrany & Odolávání nájezdům**:
+   - Simulace nočních a nepřátelských nájezdů (Loupeživí nájezdníci, Skřetí horda, Odpadlická armáda).
+   - Obranné body (hradby + věže + posádka kasáren) rozhodují o odražení útoku a zisku válečné kořisti vs prolomení sýpek.
+
+---
+
+## ⚔️ Taktický soubojový systém & Aréna (Volba 8 / 24)
+
+1. **Bojové partnerky z harému**:
+   - V menu soubojů či arény lze zvolit aktivní bojovou společnici z harému.
+   - **Aktivní dovednosti společnice v boji**:
+     - *Amazonka*: Krvavý útok (+12–25 DMG) + pasivní krytí ran.
+     - *Padlá paladinka*: Svaté / temné léčení (+30 HP) + absorpce 20% utrženého zranění.
+     - *Sukuba*: Ochromující touha (nepřítel má vysokou šanci ztratit tah).
+     - *Stínová zlodějka*: Kouřová clona (nepřítel mine tah) + krádež zlata.
+     - *Kněžka temnoty*: Temný rituál (masivní poškození + zisk temné energie).
+     - *Alchymistka*: Žíravá kyselina (trvalé popálení nepřítele každé kolo).
+     - *Čarodějka*: Kletba zkázy (-30% k útoku a obraně soupeře).
+   - Každý vítězný souboj posiluje bojové pouto se společnicí (+loajalita, +důvěra).
+
+2. **Gladiátorský žebříček (Arena Ladder)**:
+   - Čtyřstupňový postup turnajem Černé arény:
+     - *1. Železná liga*: Gladiátor Bronzový býk
+     - *2. Krvavá liga*: Šampionka krvavé arény Větrná břitva
+     - *3. Mistrovská liga*: Pán stínových čepelí
+     - *4. Šampionát bohů arény*: Kolosální arénový golem
+   - Zisk titulů, unikátních trofejí a masivních odměn ve zlatě a zkušenostech.
+
+3. **Bojové taktiky a propojení s pevností**:
+   - **Temný vampirismus**: Vysátí životní síly z protivníka (zranění nepřítele + obnova HP hráče za temnou energii).
+   - **Obranný postoj**: Využívá obranné bonusy z pevnostních hradeb a balistických věží.
+   - **Válečné bonusy**: Útočné zbraně z kovárny a vycvičená posádka z kasáren zvyšují hráčův základní útok i obranu.
 
 ---
 

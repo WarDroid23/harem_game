@@ -1,7 +1,7 @@
 {
   "verze": "22.1-dark",
   "meta": {
-    "ulozene": "2026-09-18 19:40:09",
+    "ulozene": "2026-09-26 19:26:20",
     "format": "json",
     "den": 1,
     "zlato": 500,
@@ -48,6 +48,10 @@
     "zpravodajska_uroven": 1,
     "aukcni_bonus": 0,
     "dobiti_dnes": {},
+    "streak_uspesnych_dnu": 0,
+    "bonus_za_questy": 0,
+    "bonus_za_souboje": 0,
+    "bonus_denni_streak": 0,
     "inventar": {
       "predmety": [],
       "zbrane": [],
@@ -58,7 +62,7 @@
   "harem": {
     "otrokyne": [
       {
-        "jmeno": "Eliška",
+        "jmeno": "Nadia",
         "srdce": 70,
         "poslusnost": 30,
         "vlhkost": 50,
@@ -91,13 +95,13 @@
         "dny_na_najmu": 0,
         "najem_zbyva_dni": 0,
         "najem_prijem_celkem": 0,
-        "charakter": "subka",
+        "charakter": "odvazna",
         "zavislost": 0,
         "typ_zavislosti": null,
         "abstinenco_priznaky": false,
         "predavkovani": false,
         "faze_zkazenosti": 0,
-        "vek": 25,
+        "vek": 27,
         "role": "členka harému",
         "osud_id": "ztraceny_zapisnik",
         "osud_krok": 0,
@@ -121,7 +125,7 @@
         "oblibena_od_den": 0
       },
       {
-        "jmeno": "Kali",
+        "jmeno": "Akari",
         "srdce": 70,
         "poslusnost": 30,
         "vlhkost": 50,
@@ -154,7 +158,7 @@
         "dny_na_najmu": 0,
         "najem_zbyva_dni": 0,
         "najem_prijem_celkem": 0,
-        "charakter": "hysterialni",
+        "charakter": "amazonka",
         "zavislost": 0,
         "typ_zavislosti": null,
         "abstinenco_priznaky": false,
@@ -162,7 +166,7 @@
         "faze_zkazenosti": 0,
         "vek": 19,
         "role": "členka harému",
-        "osud_id": "dilna_a_dedictvi",
+        "osud_id": "hlas_odboje",
         "osud_krok": 0,
         "osud_volby": [],
         "osud_dokonceno": false,
@@ -284,19 +288,19 @@
   "alchymie": {
     "suroviny": {},
     "recepty_objevene": [
-      "modry_lotos",
-      "lektvar_dominance",
+      "ohnivy_prasek",
       "zlaty_nektar",
-      "stinovy_extrakt",
-      "krvava_sul",
-      "lektvar_temne_energie",
+      "serafinsky_prach",
+      "temny_elixir",
       "lektvar_zdravi",
       "lektvar_poslusnosti",
-      "serafinsky_prach",
       "lektvar_energie",
+      "stinovy_extrakt",
       "lektvar_rovnovahy",
-      "temny_elixir",
-      "ohnivy_prasek"
+      "modry_lotos",
+      "krvava_sul",
+      "lektvar_dominance",
+      "lektvar_temne_energie"
     ]
   },
   "svet": {
