@@ -3,7 +3,17 @@ from utils.vypis import hlavicka, clear, terminalni_obrazek, tisk_chyba, tisk_in
 
 
 def vyber_osud(otrok):
-    """Vybere stabilní výchozí osud; prázdný osud mají jen staré sejvy."""
+    """Vybere stabilní výchozí osud; speciální dívky mají své unikátní příběhové questy."""
+    jmeno_l = getattr(otrok, "jmeno", "").strip().lower()
+    if "elena" in jmeno_l and "pomsta_elena" in OSUDY:
+        return "pomsta_elena"
+    if "scarlett" in jmeno_l and "sestra_scarlett" in OSUDY:
+        return "sestra_scarlett"
+    if "lyra" in jmeno_l and "stribrny_prsten_lyra" in OSUDY:
+        return "stribrny_prsten_lyra"
+    if "vespera" in jmeno_l and "grimoar_vespera" in OSUDY:
+        return "grimoar_vespera"
+
     index = (sum(ord(znak) for znak in otrok.jmeno) + otrok.vek) % len(OSUDY_PORADI)
     return OSUDY_PORADI[index]
 

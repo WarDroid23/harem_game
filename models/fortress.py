@@ -122,6 +122,24 @@ PEVNOSTNI_BUDOVY = {
         "cena_zelezo": 5,
         "popis": "Mramorové lázně pro regeneraci a potěšení harému. Léčí +5 HP a +3 loajalitu dívkám denně.",
     },
+    "bylinkovy_sklenik": {
+        "nazev": "Bylinkový skleník & Sušárna",
+        "kategorie": "mystika",
+        "cena_zlato": 210,
+        "cena_drevo": 60,
+        "cena_kamen": 30,
+        "cena_zelezo": 5,
+        "popis": "Pěstuje alchymistické byliny a houby. Denně dodává zásoby pro alchymii a výrobu drog.",
+    },
+    "alchymisticka_laborator": {
+        "nazev": "Alchymistická laboratoř & Syntéza",
+        "kategorie": "vyroba",
+        "cena_zlato": 270,
+        "cena_drevo": 40,
+        "cena_kamen": 50,
+        "cena_zelezo": 20,
+        "popis": "Automatizuje syntézu lektvarů a drog. Přináší denní zisk +45 🪙 a +3 temnou energii za úroveň.",
+    },
 }
 
 
@@ -140,6 +158,7 @@ class FortressDevelopment:
     karavany_aktivni: list = field(default_factory=list)
     arena_rank: int = 0                            # 0: Rekrut, 1: Rváč, 2: Gladiátor, 3: Šampion, 4: Bůh arény
     bojova_partnerka: str = ""                     # jméno zvolené otrokyně do soubojů
+    personal: dict = field(default_factory=dict)   # personál dominia: spravce, vyhazovac, alchymista
 
     def cena_vylepseni(self, budova=None):
         if budova is None:
@@ -228,6 +247,35 @@ class FortressDevelopment:
         jidlo_zisk = self.budovy.get("statek", 0) * 30
         temno_zisk = self.budovy.get("oltar_stinu", 0) * 4
         krystaly_zisk = self.budovy.get("oltar_stinu", 0) * 2
+
+        # Produkce ze skleníku a alchymistické laboratoře
+        sklenik_lvl = self.budovy.get("bylinkovy_sklenik", 0)
+        if sklenik_lvl > 0 and hasattr(hra, "alchymie"):
+            hra.alchymie.pridat_surovinu("bylina_mesicni", sklenik_lvl * 2)
+            hra.alchymie.pridat_surovinu("vzacna_houba", sklenik_lvl * 1)
+            zpravy.append(f"🌿 Skleník sklidil {sklenik_lvl * 2}x Měsíční bylina a {sklenik_lvl}x Vzácná houba pro alchymii!")
+
+        lab_lvl = self.budovy.get("alchymisticka_laborator", 0)
+        if lab_lvl > 0:
+            hra.hrac.gold += lab_lvl * 45
+            temno_zisk += lab_lvl * 3
+            zpravy.append(f"🧪 Alchymistická laboratoř vygenerovala +{lab_lvl * 45} 🪙 a +{lab_lvl * 3} temné energie!")
+
+        # Efekty najatého personálu
+        if getattr(self, "personal", {}).get("spravce_nevestince", False):
+            bonus_nev = 75
+            hra.hrac.gold += bonus_nev
+            zpravy.append(f"💼 Správce nevěstince zorganizoval provoz a zvýšil tržby o +{bonus_nev} 🪙!")
+
+        if getattr(self, "personal", {}).get("vrchni_vyhazovac", False):
+            hra.hrac.vliv_inkvizice = max(0, getattr(hra.hrac, "vliv_inkvizice", 0) - 2)
+            zpravy.append("🛡️ Vrchní vyhazovač zajistil naprostý pořádek v dominia a odradil zvědy.")
+
+        if getattr(self, "personal", {}).get("alchymista_tovarys", False):
+            if hasattr(hra, "alchymie"):
+                hra.alchymie.pridat_surovinu("bylina_mesicni", 1)
+                hra.alchymie.pridat_surovinu("esence_temna", 1)
+            zpravy.append("⚗️ Alchymistický tovaryš syntetizoval čisté esence pro tvé lektvary.")
 
         # Bonusy z přiřazených dívek
         for b_id, jmeno in self.pracovnici.items():

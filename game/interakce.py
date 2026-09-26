@@ -71,12 +71,27 @@ def zobraz_interakce(otrok, hrac, nastaveni=None):
         print(f"Energie: {hrac.sex_energy} | Temná energie: {hrac.dark_energy}\n")
         for i, akce in enumerate(INTERAKCE, 1):
             print(f"{i}) {akce['nazev']} (E:{akce.get('cena_energie',0)} T:{akce.get('cena_temnoty',0)})")
+        vytiskni_volbu('97', 'Bojová společnice (doprovod do arény a dungeonů)')
         vytiskni_volbu('98', 'Drogy')
         vytiskni_volbu('99', 'Tresty/odměny')
         vytiskni_volbu('0', 'Zpět')
         volba = input("> ")
         if volba == "0":
             break
+        elif volba == "97":
+            hra = getattr(hrac, "_hra_ref", None)
+            pevnost = getattr(hra, "pevnost", None) if hra else None
+            if pevnost:
+                if getattr(pevnost, "bojova_partnerka", "") == otrok.jmeno:
+                    pevnost.bojova_partnerka = ""
+                    tisk_ok(f"{otrok.jmeno} již není tvou aktivní bojovou společnicí.")
+                else:
+                    pevnost.bojova_partnerka = otrok.jmeno
+                    otrok.zvysit_stat("loajalita", 3)
+                    tisk_ok(f"★ {otrok.jmeno} byla zvolena jako tvá bojová společnice!")
+            else:
+                tisk_info(f"{otrok.jmeno} je připravena bojovat po tvém boku (zvolena v aréně).")
+            input("Enter...")
         elif volba == "98":
             menu_drog(otrok, hrac)
         elif volba == "99":

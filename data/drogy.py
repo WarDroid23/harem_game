@@ -63,4 +63,40 @@ DROGY = {
         "cena": 150,
         "suroviny": {"krystal_sily": 3, "esence_temna": 2, "vzacna_houba": 2}
     },
+    "aurora_pryskyric": {
+        "nazev": "Aurora pryskyřice",
+        "popis": "Zářící tekutina, zvyšuje max temnou energii a regeneruje zdraví.",
+        "efekty": {"dark_energy": 5, "hp": 15, "touha": 10},
+        "trvale_nasledky": {"zavislost": 6, "duvera": 4},
+        "riziko_predavkovani": 0.02,
+        "cena": 90,
+        "suroviny": {"krystal_sily": 1, "bylina_mesicni": 2}
+    },
+    "snova_mlha": {
+        "nazev": "Snová mlha",
+        "popis": "Halucinogenní kadidlo, navozuje euforii a naprostou odevzdanost.",
+        "efekty": {"submisivita": 25, "strach": -15, "poslusnost": 10},
+        "trvale_nasledky": {"zavislost": 14, "mindbreak": 4},
+        "riziko_predavkovani": 0.04,
+        "cena": 110,
+        "suroviny": {"vzacna_houba": 2, "esence_temna": 1}
+    },
+    "demonska_extaze": {
+        "nazev": "Extáze démona",
+        "popis": "Extrémně silné afrodiziakum podněcující divokou touhu.",
+        "efekty": {"touha": 40, "vlhkost": 30, "submisivita": 10, "hp": -5},
+        "trvale_nasledky": {"zavislost": 22, "broken": 5},
+        "riziko_predavkovani": 0.08,
+        "cena": 140,
+        "suroviny": {"esence_temna": 3, "krystal_sily": 2}
+    },
+    "draci_krev": {
+        "nazev": "Dračí krev",
+        "popis": "Vzácný alchymistický extrakt propůjčující nadlidskou odolnost a sílu.",
+        "efekty": {"tolerance_bolesti": 25, "hp": 20, "loajalita": 10},
+        "trvale_nasledky": {"zavislost": 10, "scarred": 4},
+        "riziko_predavkovani": 0.03,
+        "cena": 180,
+        "suroviny": {"krystal_sily": 4, "koren_mandragory": 2}
+    },
 }

@@ -220,6 +220,8 @@ def spravovat_mafii(arg0, arg1=None):
         print(f"{WHITE}5) Získat informátora (100 zl)")
         print(f"{RED}6) Zvýšit korupci (200 zl)")
         print(f"{MAGENTA}7) Válka o území / syndikáty")
+        print(f"{CYAN}8) Nelegální podniky v územích (doupata, nevěstince, herny)")
+        print(f"{YELLOW}9) Vydírání hodnostářů & podplácení stráží")
         print(f"{NC}0) Zpět")
 
         try:
@@ -316,10 +318,134 @@ def spravovat_mafii(arg0, arg1=None):
                 input("Enter...")
             except EOFError:
                 return
+        elif volba == "8":
+            spravovat_podniky_uzemi(hrac, mafie)
+            try:
+                input("Enter...")
+            except EOFError:
+                return
+        elif volba == "9":
+            vydirani_a_korupce(hrac, mafie, hra)
+            try:
+                input("Enter...")
+            except EOFError:
+                return
         else:
             tisk_chyba("Neplatná volba.")
             try:
                 input("Enter...")
             except EOFError:
                 return
+
+
+def spravovat_podniky_uzemi(hrac, mafie):
+    if not mafie.uzemi:
+        tisk_chyba("Nejprve musíš ovládat alespoň jedno území.")
+        return
+
+    clear()
+    print(f"{MAGENTA}--- Nelegální podniky & Výpalné v městských čtvrtích ---{NC}\n")
+    for i, u in enumerate(mafie.uzemi, 1):
+        pocet_p = len(getattr(u, "podniky", {}))
+        print(f"  {i}) {BOLD}{u.nazev}{NC} (Podniky: {pocet_p}, Kontrola: {u.kontrola}%)")
+    vytiskni_volbu('0', 'Zpět')
+
+    try:
+        vyber = input("\nVyber území pro správu podniků: ").strip()
+        if vyber == "0" or not vyber:
+            return
+        idx = int(vyber) - 1
+        if not (0 <= idx < len(mafie.uzemi)):
+            tisk_chyba("Špatné číslo území.")
+            return
+    except ValueError:
+        tisk_chyba("Zadej platné číslo.")
+        return
+
+    u = mafie.uzemi[idx]
+    if not hasattr(u, "podniky"):
+        u.podniky = {}
+
+    KATALOG_PODNIKU = {
+        "tajne_doupe": {"nazev": "Tajné drogové doupě", "cena": 200, "prijem": 45, "popis": "Zvyšuje odbyt drog a přináší stálý černý zisk."},
+        "tajny_nevestinec": {"nazev": "Podsvětní nevěstinec", "cena": 300, "prijem": 65, "popis": "Diskrétní podnik pro bohatou klientelu podsvětí."},
+        "nelegalni_herna": {"nazev": "Podzemní herna & Kostky", "cena": 250, "prijem": 50, "popis": "Láká hazardní hráče a pašeráky z celého města."},
+        "vypalne_cech": {"nazev": "Síť výpalného od cechů", "cena": 150, "prijem": 35, "popis": "Pravidelné 'poplatky za ochranu' od místních obchodníků."}
+    }
+
+    clear()
+    print(f"{CYAN}Správa podniků v území: {BOLD}{u.nazev}{NC}\n")
+    print("Aktivní podniky:")
+    if not u.podniky:
+        print("  (Žádný vybudovaný podnik)")
+    else:
+        for p_id, p_data in u.podniky.items():
+            print(f"  ✔ {BOLD}{p_data['nazev']}{NC} (+{p_data['prijem']} zl/den)")
+
+    print(f"\nDostupné investice (Tvé zlato: {GOLD}{hrac.gold} 🪙{NC}):")
+    mozne = [k for k in KATALOG_PODNIKU if k not in u.podniky]
+    for j, k_id in enumerate(mozne, 1):
+        info = KATALOG_PODNIKU[k_id]
+        print(f"  {j}) {BOLD}{info['nazev']}{NC} — Cena: {GOLD}{info['cena']} 🪙{NC} (+{info['prijem']} zl/den)")
+        print(f"      {DIM}{info['popis']}{NC}")
+    vytiskni_volbu('0', 'Zpět')
+
+    volba_p = input("\nVyber podnik k vybudování: ").strip()
+    if volba_p == "0" or not volba_p:
+        return
+    try:
+        p_idx = int(volba_p) - 1
+        if 0 <= p_idx < len(mozne):
+            vybrany_klic = mozne[p_idx]
+            vybrany_p = KATALOG_PODNIKU[vybrany_klic]
+            if hrac.gold >= vybrany_p["cena"]:
+                hrac.gold -= vybrany_p["cena"]
+                u.podniky[vybrany_klic] = {"nazev": vybrany_p["nazev"], "prijem": vybrany_p["prijem"]}
+                mafie.vliv_ve_meste = min(100, getattr(mafie, "vliv_ve_meste", 0) + 3)
+                tisk_ok(f"Podnik '{vybrany_p['nazev']}' byl úspěšně otevřen v čtvrti {u.nazev}!")
+            else:
+                tisk_chyba("Nemáš dostatek zlata na tuto investici.")
+        else:
+            tisk_chyba("Neplatná volba.")
+    except ValueError:
+        tisk_chyba("Zadej číslo.")
+
+
+def vydirani_a_korupce(hrac, mafie, hra=None):
+    clear()
+    print(f"{RED}--- Vydírání hodnostářů & Podplácení městských stráží ---{NC}\n")
+    print(f"Informátoři: {getattr(mafie, 'informatori', 0)} | Korupce: {mafie.korupce}% | Vliv: {getattr(mafie, 'vliv_ve_meste', 0)}%\n")
+    vytiskni_volbu('1', 'Vydírat zkorumpovaného radního (Vyžaduje 1 informátora, zisk 150-300 zl)')
+    vytiskni_volbu('2', 'Uplatit velitele hlídky (Cena 120 zl, sníží vliv inkvizice o 10%)')
+    vytiskni_volbu('3', 'Kompromitovat církevního soudce (Vyžaduje 2 informátory a 30% korupce)')
+    vytiskni_volbu('0', 'Zpět')
+
+    volba = input("> ").strip()
+    if volba == "1":
+        if getattr(mafie, "informatori", 0) < 1:
+            tisk_chyba("Potřebuješ alespoň 1 informátora ke shromáždění kompromateriálů.")
+        else:
+            import random
+            mafie.informatori -= 1
+            zisk = random.randint(150, 320)
+            hrac.gold += zisk
+            mafie.vliv_ve_meste = min(100, getattr(mafie, "vliv_ve_meste", 0) + 4)
+            tisk_ok(f"Radní zaplatil {zisk} 🪙 ze strachu ze zveřejnění svých hříchů!")
+    elif volba == "2":
+        if hrac.gold < 120:
+            tisk_chyba("Nemáš dost zlata na úplatek.")
+        else:
+            hrac.gold -= 120
+            hrac.vliv_inkvizice = max(0, getattr(hrac, "vliv_inkvizice", 0) - 10)
+            mafie.korupce = min(100, mafie.korupce + 4)
+            tisk_ok("Velitel hlídky přijal měšec. Inkviziční tlak na tvé impérium klesl o 10%.")
+    elif volba == "3":
+        if getattr(mafie, "informatori", 0) < 2 or mafie.korupce < 30:
+            tisk_chyba("Nedostatek informátorů (potřeba 2) nebo nízká korupce (potřeba 30%).")
+        else:
+            mafie.informatori -= 2
+            hrac.vliv_inkvizice = max(0, getattr(hrac, "vliv_inkvizice", 0) - 25)
+            hrac.dark_energy = min(100, hrac.dark_energy + 20)
+            mafie.vliv_ve_meste = min(100, getattr(mafie, "vliv_ve_meste", 0) + 8)
+            tisk_ok("Církevní soudce je plně ve tvé moci! Tlak inkvizice drasticky klesl (-25%).")
 

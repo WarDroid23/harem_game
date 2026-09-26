@@ -127,14 +127,20 @@ def menu_drog(otrok, hrac):
         volba = input("> ").strip()
         if volba == "1":
             print("\nDostupné drogy:")
-            for id_drogy, droga in DROGY.items():
-                print(f"{id_drogy}: {droga['nazev']} – cena {droga['cena']} zlaťáků")
-                print(f"   {droga['popis']}")
-            volba_droga = input("\nZadej ID drogy: ").strip().lower()
-            if volba_droga in DROGY:
-                podat_drogu(otrok, hrac, volba_droga)
+            drug_keys = list(DROGY.keys())
+            for idx, key in enumerate(drug_keys, start=1):
+                droga = DROGY[key]
+                print(f"  {idx}) {droga['nazev']} – cena {droga['cena']} zlaťáků")
+                print(f"      {droga['popis']}")
+            print("  0) Zpět")
+            volba_droga = input("\nVyber číslo drogy: ").strip()
+            if volba_droga == "0" or not volba_droga:
+                pass
+            elif volba_droga.isdigit() and 1 <= int(volba_droga) <= len(drug_keys):
+                selected_id = drug_keys[int(volba_droga) - 1]
+                podat_drogu(otrok, hrac, selected_id)
             else:
-                tisk_chyba("Neznámá droga.")
+                tisk_chyba("Neplatná volba drogy.")
             input("Enter...")
         elif volba == "2":
             spravovat_odvykani(otrok, hrac)

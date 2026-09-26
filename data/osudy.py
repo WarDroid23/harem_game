@@ -298,6 +298,155 @@ OSUDY = {
             },
         ],
     },
+    "pomsta_elena": {
+        "nazev": "Krev inkvizitora",
+        "popis": "Elena pátrá po inkvizitorovi, který vyvraždil její rodinu pod záminkou kacířství.",
+        "kroky": [
+            {
+                "text": "Elena zachytila stopu. Inkviziční soudce Malakor se skrývá v podzemních kobkách. Žádá tě o pomoc s infiltrací.",
+                "volby": [
+                    {
+                        "nazev": "Vyzbrojit Elenu a vést přímý útok",
+                        "popis": "Čelní útok na inkviziční garnizonu. Prověří vaši sílu.",
+                        "efekty": {"loajalita": 20, "duvera": 15, "bloodlust": 10, "xp": 50},
+                        "odmena": {"id": "inkvizicni_dyka", "mnozstvi": 1},
+                    },
+                    {
+                        "nazev": "Vylákat soudce lstí a podplatit stráže",
+                        "popis": "Tichá pomsta beze svědků. (Stojí 150 zlaťáků)",
+                        "podminka": {"gold": 150},
+                        "efekty": {"gold": -150, "duvera": 25, "loajalita": 25, "vliv_inkvizice": -15, "xp": 40},
+                    },
+                ],
+            },
+            {
+                "text": "Soudce leží v řetězech před Elenou. Dívka třesoucí se rukou drží čepel a hledí na tebe, zda má vykonat ortel.",
+                "volby": [
+                    {
+                        "nazev": "Nechat Elenu vykonat pomstu vlastní rukou",
+                        "popis": "Ukončí trauma krví a najde vnitřní sílu a klid.",
+                        "efekty": {"loajalita": 30, "duvera": 20, "poslusnost": 20, "reputace_mesta": 5},
+                    },
+                    {
+                        "nazev": "Ušetřit soudce a uvrhnout ho do otroctví v tvém dole",
+                        "popis": "Chladný kalkul přinese tvému dominiu doživotního dělníka.",
+                        "efekty": {"loajalita": 15, "broken": 5, "gold": 250, "xp": 60},
+                    },
+                ],
+            },
+        ],
+    },
+    "sestra_scarlett": {
+        "nazev": "Stíny aukční síně",
+        "popis": "Scarlettina mladší sestra byla unesena cechem otrokářů a má být vydražena mecenášům.",
+        "kroky": [
+            {
+                "text": "Scarlett klečí před tebou v slzách. Zjistila, že dražba proběhne dnes v noci v Červené čtvrti.",
+                "volby": [
+                    {
+                        "nazev": "Odkoupit sestru zlatem na aukci",
+                        "popis": "Čisté a bezpečné řešení. (Stojí 300 zlaťáků)",
+                        "podminka": {"gold": 300},
+                        "efekty": {"gold": -300, "duvera": 35, "loajalita": 30, "touha": 15},
+                    },
+                    {
+                        "nazev": "Přepadnout aukční karavanu s mafií",
+                        "popis": "Tvrdý úder na konkurenční překupníky.",
+                        "efekty": {"loajalita": 25, "duvera": 20, "mafie_vliv": 10, "xp": 50},
+                    },
+                ],
+            },
+            {
+                "text": "Sestra je v bezpečí. Scarlett je zaplavena nepopsatelným vděkem a přísahá ti věčnou oddanost.",
+                "volby": [
+                    {
+                        "nazev": "Přijmout Scarlett jako svou věrnou choť a chráněnku",
+                        "popis": "Povýšíš její status na váženou paní dominia.",
+                        "efekty": {"loajalita": 40, "duvera": 30, "touha": 25, "reputace_mesta": 5},
+                    },
+                    {
+                        "nazev": "Připomenout jí, komu nyní obě patří",
+                        "popis": "Upevníš svou absolutní dominanci nad oběma dívkami.",
+                        "efekty": {"poslusnost": 35, "submisivita": 30, "strach": 10, "broken": 5},
+                    },
+                ],
+            },
+        ],
+    },
+    "stribrny_prsten_lyra": {
+        "nazev": "Dědictví rodu Von Ravens",
+        "popis": "Lyra touží získat zpět rodinný stříbrný prsten, který jí zabavil lichvář v přístavu.",
+        "kroky": [
+            {
+                "text": "Lichvář odmítá prsten vydat bez obrovského výkupného nebo laskavosti pro místní cech.",
+                "volby": [
+                    {
+                        "nazev": "Zastrašit lichváře mocí tvého dominia",
+                        "popis": "Ukážeš sílu zbraní a strachu.",
+                        "efekty": {"loajalita": 15, "poslusnost": 20, "mafie_vliv": 5},
+                    },
+                    {
+                        "nazev": "Zaplatit výkupné 180 zlaťáků",
+                        "popis": "Čestné vykoupení relikvie bez zbytečného rozruchu.",
+                        "podminka": {"gold": 180},
+                        "efekty": {"gold": -180, "duvera": 25, "loajalita": 20},
+                    },
+                ],
+            },
+            {
+                "text": "Prsten je zpět. Lyra ti jej nabízí, abys ho navlékl na její prst jako symbol věčného spojení.",
+                "volby": [
+                    {
+                        "nazev": "Navléknout jí prsten jako symbol vzájemné lásky a cti",
+                        "popis": "Spojení dvou duší v královském svazku.",
+                        "efekty": {"duvera": 30, "loajalita": 30, "touha": 20, "xp": 45},
+                    },
+                    {
+                        "nazev": "Ponechat si prsten jako cenný magický artefakt",
+                        "popis": "Posílí tvou vlastní obranu a prestiž.",
+                        "efekty": {"obrana": 3, "loajalita": 5, "poslusnost": 15},
+                    },
+                ],
+            },
+        ],
+    },
+    "grimoar_vespera": {
+        "nazev": "Zakázaný grimoár stínů",
+        "popis": "Čarodějka Vespera cítí volání ztraceného grimoáru ukrytého v ruinách observatoře.",
+        "kroky": [
+            {
+                "text": "V ruinách staré hvězdárny hlídá zapečetěný grimoár prastarý magický přízrak.",
+                "volby": [
+                    {
+                        "nazev": "Porazit strážce společnou temnou magií",
+                        "popis": "Vyžaduje 20 temné energie hráče.",
+                        "efekty": {"loajalita": 25, "duvera": 20, "xp": 60},
+                    },
+                    {
+                        "nazev": "Použít krystal síly k prolomení pečeti",
+                        "popis": "Alchymistické prolomení magické bariéry.",
+                        "podminka": {"item": "krystal_sily"},
+                        "efekty": {"duvera": 25, "loajalita": 20, "xp": 40},
+                    },
+                ],
+            },
+            {
+                "text": "Grimoár je otevřen. Stránky pulzují temnou energií. Vespera nabízí, že s tebou rituálně splyne v temnotě.",
+                "volby": [
+                    {
+                        "nazev": "Podstoupit rituál temného splynutí",
+                        "popis": "Získáš +30 temné energie a Vespera se stane tvou temnou kněžkou.",
+                        "efekty": {"loajalita": 35, "touha": 30, "duvera": 25, "mindbreak": 3},
+                    },
+                    {
+                        "nazev": "Uložit grimoár do archivu dominia pro výzkum",
+                        "popis": "Zvýší dlouhodobý přísun znalostí pro celou pevnost.",
+                        "efekty": {"xp": 80, "reputace_mesta": 5, "loajalita": 20},
+                    },
+                ],
+            },
+        ],
+    },
 }
 
 OSUDY_PORADI = tuple(OSUDY)

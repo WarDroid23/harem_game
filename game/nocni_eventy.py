@@ -25,6 +25,18 @@ def spust_nocni_eventy(hra):
     if z:
         zpravy.extend(z)
 
+    z = _sesterska_rivalita(hra, aktivni)
+    if z:
+        zpravy.extend(z)
+
+    z = _haremova_intimita_a_lazne(hra, aktivni)
+    if z:
+        zpravy.extend(z)
+
+    z = _dar_od_oddanych(hra, aktivni)
+    if z:
+        zpravy.extend(z)
+
     if random.random() < 0.45:
         z = _nahodna_scena(hra, aktivni)
         if z:
@@ -127,3 +139,44 @@ def _razie_inkvizice(hra, aktivni):
         msg.append(f"Několik otrokyň utrpělo při razie: {jmena}.")
         hra.hrac.reputace_mesta = max(-100, hra.hrac.reputace_mesta - 5)
     return msg
+
+
+def _sesterska_rivalita(hra, aktivni):
+    if len(aktivni) < 2 or random.random() > 0.30:
+        return []
+    o1, o2 = random.sample(aktivni, 2)
+    sceny = [
+        f"⚡ {o1.jmeno} a {o2.jmeno} se přely, která z nich lépe slouží tvé vůli. Rivalita zvyšuje jejich poslušnost!",
+        f"👁️ {o1.jmeno} žárlivě sledovala {o2.jmeno}, když jsi kolem ní prošel. Napětí v harému houstne.",
+        f"👑 {o1.jmeno} se pokusila předvést před {o2.jmeno}, aby dokázala své prvenství u tvého lože.",
+    ]
+    o1.zvysit_stat("poslusnost", 3)
+    o2.zvysit_stat("poslusnost", 3)
+    return [random.choice(sceny)]
+
+
+def _haremova_intimita_a_lazne(hra, aktivni):
+    if len(aktivni) < 2 or random.random() > 0.35:
+        return []
+    o1, o2 = random.sample(aktivni, 2)
+    o1.zvysit_stat("loajalita", 4)
+    o2.zvysit_stat("loajalita", 4)
+    o1.zvysit_stat("touha", 6)
+    o2.zvysit_stat("touha", 6)
+    return [
+        f"🌸 V nočních lázních panovala harmonie — {o1.jmeno} a {o2.jmeno} se společně koupaly v provoněné vodě. Pouto v harému sílí."
+    ]
+
+
+def _dar_od_oddanych(hra, aktivni):
+    oddané = [o for o in aktivni if getattr(o, "loajalita", 0) >= 60 and getattr(o, "duvera", 0) >= 45]
+    if not oddané or random.random() > 0.25:
+        return []
+    o = random.choice(oddané)
+    if random.random() < 0.5:
+        dar_zl = random.randint(30, 80)
+        hra.hrac.gold += dar_zl
+        return [f"🎁 {o.jmeno} ti s plachým úsměvem věnovala rodinný klenot ze své skrýše (+{dar_zl} 🪙)!"]
+    else:
+        hra.hrac.dark_energy = min(100, hra.hrac.dark_energy + 15)
+        return [f"✨ {o.jmeno} ti před spaním vděčně vmasírovala vonné oleje do spánků (+15 temné energie, harmonie)!"]

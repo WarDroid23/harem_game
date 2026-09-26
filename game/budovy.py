@@ -506,7 +506,7 @@ def spravovat_budovy(arg0, arg1=None):
         print(f"║ {GREEN} 1){NC} 🔨 Výstavba & vylepšování budov      ║   ║ {YELLOW} 3){NC} ⚖️ Hospodářská & daňová politika   ║")
         print(f"║ {CYAN} 2){NC} 👷 Dohlížitelky (přiřazení otrokyň)  ║   ║ {GREEN} 4){NC} 🛒 Tržnice surovin (nákup / prodej)║")
         print(f"║ {RED} 6){NC} 🛡️ Zkouška obrany & nájezdy          ║   ║ {GOLD} 5){NC} 🐫 Vypravit obchodní karavanu      ║")
-        print(f"║                                          ║   ║ {WHITE} 0){NC} 🚪 Odejít zpět do dominia          ║")
+        print(f"║ {MAGENTA} 7){NC} 🤵 Najímání personálu panství       ║   ║ {WHITE} 0){NC} 🚪 Odejít zpět do dominia          ║")
         print(f"{GOLD}{BOLD}╚════════════════════════════════════════╝{NC}   {MAGENTA}{BOLD}╚════════════════════════════════════════╝{NC}")
 
         try:
@@ -528,9 +528,64 @@ def spravovat_budovy(arg0, arg1=None):
             obchodni_karavany(hra, hrac, pevnost)
         elif volba == "6":
             zkouska_obrany(hra, hrac, pevnost)
+        elif volba == "7":
+            sprava_personalu(hra, hrac, pevnost)
         else:
             tisk_chyba("Neplatná volba.")
             try:
                 input("Enter...")
             except EOFError:
                 return
+
+
+def sprava_personalu(hra, hrac, pevnost):
+    """Správa a najímání personálu pro dominium."""
+    if not hasattr(pevnost, "personal"):
+        pevnost.personal = {}
+
+    while True:
+        clear()
+        hlavicka("Správa & Najímání personálu panství")
+        print(f"Zlato hráče: {GOLD}{hrac.gold} 🪙{NC}\n")
+
+        KATALOG_STAFF = [
+            ("spravce_nevestince", "Správce nevěstince", 250, "+75 🪙 denní bonus z provozu nevěstince a plynulý chod"),
+            ("vrchni_vyhazovac", "Vrchní vyhazovač dominia", 200, "Denně snižuje vliv inkvizice o 2% a odvrací nájezdy"),
+            ("alchymista_tovarys", "Alchymistický tovaryš", 220, "Denně zdarma syntetizuje měsíční byliny a temné esence"),
+        ]
+
+        print(f"{YELLOW}Aktivní personál dominia:{NC}")
+        for klic, nazev, cena, vyhoda in KATALOG_STAFF:
+            stav = f"{GREEN}✔ ZAMĚSTNÁN{NC}" if pevnost.personal.get(klic, False) else f"{DIM}Nenajat{NC}"
+            print(f"  • {BOLD}{nazev}{NC} — {stav}")
+            print(f"      {DIM}{vyhoda}{NC}")
+
+        print(f"\n{CYAN}Možnosti najmutí:{NC}")
+        vytiskni_volbu('1', 'Najmout Správce nevěstince (250 🪙)')
+        vytiskni_volbu('2', 'Najmout Vrchního vyhazovače (200 🪙)')
+        vytiskni_volbu('3', 'Najmout Alchymistického tovaryše (220 🪙)')
+        vytiskni_volbu('0', 'Zpět')
+
+        volba = input("> ").strip()
+        if volba == "0" or not volba:
+            return
+
+        mapa_volby = {
+            "1": ("spravce_nevestince", "Správce nevěstince", 250),
+            "2": ("vrchni_vyhazovac", "Vrchní vyhazovač dominia", 200),
+            "3": ("alchymista_tovarys", "Alchymistický tovaryš", 220),
+        }
+
+        if volba in mapa_volby:
+            klic, nazev, cena = mapa_volby[volba]
+            if pevnost.personal.get(klic, False):
+                tisk_info(f"{nazev} už v tvém dominiu pracuje.")
+            elif hrac.gold < cena:
+                tisk_chyba(f"Nedostatek zlata na najmutí ({cena} 🪙).")
+            else:
+                hrac.gold -= cena
+                pevnost.personal[klic] = True
+                tisk_ok(f"★ {nazev} byl úspěšně najat do služeb tvého dominia!")
+        else:
+            tisk_chyba("Neplatná volba.")
+        input("Enter...")

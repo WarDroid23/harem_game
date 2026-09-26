@@ -49,6 +49,7 @@ def _osobni_akce(hra, otrok):
     vytiskni_volbu('7', 'Společná mise s partnerkou (+XP a reputace)')
     vytiskni_volbu('8', 'Jmenovat oblíbenkyní harému')
     vytiskni_volbu('9', 'Odměny (systém odměn)')
+    vytiskni_volbu('10', 'Bojová společnice (jmenovat/odvolat z doprovodu v soubojích)')
     vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "1":
@@ -169,6 +170,19 @@ def _osobni_akce(hra, otrok):
         nastav_oblibenou(hra, otrok)
     elif volba == "9":
         menu_odmen(otrok, hra.hrac)
+    elif volba == "10":
+        pevnost = getattr(hra, "pevnost", None)
+        if pevnost is not None:
+            if getattr(pevnost, "bojova_partnerka", "") == otrok.jmeno:
+                pevnost.bojova_partnerka = ""
+                tisk_ok(f"{otrok.jmeno} již není tvou aktivní bojovou společnicí.")
+            else:
+                pevnost.bojova_partnerka = otrok.jmeno
+                otrok.zvysit_stat("loajalita", 4)
+                otrok.zvysit_stat("duvera", 4)
+                tisk_ok(f"★ {otrok.jmeno} byla jmenována tvou bojovou společnicí a bude stát po tvém boku v soubojích!")
+        else:
+            tisk_chyba("Pevnost není k dispozici.")
     elif volba != "0":
         tisk_chyba("Neplatná volba.")
     if volba != "4":

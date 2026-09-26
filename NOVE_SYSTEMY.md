@@ -167,3 +167,76 @@
    - **Inkviziční mučitel Malakor** (`vezeni_inkvizice`)
    - **Astrální titán starého impéria** (`zricenina_astralni_veze`)
    - **Korsárský korzár Černovous** (`paserska_zatoka`)
+
+---
+
+## 🧪 Očíslované drogy & Nové substance (Interakce → 98 Drogy)
+
+1. **Číslovaný výběr (1..N)**:
+   - Seznam drog je přehledně očíslován od 1 do N a umožňuje výběr zadáním čísla (nebo 0 pro návrat).
+2. **Nové exotické substance**:
+   - **Aurora pryskyřice**: Zářící tekutina, regeneruje zdraví, touhu a zvyšuje maximální temnou energii hráče.
+   - **Snová mlha**: Omamné kadidlo pro hlubokou euforii, výrazně zvyšuje poslušnost a submisivitu, potlačuje strach.
+   - **Extáze démona**: Extrémně silné afrodiziakum podněcující touhu a vlhkost dívek.
+   - **Dračí krev**: Elitní extrakt zvyšující toleranci bolesti, zdraví a loajalitu.
+   - Všechny substance jsou automaticky propojeny s alchymistickým systémem syntézy.
+
+---
+
+## 💃 Bojové společnice v soubojích (Interakce → 97 / Harém → 10)
+
+1. **Doprovod do arény a dungeonů**:
+   - Zvolená otrokyně stojí po tvém boku v aréně, dungeonech a proti bossům.
+   - Volba `5) 💃 Asistence (Jméno)` v tahovém souboji aktivuje unikátní dovednost podle archetypu dívky:
+     - *Amazonka*: Krvavý útok (+12–25 DMG) + pasivní krytí ran.
+     - *Padlá paladinka*: Léčení (+30 HP) + pasivní absorpce 20% zranění.
+     - *Sukuba*: Démonické omámení (nepřítel má 60% šanci ztratit tah).
+     - *Zlodějka*: Dýmovnice (vyřazení tahu nepřítele) a krádež zlata.
+     - *Čarodějka / Kněžka*: Kletba zkázy oslabující útok i obranu bosse na 3 kola.
+     - *Alchymistka*: Žíravá kyselina za trvalé poškození.
+2. **Vývoj pouta v boji**:
+   - Společný boj zvyšuje loajalitu, důvěru a bojové zkušenosti obou partnerů.
+
+---
+
+## 🕵️ Mafiánské čtvrti, nelegální podniky & vydírání (Volba 3)
+
+1. **Podsvětní podniky v ovládaných územích (`Volba 8`)**:
+   - V každém ovládaném území města lze investovat do nelegálních provozoven:
+     - **Tajné drogové doupě**: Zvyšuje spotřebu drog a přináší pasivní příjem +45 🪙/den.
+     - **Podsvětní nevěstinec**: Diskrétní podnik pro elitu podsvětí (+65 🪙/den).
+     - **Podzemní herna & Kostky**: Přitahuje pašeráky a hráče (+50 🪙/den).
+     - **Síť výpalného od cechů**: Pravidelné poplatky za ochranu (+35 🪙/den).
+2. **Vydírání hodnostářů & Podplácení stráží (`Volba 9`)**:
+   - **Vydírání zkorumpovaného radního**: Spotřebuje informátora pro zisk 150–320 🪙.
+   - **Úplatek veliteli hlídky**: Zlevněná ochrana snižující vliv inkvizice o 10%.
+   - **Kompromitace církevního soudce**: Získání absolutní kontroly nad inkvizičním soudcem (-25% vliv církve, +20 temná energie).
+
+---
+
+## 📜 Unikátní osobní questové linie dívek (Volba 1 / Harém → 4)
+
+- **Elena (Krev inkvizitora)**: Pátrání po inkvizitorovi Malakorovi, infiltrace kobek a volba mezi osobní krevní pomstou nebo uvržením soudce do otroctví.
+- **Scarlett (Stíny aukční síně)**: Záchrana unesené sestry před dražbou mecenášům – buď odkupem zlatem, nebo přepadem aukční karavany.
+- **Lyra (Dědictví rodu Von Ravens)**: Získání ztraceného rodinného pečetního prstenu od lichváře v přístavu a stvrzení královského svazku.
+- **Vespera (Zakázaný grimoár stínů)**: Otevření magické pečeti v ruinách astrální observatoře a rituál temného splynutí.
+
+---
+
+## 🏛️ Personál dominia & Nové stavby panství (Volba 16)
+
+1. **Nové specializované stavby**:
+   - **Bylinkový skleník & Sušárna**: Každý den zdarma sklízí Měsíční byliny a Vzácné houby pro alchymii.
+   - **Alchymistická laboratoř & Syntéza**: Automatizuje výrobu drog a lektvarů, přináší denní zisk +45 🪙 a +3 temnou energii za úroveň.
+2. **Správa personálu panství (`Volba 7`)**:
+   - **Správce nevěstince** (250 🪙): Maximalizuje provoz nevěstince (+75 🪙 denní bonus).
+   - **Vrchní vyhazovač** (200 🪙): Chrání panství a denně sráží vliv inkvizice o 2%.
+   - **Alchymistický tovaryš** (220 🪙): Denně dodává čisté esence a byliny pro lektvary.
+
+---
+
+## 🌸 Vztahy v harému, lázně a noční události (Volba 12)
+
+1. **Harmonie v mramorových lázních**: Dívky spolu tráví čas v nočních lázních, vzájemně si myjí vlasy a posilují loajalitu i touhu.
+2. **Sesterská rivalita**: Zdravé soupeření o pánovu přízeň motivuje dívky k ještě větší poslušnosti a oddanosti.
+3. **Dary od oddaných otrokyň**: Dívky s vysokou důvěrou a loajalitou přinášejí pánovi vzácné klenoty ze svých skrýší nebo rituální vonné masáže pro regeneraci temné energie.

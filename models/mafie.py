@@ -10,6 +10,7 @@ class Uzemi:
     obsazeno: bool = False
     opevneni: int = 0
     posadka: int = 0
+    podniky: dict = field(default_factory=dict)
 
     def to_dict(self):
         return asdict(self)
@@ -33,8 +34,9 @@ class Mafie:
 
     def vypocet_prijmu(self):
         zaklad = sum(u.prijem * u.kontrola // 100 for u in self.uzemi if u.obsazeno)
+        podniky_prijem = sum(sum(p.get("prijem", 0) for p in u.podniky.values()) for u in self.uzemi if u.obsazeno and hasattr(u, "podniky"))
         bonus = self.vojaci // 5 + self.kapitanove * 3 + self.vliv_ve_meste // 20 + self.informatori // 2
-        self.prijem_celkem = zaklad + bonus
+        self.prijem_celkem = zaklad + podniky_prijem + bonus
         return self.prijem_celkem
 
     def bojova_sila(self):
