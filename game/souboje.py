@@ -46,6 +46,45 @@ BOSSOVE = {
             {"nazev": "Rozbitá pečeť", "hp": 110, "utok": 30, "obrana": 10},
         ],
     },
+    "inkvizicni_mucitel_malakor": {
+        "jmeno": "Inkviziční mučitel Malakor",
+        "lokace": "vezeni_inkvizice",
+        "hp": 175,
+        "utok": 21,
+        "obrana": 14,
+        "zlato": 650,
+        "xp": 220,
+        "faze": [
+            {"nazev": "Železná maska", "hp": 175, "utok": 21, "obrana": 14},
+            {"nazev": "Rozpálené řetězy", "hp": 115, "utok": 28, "obrana": 9},
+        ],
+    },
+    "astralni_titan_imperia": {
+        "jmeno": "Astrální titán starého impéria",
+        "lokace": "zricenina_astralni_veze",
+        "hp": 210,
+        "utok": 24,
+        "obrana": 16,
+        "zlato": 750,
+        "xp": 260,
+        "faze": [
+            {"nazev": "Hvězdný štít", "hp": 210, "utok": 24, "obrana": 16},
+            {"nazev": "Rozpad dimenzí", "hp": 130, "utok": 32, "obrana": 11},
+        ],
+    },
+    "korsarsky_korzar_cernovous": {
+        "jmeno": "Korsárský korzár Černovous",
+        "lokace": "paserska_zatoka",
+        "hp": 190,
+        "utok": 20,
+        "obrana": 12,
+        "zlato": 680,
+        "xp": 230,
+        "faze": [
+            {"nazev": "Dělová palba", "hp": 190, "utok": 20, "obrana": 12},
+            {"nazev": "Boj zblízka šavlemi", "hp": 125, "utok": 27, "obrana": 8},
+        ],
+    },
 }
 
 ARENA_LADDER = [

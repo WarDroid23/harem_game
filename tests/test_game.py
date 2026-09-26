@@ -441,6 +441,36 @@ class HraTesty(unittest.TestCase):
             vysledek = souboj.proved_boj()
         self.assertTrue(vysledek)
 
+    def test_mapa_nove_lokace_a_pribeh_npc(self):
+        from game.svet import LOKACE, NPC
+        self.assertIn("vezeni_inkvizice", LOKACE)
+        self.assertIn("zricenina_astralni_veze", LOKACE)
+        self.assertIn("paserska_zatoka", LOKACE)
+        self.assertIn("krvavy_lom", LOKACE)
+
+        self.assertIn("inkvizitor_malor", NPC)
+        self.assertIn("vespera", NPC)
+        self.assertIn("selene", NPC)
+        self.assertIn("kapitanka_drake", NPC)
+        self.assertIn("dozorce_krag", NPC)
+
+        hra = Hra()
+        hra.hrac.gold = 100
+        hra.hrac.dark_energy = 25
+        hra.svet.aktualni_lokace = "vezeni_inkvizice"
+
+        # Test příběhového dialogu s Vesperou - osvobození do harému
+        with patch("builtins.input", side_effect=["1", ""]):
+            hra.svet.pribehovy_rozhovor("vespera", NPC["vespera"], hra)
+
+        self.assertTrue(any(o.jmeno == "Vespera" for o in hra.harem.otrokyne))
+
+        # Test lokační akce v pevnosti
+        hra.svet.aktualni_lokace = "pevnost"
+        with patch("builtins.input", side_effect=["2", ""]):
+            hra.svet.menu_lokacni_akce(hra)
+        self.assertGreaterEqual(hra.pevnost.zasoby, 25)
+
 
 if __name__ == "__main__":
     unittest.main()

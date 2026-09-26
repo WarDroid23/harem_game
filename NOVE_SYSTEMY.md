@@ -4,6 +4,7 @@
 
 | Volba | Co dělá |
 |-------|--------|
+| **8 Mapa světa & Cestování** | **Rozšířená mapa (26 lokací)**: síťová ASCII mapa, unikátní lokační akce (A), hluboké příběhové dialogy s NPC, záchrana otrokyň a 3 noví bossové |
 | **16 Správa budov** | **Budovatelská strategie dominia**: suroviny (dřevo, kámen, železo, zásoby, krystaly), sektory staveb, dohlížitelky, daňová politika, tržnice a karavany |
 | **8 / 24 Souboje & Aréna**| **Taktický soubojový systém**: bojové partnerky z harému s unikátními skilly, gladiátorský žebříček (Arena Ladder), temný vampirismus, obranné bonusy z pevnosti |
 | **21 Nevěstinec** | **Komplexní impérium rozkoše**: specializace pokojů, VIP mecenáši, špionáž & kompro, Noc neřesti, wellness & výcvik kurtizán |
@@ -127,3 +128,42 @@
    - Fascinována afrodiziaky, jedy a zakázanými lektvary. Vhodná pro okultní experimenty a alchymistické klienty.
 6. **Exilová princezna (`princezna_ruin`)**:
    - Urozená dcera padlé dynastie s obrovskou pýchou. V královském salonu nevěstince a při prodeji mecenášům má bezkonkurenčně nejvyšší hodnotu.
+
+---
+
+## 🗺️ Rozšířená mapa světa, nová místa, NPC a příběhové akce (Volba 8)
+
+1. **Nová místa a síťová ASCII mapa (26 lokací)**:
+   - Celý svět byl sjednocen do rozsáhlé **26-lokacní síťové ASCII mapy**, která udržuje dokonale stabilní zarovnání sloupců při pohybu hráče (`▶[ ... ]◀`, indikátory mafie `[🛡️]`, aktivních questů `[🎯]` i neodhalených oblastí `[?Neodhaleno?]`).
+   - **Nové klíčové lokace**:
+     - **⛓️ Inkviziční žalář & kobky kacířů (`vezeni_inkvizice`)**: Temné mučírny a cely pod chrámem, kde v řetězech trpí obviněné čarodějky a nepřátelé víry.
+     - **🏛️ Zapomenutá astrální citadela (`zricenina_astralni_veze`)**: Vznešené ruiny z dob před pádem starého impéria, pulzující zbytky astrální magie.
+     - **🏴‍☠️ Zátoka vraků & Pašerácká zátoka (`paserska_zatoka`)**: Skryté skalní pobřeží, kde kotví korsárské lodě plné kontrabandu a cizokrajných otrokyň.
+     - **⛏️ Krvavé kamenolomy & Doly otroků (`krvavy_lom`)**: Povrchové lomy a hlubinné šachty na úpatí hor, kde trestanci těží kámen a železnou rudu pro dominium.
+
+2. **Nové postavy (NPC) s příběhovými dialogy a úkoly**:
+   - **Vespera (`vespera`)** *(Inkviziční žalář)*: Hrdá mladá čarodějka s fialovýma očima v řetězech. Hráč ji může osvobodit (úplatkem nebo temnou silou) a získat ji do harému jako mocnou čarodějku!
+   - **Selene (`selene`)** *(Astrální citadela)*: Prastará vědma pamatující pád starého impéria. Nabízí rituál astrálního probuzení (trvale zvyšuje Max HP i Max energii) a astrální věštbu zklidňující žárlivost manželek.
+   - **Kapitánka Drake (`kapitanka_drake`)** *(Zátoka vraků)*: Drsna korsárka z lodi Černá harpyje. Umožňuje vyplout na noční nájezd proti kupeckým lodím, odkoupit exotické pirátské zajatkyně a chránit karavany.
+   - **Inkvizitor Malor (`inkvizitor_malor`)** *(Inkviziční žalář)*: Vyšetřovatel v železné masce. Lze ho vydírat kompro materiály z nevěstince (-25 inkvizice), zastrašit temnou silou nebo podplatit.
+   - **Vrchní dozorce Krag (`dozorce_krag`)** *(Krvavý lom)*: Hromotluk s bičem. Nabízí velkoobchodní nákup kamene a železa pro pevnost a výkup zocelené amazonky před popravou.
+
+3. **Příběhové dialogy s větvením (Story branches)**:
+   - Při volbě `1) 📜 Příběhový rozhovor` u NPC se otevírá interaktivní příběhová scéna s 3 různými volbami (diplomacie, temná dominance / zastrašení, svádění / pragmatismus).
+   - Volby mají reálný dopad na frakce, přírůstek loajality, získávání unikátních otrokyň, pokles vlivu inkvizice či trvalé posílení hráče.
+
+4. **Kontextové akce lokace (`A) ⚡ Akce lokace`)**:
+   - V menu mapy přibyla volba **`A) ⚡ Akce lokace`**, která pro každé místo v herním světě nabízí 2–3 unikátní interakce:
+     - *Pevnost*: Přehlídka posádky (+obrana), nákup jídla do sýpek, shromáždění manželek.
+     - *Inkviziční žalář*: Infiltrace cel, spálení inkvizičních archívů (-20 vliv církve), výkup vězenkyň.
+     - *Zátoka vraků*: Noční pirátská razie (+kořist zlata a surovin), odkup exotické zajatkyně z podpalubí.
+     - *Astrální citadela*: Astrální zřídlo pro regeneraci a trvalé posílení aury, luštění run.
+     - *Krvavé lomy*: Velkoobchodní nákup kamene a železa pro pevnost, výkup bojovnice.
+     - *Chrám Čistoty*: Zpovědnice s komprem, znesvěcení oltáře stínem, odpustky.
+     - *Zahradní altán*: Čajový obřad manželek (žárlivost -15 %), romantická rande u jezírka.
+     - *Podzemní aréna & Katakomby*: Okamžitý gladiátorský duel, nekromantské rituály, vykrádání hrobek králů.
+
+5. **Noví příběhoví bossové**:
+   - **Inkviziční mučitel Malakor** (`vezeni_inkvizice`)
+   - **Astrální titán starého impéria** (`zricenina_astralni_veze`)
+   - **Korsárský korzár Černovous** (`paserska_zatoka`)
