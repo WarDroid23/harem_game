@@ -693,6 +693,13 @@ class Souboj:
         elif data["boj"] == "temnota":
             self.hrac.dark_energy = min(100, self.hrac.dark_energy + data["hodnota"])
             tisk_ok(f"Použil jsi {data['nazev']}. Temná energie: {self.hrac.dark_energy}.")
+        elif data["boj"] == "leceni_temnota":
+            self.hrac.hp = min(self.hrac.max_hp, self.hrac.hp + data["hodnota"])
+            self.hrac.dark_energy = min(100, self.hrac.dark_energy + 8)
+            tisk_ok(
+                f"Použil jsi {data['nazev']}. "
+                f"HP: {self.hrac.hp}, temná energie: {self.hrac.dark_energy}."
+            )
         elif data["boj"] == "utek":
             bonus_uteku = 0.2
             self._bonus_uteku = bonus_uteku

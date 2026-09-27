@@ -205,6 +205,92 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Lov vzpurné rebelky", nazvy)
         self.assertIn("Obsazení městské zbrojnice", nazvy)
 
+    def test_hlavni_menu_zkratky_a_zobrazeni_testovaci_volby(self):
+        from game.menu_hlavni import normalizuj_volbu, vykresli_hlavni_menu
+        from main import (
+            _obnov_hru_runtime,
+            _obsluz_volbu_hlavniho_menu,
+            hlavni_menu,
+            start,
+        )
+        hra = Hra()
+
+        self.assertEqual(normalizuj_volbu("t"), "test")
+        self.assertEqual(normalizuj_volbu("10"), "test")
+        self.assertEqual(normalizuj_volbu("s"), "26")
+        self.assertEqual(normalizuj_volbu("neznama"), "neznama")
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vykresli_hlavni_menu(hra)
+        self.assertIn("T) 🧪 Testovací otrokyně", vystup.getvalue())
+
+        for volba in ("t", "10"):
+            hra = Hra()
+            with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+                _obsluz_volbu_hlavniho_menu(
+                    hra, normalizuj_volbu(volba), _obnov_hru_runtime(hra)
+                )
+            self.assertEqual(hra.harem.pocet(), 1)
+
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["neplatne", "0"]), redirect_stdout(vystup):
+            start()
+        self.assertIn("Neplatná volba.", vystup.getvalue())
+
+        hra = Hra()
+        hra.harem.pridat(Otrokyně("Alena"))
+        with patch("builtins.input", side_effect=["1", EOFError]), patch(
+            "main.uloz_hru"
+        ) as uloz, redirect_stdout(io.StringIO()):
+            hlavni_menu(hra)
+        uloz.assert_called_once_with(hra)
+
+    def test_prvni_npc_ukol_neodemkne_achievement_retezce(self):
+        hra = Hra()
+        hra.svet.vztahy_npc["mira"] = 100
+        self.assertTrue(hra.npc_questy.prijmi(hra, "mira"))
+
+        self.assertEqual(hra.npc_questy.dokoncit(hra, "mira"), "normal")
+        self.assertEqual(hra.achievementy.statistiky.get("npc_retezce", 0), 0)
+
+        self.assertTrue(hra.npc_questy.prijmi(hra, "mira"))
+        self.assertEqual(hra.npc_questy.dokoncit(hra, "mira"), "normal")
+        self.assertEqual(hra.achievementy.statistiky.get("npc_retezce"), 1)
+
+    def test_selene_a_eleanor_odemykaji_navazujici_ukoly(self):
+        hra = Hra()
+        for npc_id, nazev in (
+            ("selene", "Zrcadla astrální citadely"),
+            ("lady_eleanor", "Dopis bez podpisu"),
+        ):
+            hra.svet.vztahy_npc[npc_id] = 100
+            self.assertTrue(hra.npc_questy.prijmi(hra, npc_id))
+            self.assertEqual(hra.npc_questy.dokoncit(hra, npc_id), "normal")
+            dalsi = dict(hra.npc_questy.dostupne(hra))[npc_id]
+            self.assertEqual(dalsi["nazev"], nazev)
+
+    def test_vip_odmena_prida_lektvar_do_inventare(self):
+        from game.nevestinec import vip_zakazky
+
+        hra = Hra()
+        divka = Otrokyně(jmeno="Aurelia", charakter="alchymistka")
+        divka.v_nevestinci = True
+        hra.harem.pridat(divka)
+        hra.nevestinec.vip_nabidky = [{
+            "id": "alchymisticky_mistr",
+            "jmeno": "Alchymistický mistr Aurelius",
+            "popis": "Odměna za soukromou audience.",
+            "pozadovane_charaktery": ["alchymistka"],
+            "odmena_zlato": 400,
+            "bonus_lektvar": True,
+        }]
+
+        with patch("builtins.input", side_effect=["1", "1", ""]), redirect_stdout(io.StringIO()):
+            vip_zakazky(hra)
+
+        self.assertEqual(hra.hrac.inventar.pocet_predmetu("elixir_temnoty"), 1)
+
     def test_mapa_nove_lokace_a_cestovani(self):
         from game.svet import LOKACE
         hra = Hra()
@@ -474,5 +560,3 @@ class HraTesty(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

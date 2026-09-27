@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # main.py
 import random
-from config import RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, WHITE, NC, DIM, GRAY
+from dataclasses import dataclass
+from config import RED, GREEN, YELLOW, MAGENTA, CYAN, GOLD, BOLD, WHITE, NC, DIM
 from game.save_load import (
     Hra, uloz_hru, uloz_slot, nacti_slot, seznam_slotu,
 )
@@ -11,25 +12,25 @@ from game.ekonomika import najem_otrokyně
 from game.mafie import spravovat_mafii
 from game.vyvoj import zobraz_vyvoj
 from game.diplomacie import Diplomacie
-from game.vyzkum import VyzkumSystem, VYZKUM
+from game.vyzkum import VyzkumSystem
 from game.subky_domestikace import SubkyDomestikace
 from game.lov import lov_otrokyn
 from game.odpocinek import odpocinek
 from game.energie import zobraz_menu as menu_energie
 from game.obchod import obchod
-from game.questy import QuestSystem
 from game.drazba import drazba_otrokyn
 from game.budovy import spravovat_budovy
 from game.udalosti import spust_nahodnou_udalost
 from game.statistiky import zobraz_statistiky
-from game.souboje import Souboj, dostupni_bossove
-from game.alchymie import AlchymieSystem
+from game.souboje import Souboj
 from game.crafting import CraftingSystem
 from game.harem_interakce import menu_haremu
 from game.settings import NastaveniHry, aplikuj_nastaveni
 from game.automaticky_tah import obsluz_automaticky_tah
 from game.manzelstvi import menu_manzelstvi
 from game.menu_extra import obsluz_extra_volbu
+from game.menu_hlavni import normalizuj_volbu, vykresli_hlavni_menu
+from game.nevestinec import menu_nevestinec
 from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel, hlavicka,
@@ -46,6 +47,15 @@ from datetime import datetime
 
 # Current active game (used for crash-save)
 _CURRENT_GAME = None
+
+
+@dataclass
+class HlavniMenuRuntime:
+    diplo: Diplomacie
+    vyzkum: VyzkumSystem
+    subky: SubkyDomestikace
+    souboj: Souboj
+    crafting: CraftingSystem
 
 
 def _vykresli_sloty(hlavni_soubor=None):
@@ -85,8 +95,10 @@ def menu_ulozeni(hra):
         if uspech:
             tisk_ok(f"Hra byla uložena do JSON slotu {slot}.")
         return uspech
-    except (ValueError, EOFError):
+    except ValueError:
         tisk_chyba("Zadej číslo slotu 1 až 5.")
+        return False
+    except EOFError:
         return False
 
 
@@ -105,8 +117,10 @@ def menu_nacteni():
         if hra:
             tisk_ok(f"Načten JSON slot {slot}.")
         return hra
-    except (ValueError, EOFError):
+    except ValueError:
         tisk_chyba("Zadej číslo slotu 1 až 5.")
+        return None
+    except EOFError:
         return None
 
 
@@ -235,267 +249,212 @@ def _pockej_na_enter():
 def _obnov_hru_runtime(hra: Hra):
     global _CURRENT_GAME
     _CURRENT_GAME = hra
-    return {
-        "diplo": Diplomacie(hra.frakce),
-        "vyzkum": hra.vyzkum,
-        "subky": SubkyDomestikace(),
-        "souboj": Souboj(hra.hrac, hra.mafie, hra),
-        "crafting": CraftingSystem(),
-    }
+    return HlavniMenuRuntime(
+        diplo=Diplomacie(hra.frakce),
+        vyzkum=hra.vyzkum,
+        subky=SubkyDomestikace(),
+        souboj=Souboj(hra.hrac, hra.mafie, hra),
+        crafting=CraftingSystem(),
+    )
 
 
 def _bezpecne_volba(nazev, akce, *args, **kwargs):
     try:
         return akce(*args, **kwargs)
     except Exception as exc:
+        logging.exception("Akce hlavního menu selhala: %s", nazev)
         tisk_chyba(f"{nazev} selhalo: {exc}")
         _pockej_na_enter()
         return None
 
 
-def hlavni_menu(hra: Hra):
-    runtime = _obnov_hru_runtime(hra)
-    diplo = runtime["diplo"]
-    vyzkum = runtime["vyzkum"]
-    subky = runtime["subky"]
-    souboj = runtime["souboj"]
-    crafting = runtime["crafting"]
+def _obsluz_volbu_hlavniho_menu(
+    hra: Hra, volba: str, runtime: HlavniMenuRuntime
+):
 
-    while True:
+    if volba == "auto":
+        obsluz_automaticky_tah(hra)
+        _pockej_na_enter()
+    elif volba == "1":
+        aktivni = hra.harem.vsechny_aktivni()
+        if aktivni:
+            hlavicka("👑 HARÉM — Výběr otrokyně")
+            for i, o in enumerate(aktivni, 1):
+                faze_nazev = nazev_faze(getattr(o, "faze_zkazenosti", 0))
+                char_nazev = nazev_charakteru(getattr(o, "charakter", "subka"))
+                hvezda = f"{GOLD}★ {NC}" if getattr(o, "oblibena", False) else "  "
+                manzel = f" {MAGENTA}💍{NC}" if getattr(o, "je_manzelkou", False) else ""
+                partner = f" {RED}♥{NC}" if getattr(o, "partnerka", False) else ""
+                loj_bar = ukazatel(o.loajalita, 100, sirka=12)
+                print(f"  {BOLD}{CYAN}{i}){NC} {hvezda}{BOLD}{o.jmeno}{NC}{manzel}{partner}")
+                print(f"      {DIM}{char_nazev} • {faze_nazev} • věk {o.vek}{NC}")
+                print(f"      Loajalita: {loj_bar}  {DIM}Osud: {o.popis_osudu()}{NC}")
+                print()
+            print(f"  {GOLD}@){NC} Vybrat všechny aktivní otrokyně")
+            print(f"  {RED}0){NC} Zpět")
+            try:
+                volba_otrokyn = input(f"\n{BOLD}>{NC} ").strip()
+                if volba_otrokyn == "@":
+                    zobraz_hromadne_interakce(aktivni, hra.hrac)
+                    return hra, runtime, False
+                if volba_otrokyn == "0":
+                    return hra, runtime, False
+                idx = int(volba_otrokyn) - 1
+                if 0 <= idx < len(aktivni):
+                    zobraz_interakce(aktivni[idx], hra.hrac, nastaveni=hra.nastaveni)
+                else:
+                    tisk_chyba("Špatná volba.")
+            except ValueError:
+                tisk_chyba("Zadej číslo.")
+            _pockej_na_enter()
+        else:
+            tisk_chyba("Nemáš žádné otrokyně.")
+            _pockej_na_enter()
+    elif volba == "2":
+        aktivni = hra.harem.vsechny_aktivni()
+        if aktivni:
+            volne = [o for o in aktivni if not o.na_najmu]
+            if volne:
+                print("\nVyber otrokyni k pronájmu:")
+                for i, o in enumerate(volne, 1):
+                    print(f"{i}) {o.jmeno}")
+                try:
+                    idx = int(input("> ")) - 1
+                    if 0 <= idx < len(volne):
+                        najem_otrokyně(hra.hrac, volne[idx], hra.nastaveni.obtiznost)
+                    else:
+                        tisk_chyba("Špatná volba.")
+                except ValueError:
+                    tisk_chyba("Zadej číslo.")
+            else:
+                tisk_chyba("Všechny otrokyně jsou na najmu.")
+            _pockej_na_enter()
+        else:
+            tisk_chyba("Nemáš otrokyně.")
+            _pockej_na_enter()
+    elif volba == "3":
+        _bezpecne_volba("Mafie", spravovat_mafii, hra)
+    elif volba == "4":
+        zobraz_vyvoj(hra.hrac)
+    elif volba == "5":
+        _bezpecne_volba("Diplomacie", runtime.diplo.menu, hra)
+    elif volba == "6":
+        _bezpecne_volba("Výzkum", runtime.vyzkum.menu, hra)
+    elif volba == "7":
+        aktivni = hra.harem.vsechny_aktivni()
+        if aktivni:
+            runtime.subky.menu(hra, aktivni)
+        else:
+            tisk_chyba("Nemáš otrokyně pro domestikaci.")
+            _pockej_na_enter()
+    elif volba == "8":
+        hra.svet.menu(hra)
+    elif volba == "9":
+        hra.kampan.menu(hra)
+    elif volba == "test":
+        jmeno = random.choice(JMENA)
+        otrok = Otrokyně(jmeno=jmeno)
+        hra.harem.pridat(otrok)
+        tisk_ok(f"Přidána testovací otrokyně: {jmeno}")
+        _pockej_na_enter()
+    elif volba == "11":
+        otrok = lov_otrokyn(hra)
+        if otrok:
+            hra.harem.pridat(otrok)
+        _pockej_na_enter()
+    elif volba == "12":
+        odpocinek(hra)
+        _bezpecne_volba("Náhodná událost", spust_nahodnou_udalost, hra)
+    elif volba == "13":
+        obchod(hra)
+    elif volba == "14":
+        _bezpecne_volba("Questy", hra.questy.menu, hra)
+    elif volba == "15":
+        drazba_otrokyn(hra.hrac, hra.harem)
+        _pockej_na_enter()
+    elif volba == "16":
+        spravovat_budovy(hra)
+    elif volba == "17":
+        zobraz_statistiky(hra)
+        _pockej_na_enter()
+    elif volba == "18":
+        runtime.souboj.menu()
+    elif volba == "19":
+        hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
+    elif volba == "21":
+        _bezpecne_volba("Nevěstinec", menu_nevestinec, hra)
+    elif volba == "23":
+        menu_haremu(hra)
+    elif volba == "24":
+        runtime.crafting.menu(hra)
+    elif volba == "25":
+        menu_energie(hra)
+    elif volba == "28":
+        menu_manzelstvi(hra)
+    elif volba in ("29", "30", "31"):
+        obsluz_extra_volbu(volba, hra)
+    elif volba == "26":
+        vysledek = menu_meta_hlavni(hra)
+        if vysledek == "quit":
+            return hra, runtime, True
+        if vysledek is not None:
+            hra = vysledek
+            runtime = _obnov_hru_runtime(hra)
+    elif volba == "0":
+        uloz_hru(hra)
+        print("Hra uložena. Konec hry.")
+        return hra, runtime, True
+    elif volba == "20":
         clear()
-        ascii_art()
-        terminalni_obrazek("menu")
+        print(f"{GOLD}--- Rychlý přehled dne {hra.hrac.den} ---{NC}\n")
         max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
         max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
-        aktivni_harem = hra.harem.vsechny_aktivni()
-        pocet_partnerek = sum(1 for o in aktivni_harem if getattr(o, "partnerka", False))
-        oblibena = next((o for o in aktivni_harem if getattr(o, "oblibena", False)), None)
-        oblib_txt = f" ★{oblibena.jmeno}" if oblibena else ""
-        kapitola = hra.kampan.aktualni()
-        kapitola_text = kapitola["nazev"] if kapitola else "Kampaň dokončena"
-
-        # ── Status dashboard ────────────────────────────────────────────────
-        W = 76
-        print(f"{GOLD}{BOLD}╔{'═'*W}╗{NC}")
         print(
-            f"{GOLD}{BOLD}║{NC} {BOLD}Den {hra.hrac.den:>3}{NC}  "
-            f"{GREEN}🪙 {hra.hrac.gold:<6}{NC}  "
-            f"{YELLOW}👑 Harém {hra.harem.pocet()} (partnerek {pocet_partnerek}{oblib_txt}){NC}  "
-            f"{MAGENTA}🏰 Území {len(hra.mafie.uzemi)}{NC}"
-            f"{GOLD}{BOLD}{'':>2}║{NC}"
+            f"HP {hra.hrac.hp}/{hra.hrac.max_hp} | "
+            f"Energie {hra.hrac.sex_energy}/{max_s} | "
+            f"Temno {hra.hrac.dark_energy}/{max_t}"
         )
-        bar_s = ukazatel(hra.hrac.sex_energy, max_s, sirka=16)
-        bar_t = ukazatel(hra.hrac.dark_energy, max_t, sirka=16, barva_plno=MAGENTA, barva_malo=RED)
         print(
-            f"{GOLD}{BOLD}║{NC} ⚡ Energie   {bar_s}   🌑 Temno  {bar_t}  "
-            f"{RED}☩Inkvizice {hra.hrac.vliv_inkvizice:<3}{NC}  "
-            f"{CYAN}📍{hra.svet.aktualni_lokace}{NC}"
-            f"{GOLD}{BOLD}{'':>1}║{NC}"
+            f"Místo: {hra.svet.aktualni_lokace} | "
+            f"Kampaň: {hra.kampan.kapitola + 1 if hra.kampan.aktualni() else 'hotová'}"
         )
-        print(f"{GOLD}{BOLD}╚{'═'*W}╝{NC}")
-        print()
+        najmy = [
+            f"{o.jmeno} ({o.najem_zbyva_dni} dní)"
+            for o in hra.harem.vsechny_aktivni() if o.na_najmu
+        ]
+        if najmy:
+            print("Na najmu: " + ", ".join(najmy))
+        oblib = next((o for o in hra.harem.vsechny_aktivni() if getattr(o, "oblibena", False)), None)
+        if oblib:
+            print(f"★ Oblíbenkyně: {oblib.jmeno}")
+        _pockej_na_enter()
+    else:
+        tisk_chyba("Neplatná volba.")
+        _pockej_na_enter()
 
-        # Vycizelované tematické panely menu
-        print(f"{GOLD}{BOLD}╔════ 👑 HARÉM & DÍVKY ══════════════════╗{NC}   {MAGENTA}{BOLD}╔════ 🏰 PANSTVÍ & IMPÉRIUM ═════════════╗{NC}")
-        print(f"║ {GREEN} 1){NC} 👉 Interakce s otrokyněmi            ║   ║ {MAGENTA} 3){NC} 🏢 Mafie / gangy & území        ║")
-        print(f"║ {GREEN}23){NC} 🤝 Péče, oblíbenkyně, osudy         ║   ║ {CYAN}16){NC} 🏗️ Budovy dominia               ║")
-        print(f"║ {MAGENTA}28){NC} 💍 Manželství, žárlivost & rodina   ║   ║ {MAGENTA}21){NC} 🏛️ Nevěstinec & prodej dívek    ║")
-        print(f"║ {RED} 7){NC} 🧠 Subky & Domestikace             ║   ║ {CYAN} 2){NC} 💰 Nájem otrokyně               ║")
-        print(f"║ {YELLOW}11){NC} 🎯 Lov otrokyň                      ║   ║ {BLUE} 5){NC} 🤝 Diplomacie & frakce          ║")
-        print(f"║ {GREEN}15){NC} 🏛️ Dražba otrokyň                    ║   ║ {GOLD} 6){NC} 🔬 Výzkum dominia               ║")
-        print(f"║ {GOLD}30){NC} 📋 Denní rozkazy harému             ║   ║ {RED}31){NC} 🎭 Veřejný výkon                 ║")
-        print(f"{GOLD}{BOLD}╚════════════════════════════════════════╝{NC}   {MAGENTA}{BOLD}╚════════════════════════════════════════╝{NC}")
-        print(f"{CYAN}{BOLD}╔════ 🗺️ SVĚT & DOBRODRUŽSTVÍ ═══════════╗{NC}   {YELLOW}{BOLD}╔════ ⚙️ POSTAVA & PROVOZ ═══════════════╗{NC}")
-        print(f"║ {CYAN} 8){NC} 🗺️ Mapa světa & lokace             ║   ║ {YELLOW} 4){NC} 📈 Vývoj postavy                ║")
-        print(f"║ {GOLD} 9){NC} 📖 Příběhová kampaň                ║   ║ {YELLOW}18){NC} ⚔️ Souboj & aréna                ║")
-        print(f"║ {RED}14){NC} 🎲 Questy & úkoly                  ║   ║ {BLUE}19){NC} 🧪 Alchymie & lektvary          ║")
-        print(f"║ {GOLD}13){NC} 🛒 Obchod města                    ║   ║ {YELLOW}24){NC} 🛠️ Crafting & předměty          ║")
-        print(f"║ {CYAN}29){NC} 📜 Kronika dominia                  ║   ║ {CYAN}25){NC} ⚡ Dobít energii                ║")
-        print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {BLUE}12){NC} 🛌 Odpočinek (nový den)         ║")
-        print(f"║ {MAGENTA}17){NC} 📊 Statistiky a rekordy            ║   ║ {GREEN} A){NC} 🤖 Bezpečný automatický tah     ║")
-        print(f"{CYAN}{BOLD}╚════════════════════════════════════════╝{NC}   {YELLOW}{BOLD}╚════════════════════════════════════════╝{NC}")
-        print(f"{DIM}──────────────────────────────────────────────────────────────────────────────────{NC}")
-        print(f"  {YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   │   {RED}0) 🚪 Konec hry{NC}")
-        if getattr(hra.hrac, "bonus_za_questy", 0):
-            print(f"  {GREEN}✨ Quest bonus: +{hra.hrac.bonus_za_questy} zl. k dispozici{NC}")
-        if getattr(hra.hrac, "bonus_za_souboje", 0):
-            print(f"  {RED}⚔️ Souboj bonus: +{hra.hrac.bonus_za_souboje} zl. k dispozici{NC}")
+    return hra, runtime, False
+
+
+def hlavni_menu(hra: Hra):
+    runtime = _obnov_hru_runtime(hra)
+    while True:
+        clear()
+        vykresli_hlavni_menu(hra)
         try:
             volba = input("> ").strip().lower()
         except EOFError:
             uloz_hru(hra)
             return
 
-        volba = {"s": "26", "l": "26", "q": "0", "a": "auto", "m": "26"}.get(volba, volba)
-
-        if volba == "auto":
-            obsluz_automaticky_tah(hra)
-            _pockej_na_enter()
-        elif volba == "1":
-            aktivni = hra.harem.vsechny_aktivni()
-            if aktivni:
-                hlavicka("👑 HARÉM — Výběr otrokyně")
-                for i, o in enumerate(aktivni, 1):
-                    faze_nazev = nazev_faze(getattr(o, "faze_zkazenosti", 0))
-                    char_nazev = nazev_charakteru(getattr(o, "charakter", "subka"))
-                    hvezda = f"{GOLD}★ {NC}" if getattr(o, "oblibena", False) else "  "
-                    manzel = f" {MAGENTA}💍{NC}" if getattr(o, "je_manzelkou", False) else ""
-                    partner = f" {RED}♥{NC}" if getattr(o, "partnerka", False) else ""
-                    loj_bar = ukazatel(o.loajalita, 100, sirka=12)
-                    print(f"  {BOLD}{CYAN}{i}){NC} {hvezda}{BOLD}{o.jmeno}{NC}{manzel}{partner}")
-                    print(f"      {DIM}{char_nazev} • {faze_nazev} • věk {o.vek}{NC}")
-                    print(f"      Loajalita: {loj_bar}  {DIM}Osud: {o.popis_osudu()}{NC}")
-                    print()
-                print(f"  {GOLD}@){NC} Vybrat všechny aktivní otrokyně")
-                print(f"  {RED}0){NC} Zpět")
-                try:
-                    volba_otrokyn = input(f"\n{BOLD}>{NC} ").strip()
-                    if volba_otrokyn == "@":
-                        zobraz_hromadne_interakce(aktivni, hra.hrac)
-                        continue
-                    if volba_otrokyn == "0":
-                        continue
-                    idx = int(volba_otrokyn) - 1
-                    if 0 <= idx < len(aktivni):
-                        zobraz_interakce(aktivni[idx], hra.hrac, nastaveni=hra.nastaveni)
-                    else:
-                        tisk_chyba("Špatná volba.")
-                except ValueError:
-                    tisk_chyba("Zadej číslo.")
-                _pockej_na_enter()
-            else:
-                tisk_chyba("Nemáš žádné otrokyně.")
-                _pockej_na_enter()
-        elif volba == "2":
-            aktivni = hra.harem.vsechny_aktivni()
-            if aktivni:
-                volne = [o for o in aktivni if not o.na_najmu]
-                if volne:
-                    print("\nVyber otrokyni k pronájmu:")
-                    for i, o in enumerate(volne, 1):
-                        print(f"{i}) {o.jmeno}")
-                    try:
-                        idx = int(input("> ")) - 1
-                        if 0 <= idx < len(volne):
-                            najem_otrokyně(hra.hrac, volne[idx], hra.nastaveni.obtiznost)
-                        else:
-                            tisk_chyba("Špatná volba.")
-                    except ValueError:
-                        tisk_chyba("Zadej číslo.")
-                else:
-                    tisk_chyba("Všechny otrokyně jsou na najmu.")
-                _pockej_na_enter()
-            else:
-                tisk_chyba("Nemáš otrokyně.")
-                _pockej_na_enter()
-        elif volba == "3":
-            _bezpecne_volba("Mafie", spravovat_mafii, hra)
-        elif volba == "4":
-            zobraz_vyvoj(hra.hrac)
-        elif volba == "5":
-            _bezpecne_volba("Diplomacie", diplo.menu, hra)
-        elif volba == "6":
-            _bezpecne_volba("Výzkum", vyzkum.menu, hra)
-        elif volba == "7":
-            aktivni = hra.harem.vsechny_aktivni()
-            if aktivni:
-                subky.menu(hra, aktivni)
-            else:
-                tisk_chyba("Nemáš otrokyně pro domestikaci.")
-                _pockej_na_enter()
-        elif volba == "8":
-            hra.svet.menu(hra)
-        elif volba == "9":
-            hra.kampan.menu(hra)
-        elif volba == "10":
-            jmeno = random.choice(JMENA)
-            otrok = Otrokyně(jmeno=jmeno)
-            hra.harem.pridat(otrok)
-            tisk_ok(f"Přidána testovací otrokyně: {jmeno}")
-            _pockej_na_enter()
-        elif volba == "11":
-            otrok = lov_otrokyn(hra)
-            if otrok:
-                hra.harem.pridat(otrok)
-            _pockej_na_enter()
-        elif volba == "12":
-            odpocinek(hra)
-            try:
-                spust_nahodnou_udalost(hra)
-            except Exception:
-                pass
-        elif volba == "13":
-            obchod(hra)
-        elif volba == "14":
-            _bezpecne_volba("Questy", hra.questy.menu, hra)
-        elif volba == "15":
-            drazba_otrokyn(hra.hrac, hra.harem)
-            _pockej_na_enter()
-        elif volba == "16":
-            spravovat_budovy(hra)
-        elif volba == "17":
-            zobraz_statistiky(hra)
-            _pockej_na_enter()
-        elif volba == "18":
-            souboj.menu()
-        elif volba == "19":
-            hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
-        elif volba == "21":
-            _bezpecne_volba("Nevěstinec", lambda: __import__("game.nevestinec", fromlist=["menu_nevestinec"]).menu_nevestinec(hra))
-        elif volba == "23":
-            menu_haremu(hra)
-        elif volba == "24":
-            crafting.menu(hra)
-        elif volba == "25":
-            menu_energie(hra)
-        elif volba == "28":
-            menu_manzelstvi(hra)
-        elif volba in ("29", "30", "31"):
-            if obsluz_extra_volbu(volba, hra):
-                pass
-        elif volba == "26":
-            vysledek = menu_meta_hlavni(hra)
-            if vysledek == "quit":
-                return
-            if vysledek is not None:
-                hra = vysledek
-                runtime = _obnov_hru_runtime(hra)
-                diplo = runtime["diplo"]
-                vyzkum = runtime["vyzkum"]
-                subky = runtime["subky"]
-                souboj = runtime["souboj"]
-                crafting = runtime["crafting"]
-        elif volba == "0":
+        try:
+            hra, runtime, skoncit = _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu(volba), runtime
+            )
+        except EOFError:
             uloz_hru(hra)
-            print("Hra uložena. Konec hry.")
             return
-        elif volba == "20":
-            clear()
-            print(f"{GOLD}--- Rychlý přehled dne {hra.hrac.den} ---{NC}\n")
-            max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
-            max_t = hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100
-            print(
-                f"HP {hra.hrac.hp}/{hra.hrac.max_hp} | "
-                f"Energie {hra.hrac.sex_energy}/{max_s} | "
-                f"Temno {hra.hrac.dark_energy}/{max_t}"
-            )
-            print(
-                f"Místo: {hra.svet.aktualni_lokace} | "
-                f"Kampaň: {hra.kampan.kapitola + 1 if hra.kampan.aktualni() else 'hotová'}"
-            )
-            najmy = [
-                f"{o.jmeno} ({o.najem_zbyva_dni} dní)"
-                for o in hra.harem.vsechny_aktivni() if o.na_najmu
-            ]
-            if najmy:
-                print("Na najmu: " + ", ".join(najmy))
-            oblib = next((o for o in hra.harem.vsechny_aktivni() if getattr(o, "oblibena", False)), None)
-            if oblib:
-                print(f"★ Oblíbenkyně: {oblib.jmeno}")
-            _pockej_na_enter()
-        else:
-            tisk_chyba("Neplatná volba.")
-            _pockej_na_enter()
+        if skoncit:
+            return
 
 
 def nova_hra(nastaveni=None):
@@ -524,14 +483,15 @@ def start():
         print(f"{MAGENTA}4) 🎬 Trailer")
         print(f"{RED}0) Konec")
         try:
-            volba = input("> ").strip()
+            volba = input("> ").strip().lower()
         except EOFError:
             return
         if volba == "1":
             try:
                 prehraj_trailer(rychle=True, interaktivni=True)
-            except Exception:
-                pass
+            except Exception as exc:
+                logging.exception("Přehrání traileru selhalo.")
+                tisk_chyba(f"Trailer se nepodařilo přehrát: {exc}. Hra bude pokračovat.")
             hra = nova_hra()
             _CURRENT_GAME = hra
             hlavni_menu(hra)
@@ -545,9 +505,10 @@ def start():
             menu_nastaveni(h)
         elif volba == "4":
             menu_trailer()
-        else:
-            print("Konec.")
+        elif volba == "0":
             return
+        else:
+            tisk_chyba("Neplatná volba. Zadej 1, 2, 3, 4 nebo 0.")
 
 
 if __name__ == "__main__":
@@ -557,7 +518,7 @@ if __name__ == "__main__":
         # Ensure logs directory exists next to this file
         logdir = os.path.join(os.path.dirname(__file__), "logs")
         os.makedirs(logdir, exist_ok=True)
-        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         logpath = os.path.join(logdir, f"crash_{ts}.log")
         with open(logpath, "w", encoding="utf-8") as fh:
             fh.write("Unhandled exception:\n")
@@ -567,6 +528,9 @@ if __name__ == "__main__":
                 uloz_hru(_CURRENT_GAME)
                 print(f"Nečekaný pád: hra byla uložena. Log: {logpath}")
         except Exception:
-            pass
+            with open(logpath, "a", encoding="utf-8") as fh:
+                fh.write("\nCrash-save failed:\n")
+                traceback.print_exc(file=fh)
+            logging.exception("Automatické uložení po pádu selhalo.")
         print(f"Nečekaná chyba: {e}. Trace uložen do {logpath}.")
         raise

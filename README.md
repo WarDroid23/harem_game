@@ -71,7 +71,7 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `7` | **Domestikace** | Hloubkové zlomení vůle a psychologické podmínění |
 | `8` | **Mapa světa** | Cestování po 26 lokacích, NPC, questy |
 | `9` | **Kampaň** | Hlavní příběhová linie s kapitolami |
-| `10` | --TEST-- přidá jednu otrokyni
+| `T` | **Testovací volba** | Přidá jednu testovací otrokyni (vývojová funkce; funguje také stará volba `10`) |
 | `11` | **Lov otrokyň** | Získání nových žen (trh, únos, duel) |
 | `12` | **Odpočinek / Nový den** | Regenerace energie + autosave |
 | `13` | **Obchod** | Nákup a prodej předmětů |
@@ -282,6 +282,14 @@ Každá lokace nabízí až 3 speciální akce:
 - **Průzkum** — hledání surovin nebo zlata
 - **NPC dialog** — příběhové větvení, morální volby
 - **Lokační boss** — silný nepřítel, unikátní loot
+
+### Navazující úkoly NPC
+
+Rozhovory s Mírou, Lyrou, Cassianem, Terezou, Selene a Lady Eleanor mohou po
+získání jejich důvěry odemknout vícedílné úkoly. Každý úkol uchovává přijatou
+variantu i v uložené hře a nabízí čestné či temné řešení s odlišnými odměnami.
+Některé odměny jsou mapové nástroje nebo předměty, které ovlivňují další
+průzkum a reputaci frakcí.
 
 ---
 

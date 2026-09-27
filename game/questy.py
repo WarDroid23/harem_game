@@ -49,6 +49,7 @@ QUESTY = [
         "narocnost": 2,
         "odmena_zlato": 90,
         "odmena_predmet": "zdravotni_balicek",
+        "frakce_dopad": {"obchodnici": 5, "syndikat_stinu": -2},
         "riziko": 0.1,
         "doba_trvani": 1
     },
@@ -152,6 +153,69 @@ QUESTY = [
         "odmena_energie": {"sex": 15, "temna": 30},
         "riziko": 0.35,
         "doba_trvani": 2
+    },
+    {
+        "nazev": "Ztracená karavana alchymistů",
+        "popis": "Najdi karavanu, která zmizela mezi akademií a řemeslnickou čtvrtí, a vrať její zásoby.",
+        "typ": "obchod",
+        "lokace": "ctvrt_remeselniku",
+        "narocnost": 4,
+        "odmena_zlato": 240,
+        "odmena_predmet": "zdravotni_balicek",
+        "riziko": 0.2,
+        "doba_trvani": 1
+    },
+    {
+        "nazev": "Ticho v kryptě",
+        "popis": "Zastav pašeráckou skupinu, která používá katakomby jako tajný sklad.",
+        "typ": "boj",
+        "lokace": "katakomby",
+        "narocnost": 7,
+        "odmena_zlato": 560,
+        "odmena_predmet": "pecet_svedka",
+        "odmena_energie": {"temna": 20},
+        "frakce_dopad": {"syndikat_stinu": -8, "podsveti": 4},
+        "riziko": 0.3,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Dopis z věže",
+        "popis": "Doruč Cassianův vzkaz do observatoře dřív, než jej zachytí inkvizice.",
+        "typ": "npc",
+        "lokace": "observator",
+        "npc_id": "cassian",
+        "narocnost": 5,
+        "odmena_zlato": 280,
+        "odmena_predmet": "klic_observatore",
+        "odmena_energie": {"sex": 10, "temna": 10},
+        "frakce_dopad": {"cirkev": -4, "obchodnici": 3},
+        "riziko": 0.18,
+        "doba_trvani": 1
+    },
+    {
+        "nazev": "Dluh u přístavního cechu",
+        "popis": "Vyjednej odklad dluhu, který by jinak přivedl pašeráky až k branám pevnosti.",
+        "typ": "diplomacie",
+        "lokace": "pristav",
+        "narocnost": 6,
+        "odmena_zlato": 390,
+        "odmena_predmet": "tajny_vzkaz",
+        "frakce_dopad": {"syndikat_stinu": 6, "obchodnici": -3},
+        "riziko": 0.25,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Strážce krvavého lomu",
+        "popis": "Získej vzácnou rudu z lomu a rozhodni, zda ji použiješ pro válku, nebo pro výzkum.",
+        "typ": "lov",
+        "lokace": "krvavy_lom",
+        "narocnost": 8,
+        "odmena_zlato": 720,
+        "odmena_predmet": "opravarenska_sada",
+        "odmena_energie": {"temna": 30},
+        "frakce_dopad": {"podsveti": 6, "cirkev": -5},
+        "riziko": 0.35,
+        "doba_trvani": 2
     }
 ]
 
@@ -225,11 +289,13 @@ class QuestSystem:
                 hrac.dark_energy = min(100, hrac.dark_energy + max(0, int(energie.get("temna", 0))))
             if quest.get("npc_id") and hra is not None and hasattr(hra, "svet"):
                 hra.svet.zmen_vztah(quest["npc_id"], 8)
+            self._uprav_frakce(hra, quest.get("frakce_dopad", {}))
             tisk_ok(f"Quest '{quest['nazev']}' dokončen! Odměna: {quest['odmena_zlato']} zlaťáků + {bonus_questu} bonusu za výkon, +20 XP.")
         else:
             pokuta = int(quest["odmena_zlato"] * 0.5)
             hrac.gold = max(0, hrac.gold - pokuta)
             hrac.vliv_inkvizice = min(100, hrac.vliv_inkvizice + 5)
+            self._uprav_frakce(hra, quest.get("frakce_dopad", {}), nasobek=-1)
             tisk_chyba(f"Quest '{quest['nazev']}' selhal! Ztratil jsi {pokuta} zlaťáků.")
 
         self.aktivni_quest = None
@@ -248,6 +314,24 @@ class QuestSystem:
         elif not uspech and hra is not None:
             from game.kronika import zaznamenej
             zaznamenej(hra, f"Neúspěch v questu: {quest['nazev']} (−{pokuta} zl).")
+
+    @staticmethod
+    def _uprav_frakce(hra, dopady, nasobek=1):
+        if hra is None or not isinstance(dopady, dict):
+            return
+        zmeny = []
+        for frakce_id, delta in dopady.items():
+            frakce = getattr(hra, "frakce", None)
+            frakce = getattr(frakce, "frakce", {}).get(frakce_id)
+            if frakce is None:
+                continue
+            delta = int(delta) * nasobek
+            if delta:
+                frakce.zmenit(delta)
+                zmeny.append(f"{frakce.nazev} {delta:+d}")
+        if zmeny:
+            from game.kronika import zaznamenej
+            zaznamenej(hra, "Reputace frakcí: " + ", ".join(zmeny))
 
 
     def zobraz_questy(self):

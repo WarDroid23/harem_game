@@ -9,6 +9,9 @@ ACHIEVEMENTS = {
     "diplomat": ("Diplomat", "Dosáhni vztahu 75 s NPC."),
     "rok_v_pevnosti": ("Rok v pevnosti", "Přežij 28 herních dní."),
     "tri_osudy": ("Tři uzavřené osudy", "Uzavři tři osobní osudy."),
+    "siet_npc": ("Síť spojenců", "Dokonči tři NPC úkoly."),
+    "retez_npc": ("Dlouhá cesta", "Dokonči návazný NPC úkol."),
+    "mapar": ("Kartograf stínů", "Použij tři speciální předměty na mapě."),
 }
 
 
@@ -31,6 +34,9 @@ class AchievementSystem:
                 "diplomat": self.statistiky.get("vztah_75", 0) >= 1,
                 "rok_v_pevnosti": self.statistiky.get("dny", 0) >= 28,
                 "tri_osudy": self.statistiky.get("osudy", 0) >= 3,
+                "siet_npc": self.statistiky.get("npc_questy", 0) >= 3,
+                "retez_npc": self.statistiky.get("npc_retezce", 0) >= 1,
+                "mapar": self.statistiky.get("mapove_nastroje", 0) >= 3,
             }[achievement_id]
             if splneno:
                 self.odemcene.append(achievement_id)

@@ -49,6 +49,21 @@ def spust_nahodnou_udalost(hra):
             "popis": "Observatoř vyslala varovný záblesk. Někdo se blíží k hvězdné bráně.",
             "efekt": lambda h: signal_z_veze(h)
         },
+        {
+            "nazev": "Tichá sklizeň",
+            "popis": "Zahradnice objevily vzácné byliny ukryté pod noční rosou.",
+            "efekt": lambda h: ticha_sklizen(h)
+        },
+        {
+            "nazev": "Výkupné za posla",
+            "popis": "Přístavní cech zadržel tvého posla a požaduje okamžité výkupné.",
+            "efekt": lambda h: vykupne_za_posla(h)
+        },
+        {
+            "nazev": "Prasklý krystal",
+            "popis": "Ve skladišti pevnosti se uvolnila temná esence z poškozeného krystalu.",
+            "efekt": lambda h: praskly_krystal(h)
+        },
     ]
 
     udalost = random.choice(udalosti)
@@ -175,3 +190,41 @@ def signal_z_veze(hra):
         tisk_info("Cassian tě varoval: Strážce hvězdné brány je vzhůru. Temná energie +12.")
     else:
         tisk_ok("Cassian potvrdil, že věž je bezpečná. Temná energie +12.")
+
+
+def ticha_sklizen(hra):
+    """Malá pozitivní událost, která využívá již existující produkci alchymie."""
+    mnozstvi = random.randint(1, 3)
+    hra.alchymie.suroviny["bylina_mesicni"] = (
+        hra.alchymie.suroviny.get("bylina_mesicni", 0) + mnozstvi
+    )
+    hra.frakce.frakce["obchodnici"].zmenit(2)
+    _zapis_kroniku(hra, f"Tichá sklizeň přinesla {mnozstvi} měsíční byliny.")
+    tisk_ok(f"Zahradnice sklidily {mnozstvi}× měsíční bylinu.")
+
+
+def vykupne_za_posla(hra):
+    cena = 75
+    if hra.hrac.gold < cena:
+        hra.hrac.vliv_inkvizice = min(100, hra.hrac.vliv_inkvizice + 2)
+        tisk_chyba("Nemáš na výkupné. Zpráva se ztratila a inkvizice získala stopu.")
+        return
+    hra.hrac.gold -= cena
+    hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 2)
+    hra.frakce.frakce["syndikat_stinu"].zmenit(-3)
+    _zapis_kroniku(hra, "Výkupné za posla bylo zaplaceno; Syndikát stínů oslabil.")
+    tisk_ok(f"Posel je zpět. Zaplatil jsi {cena} zlaťáků; reputace města +2.")
+
+
+def praskly_krystal(hra):
+    zisk = random.randint(8, 16)
+    hra.hrac.dark_energy = min(hra.hrac.max_temno(), hra.hrac.dark_energy + zisk)
+    hra.hrac.hp = max(1, hra.hrac.hp - 3)
+    hra.frakce.frakce["kult_krve"].zmenit(3)
+    _zapis_kroniku(hra, f"Prasklý krystal uvolnil {zisk} temné energie.")
+    tisk_info(f"Získal jsi {zisk} temné energie, ale výboj tě zranil o 3 HP.")
+
+
+def _zapis_kroniku(hra, text):
+    from game.kronika import zaznamenej
+    zaznamenej(hra, text)

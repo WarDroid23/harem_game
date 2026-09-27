@@ -5,6 +5,7 @@ from config import (
     GREEN, RED, YELLOW, BLUE, MAGENTA, CYAN, GOLD, NC, BOLD, DIM, GRAY, WHITE
 )
 from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu, hlavicka
+from game.predmety import PREDMETY
 
 LOKACE = {
     "pevnost": {
@@ -819,6 +820,82 @@ class SvetSystem:
         tisk_ok(f"Dorazil jsi do lokace: {LOKACE[cil]['nazev']}.")
         return True
 
+    def pouzij_nastroj(self, hra):
+        """Použije průzkumný předmět na mapě a odhalí novou možnost."""
+        inventar = hra.hrac.inventar
+        dostupne = [
+            predmet_id for predmet_id in (
+                "lucerna_soumraku", "mesicni_kompas", "mapa_hvezd",
+                "klic_observatore", "tajny_vzkaz", "pecet_svedka",
+                "krvavy_ametyst",
+            )
+            if inventar.pocet_predmetu(predmet_id)
+        ]
+        if not dostupne:
+            tisk_info("Nemáš žádný průzkumný nástroj.")
+            return
+        print("Průzkumné nástroje:")
+        for index, predmet_id in enumerate(dostupne, 1):
+            print(f"{index}) {PREDMETY[predmet_id]['nazev']}")
+        print("0) Zpět")
+        try:
+            volba = input("> ").strip()
+            if volba == "0":
+                return
+            predmet_id = dostupne[int(volba) - 1]
+        except (ValueError, IndexError):
+            tisk_chyba("Neplatná volba.")
+            return
+
+        sousedi = [
+            lokace for lokace in LOKACE[self.aktualni_lokace]["sousedni"]
+            if lokace not in self.odhalene_lokace
+        ]
+        potrebuje_stezku = predmet_id in {"lucerna_soumraku", "mesicni_kompas", "mapa_hvezd"}
+        if potrebuje_stezku and not sousedi:
+            tisk_info("V okolí už nejsou žádné neodhalené stezky.")
+            return
+        if not inventar.odeber_predmet(predmet_id):
+            tisk_chyba("Nástroj už není v inventáři.")
+            return
+        nova_lokace = None
+        if potrebuje_stezku:
+            pocet = 2 if predmet_id == "mapa_hvezd" else 1
+            odhalene = random.sample(sousedi, min(pocet, len(sousedi)))
+            for nova_lokace in odhalene:
+                self.odhal_lokaci(nova_lokace)
+            lokace_text = ", ".join(LOKACE[lokace]["nazev"] for lokace in odhalene)
+        if predmet_id == "lucerna_soumraku":
+            hra.hrac.sex_energy = min(hra.hrac.max_sex(), hra.hrac.sex_energy + 5)
+            zprava = f"Lucerna odhalila skrytou stezku ({lokace_text}) a obnovila 5 sexuální energie."
+        elif predmet_id == "mesicni_kompas":
+            hra.hrac.dark_energy = min(hra.hrac.max_temno(), hra.hrac.dark_energy + 5)
+            zprava = f"Měsíční kompas určil bezpečný směr ({lokace_text}) a obnovil 5 temné energie."
+        elif predmet_id == "mapa_hvezd":
+            hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 4)
+            zprava = f"Mapa hvězd odhalila nové cesty ({lokace_text}); reputace města +4."
+        elif predmet_id == "klic_observatore":
+            self.odhal_lokaci("zricenina_astralni_veze")
+            hra.hrac.dark_energy = min(hra.hrac.max_temno(), hra.hrac.dark_energy + 10)
+            zprava = "Klíč observatoře otevřel astrální věž; temná energie +10."
+        elif predmet_id == "tajny_vzkaz":
+            hra.frakce.frakce["syndikat_stinu"].zmenit(8)
+            hra.frakce.frakce["obchodnici"].zmenit(3)
+            zprava = "Tajný vzkaz potvrdil spojenectví; reputace Syndikátu stínů +8."
+        elif predmet_id == "pecet_svedka":
+            hra.hrac.vliv_inkvizice = max(0, hra.hrac.vliv_inkvizice - 12)
+            hra.frakce.frakce["cirkev"].zmenit(-5)
+            zprava = "Pečeť svědka odhalila inkviziční korupci; vliv inkvizice -12."
+        else:
+            hra.hrac.dark_energy = min(hra.hrac.max_temno(), hra.hrac.dark_energy + 15)
+            hra.frakce.frakce["kult_krve"].zmenit(5)
+            zprava = "Krvavý ametyst byl obětován v rituálu; temná energie +15."
+        tisk_ok(zprava)
+        from game.kronika import zaznamenej
+        zaznamenej(hra, f"Použit předmět na mapě: {PREDMETY[predmet_id]['nazev']}.")
+        if hasattr(hra, "achievementy"):
+            hra.achievementy.zaznamenej("mapove_nastroje")
+
     def npc_v_lokaci(self):
         return [
             (npc_id, data) for npc_id, data in NPC.items()
@@ -910,6 +987,7 @@ class SvetSystem:
             print(f"  {GREEN}{BOLD}1-{len(dostupne)}){NC} Cestovat"
                   f"  |  {GOLD}A){NC} ⚡ Akce lokace"
                   f"  |  {YELLOW}P){NC} Průzkum"
+                  f"  |  {BLUE}L){NC} Nástroj"
                   f"  |  {MAGENTA}N){NC} Rozhovor s NPC"
                   f"  |  {CYAN}E){NC} Energie"
                   f"  |  {extra_prompt}"
@@ -927,6 +1005,10 @@ class SvetSystem:
                 continue
             if volba == "p":
                 self.pruzkum_lokace(hra)
+                continue
+            if volba == "l":
+                self.pouzij_nastroj(hra)
+                input("Enter...")
                 continue
             if volba == "n":
                 self.menu_npc(hra)
@@ -976,6 +1058,11 @@ class SvetSystem:
         vytiskni_volbu('1', '📜 Příběhový rozhovor & Větvení příběhu')
         vytiskni_volbu('2', '🤝 Požádat o službu')
         vytiskni_volbu('3', '⚒️ Nabídnout pomoc')
+        stav_ukolu, quest = hra.npc_questy.stav_pro_npc(hra, npc_id)
+        if stav_ukolu == "aktivni":
+            vytiskni_volbu('4', f"🎯 Dokončit úkol: {quest['nazev']}")
+        elif stav_ukolu == "dostupny":
+            vytiskni_volbu('4', f"🎯 Přijmout úkol: {quest['nazev']}")
         vytiskni_volbu('0', 'Zpět')
         akce = input("> ").strip()
         vztah = self.vztahy_npc[npc_id]
@@ -984,6 +1071,35 @@ class SvetSystem:
             return
         elif akce == "1":
             self.pribehovy_rozhovor(npc_id, npc, hra)
+            return
+
+        elif akce == "4":
+            stav_ukolu, quest = hra.npc_questy.stav_pro_npc(hra, npc_id)
+            if stav_ukolu == "dostupny":
+                if hra.npc_questy.prijmi(hra, npc_id):
+                    tisk_ok(f"Přijal jsi úkol «{quest['nazev']}».")
+                    print(quest["popis"])
+                else:
+                    tisk_chyba("Tento úkol už není dostupný.")
+            elif stav_ukolu == "aktivni":
+                print(f"\nAktivní úkol: {quest['nazev']}")
+                print(quest["popis"])
+                print("1) Vyřešit čestně")
+                print("2) Vyřešit temnou cestou")
+                vetev = input("> ").strip()
+                if vetev in ("1", "2"):
+                    vysledek = hra.npc_questy.dokoncit(
+                        hra, npc_id, temna=vetev == "2"
+                    )
+                    tisk_ok(
+                        "Úkol dokončen: "
+                        + ("temná větev." if vysledek == "temna" else "čestná větev.")
+                    )
+                else:
+                    tisk_chyba("Úkol zůstává aktivní.")
+            else:
+                tisk_info("Tento NPC ti zatím žádný úkol nenabízí.")
+            input("Enter...")
             return
 
         elif akce == "2":
@@ -1847,5 +1963,3 @@ class SvetSystem:
                 tisk_ok(f"Získal jsi lokální poplatky a daně (+25 🪙)!")
 
         input("\nEnter...")
-
-

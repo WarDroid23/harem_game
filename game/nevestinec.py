@@ -400,8 +400,8 @@ def vip_zakazky(hra):
                     hra.mafie.vliv_ve_meste = min(100, getattr(hra.mafie, "vliv_ve_meste", 0) + vybrana_nab["bonus_mafie"])
                     tisk_info(f"Podsvětí ti vyjadřuje respekt: Vliv mafie stoupl o +{vybrana_nab['bonus_mafie']}%!")
                 if vybrana_nab.get("bonus_lektvar") and hasattr(hra.hrac, "inventar"):
-                    hra.hrac.inventar.setdefault("predmety", []).append("Elixír nespoutané touhy")
-                    tisk_info("Obdržel jsi vzácný alchymistický lektvar!")
+                    hra.hrac.inventar.pridej_predmet("elixir_temnoty")
+                    tisk_info("Obdržel jsi vzácný Elixír temnoty!")
 
                 if hasattr(hra, "kronika"):
                     from game.kronika import zaznamenej

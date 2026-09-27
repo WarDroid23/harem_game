@@ -73,4 +73,28 @@ PREDMETY = {
         "boj": None,
         "hodnota": 0,
     },
+    "balzam_stinu": {
+        "nazev": "Balzám stínů",
+        "popis": "Obnoví 20 HP a 8 temné energie mimo boj.",
+        "boj": "leceni_temnota",
+        "hodnota": 20,
+    },
+    "ocelovy_zamek": {
+        "nazev": "Ocelový zámek",
+        "popis": "Dočasně posílí obranu v příštím souboji.",
+        "boj": "obrana",
+        "hodnota": 12,
+    },
+    "lucerna_soumraku": {
+        "nazev": "Lucerna soumraku",
+        "popis": "Vzácný nástroj pro průzkum a bezpečnější cestování.",
+        "boj": None,
+        "hodnota": 0,
+    },
+    "krvavy_ametyst": {
+        "nazev": "Krvavý ametyst",
+        "popis": "Vzácný krystal, který lze směnit za temnou esenci nebo použít v pokročilém rituálu.",
+        "boj": None,
+        "hodnota": 0,
+    },
 }

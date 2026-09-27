@@ -58,9 +58,18 @@ def zobraz_statistiky(hra):
     if hasattr(hra, "pevnost"):
         print(f"  Pevnost: úroveň {hra.pevnost.uroven}, bonusy {hra.pevnost.bonusy()}")
     if hasattr(hra, "achievementy"):
-        print(f"  Achievementy: {len(hra.achievementy.odemcene)}/{len(__import__('models.achievements', fromlist=['ACHIEVEMENTS']).ACHIEVEMENTS)}")
+        from models.achievements import ACHIEVEMENTS
+        print(f"  Achievementy: {len(hra.achievementy.odemcene)}/{len(ACHIEVEMENTS)}")
         for ident in hra.achievementy.odemcene:
-            print(f"    ✔ {ident}")
+            nazev = ACHIEVEMENTS.get(ident, (ident, ""))[0]
+            print(f"    ✔ {nazev}")
+    if hasattr(hra, "npc_questy"):
+        aktivni = len(hra.npc_questy.aktivni)
+        dokoncene = sum(
+            int(pocet) for pocet in hra.npc_questy.dokoncene.values()
+            if isinstance(pocet, (int, float))
+        )
+        print(f"  NPC síť: {dokoncene} dokončených, {aktivni} aktivních úkolů")
     print()
 
     tisk_info("Stiskni Enter...")
