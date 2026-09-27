@@ -217,11 +217,77 @@ class HraTesty(unittest.TestCase):
         from main import menu_nastaveni
 
         hra = Hra()
-        with patch("builtins.input", side_effect=["6", "", "0"]), redirect_stdout(
+        with patch("builtins.input", side_effect=["7", "2", "", "7", "5", "", "6", "", "0"]), redirect_stdout(
             io.StringIO()
         ):
             menu_nastaveni(hra)
         self.assertTrue(hra.nastaveni.vyvojarsky_rezim)
+        self.assertEqual(hra.nastaveni.styl_menu, "mrizka")
+
+    def test_styl_menu_a_skin_se_ukladaji_a_meni_vzhled_menu(self):
+        import config
+        from game.menu_hlavni import vykresli_hlavni_menu
+
+        hra = Hra()
+        puvodni_tema = config.CURRENT_THEME
+        puvodni_barvy = config.USE_COLORS
+        try:
+            hra.nastaveni.styl_menu = "seznam"
+            hra.nastaveni.tema = "azurovy_kristal"
+            hra.nastaveni.aplikuj()
+            self.assertEqual(
+                str(config.CYAN),
+                config.THEMES["azurovy_kristal"]["barvy"]["CYAN"],
+            )
+            nactena_nastaveni = NastaveniHry.from_dict(hra.nastaveni.to_dict())
+            self.assertEqual(nactena_nastaveni.styl_menu, "seznam")
+            self.assertEqual(nactena_nastaveni.tema, "azurovy_kristal")
+            nactena_hra = Hra.from_dict(hra.to_dict())
+            self.assertEqual(nactena_hra.nastaveni.styl_menu, "seznam")
+            self.assertEqual(nactena_hra.nastaveni.tema, "azurovy_kristal")
+            self.assertEqual(NastaveniHry.from_dict({}).styl_menu, "kategorie")
+
+            vystup = io.StringIO()
+            with redirect_stdout(vystup):
+                vykresli_hlavni_menu(hra)
+            text = vystup.getvalue()
+            self.assertIn("HLAVNÍ MENU — VŠECHNY VOLBY", text)
+            self.assertNotIn("HARÉM & VZTAHY", text)
+
+            hra.nastaveni.styl_menu = "kompaktni"
+            vystup = io.StringIO()
+            with redirect_stdout(vystup):
+                vykresli_hlavni_menu(hra)
+            self.assertIn("Kompaktní", hra.nastaveni.styl_menu_text)
+            self.assertIn("📜 HLAVNÍ MENU", vystup.getvalue())
+
+            from game.settings import STYLY_MENU
+            for styl in STYLY_MENU:
+                hra.nastaveni.styl_menu = styl
+                vystup = io.StringIO()
+                with redirect_stdout(vystup):
+                    vykresli_hlavni_menu(hra)
+                text = vystup.getvalue()
+                self.assertTrue(
+                    all(f"{cislo:>2})" in text for cislo in range(1, 32)),
+                    f"Menu style {styl} omitted an option",
+                )
+                if styl == "kategorie":
+                    self.assertIn("HARÉM & VZTAHY", text)
+
+            for tema, informace in config.THEMES.items():
+                hra.nastaveni.tema = tema
+                hra.nastaveni.aplikuj()
+                self.assertEqual(str(config.CYAN), informace["barvy"]["CYAN"])
+                self.assertEqual(
+                    NastaveniHry.from_dict(hra.nastaveni.to_dict()).tema,
+                    tema,
+                )
+        finally:
+            config.set_colors_enabled(puvodni_barvy)
+            config.apply_theme(puvodni_tema)
+            hra.nastaveni.tema = puvodni_tema
+            hra.nastaveni.barvy = puvodni_barvy
 
     def test_obtiznost_meni_silu_a_odmenu(self):
         self.assertLess(
@@ -474,7 +540,11 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Obsazení městské zbrojnice", nazvy)
 
     def test_hlavni_menu_zkratky_a_zobrazeni_testovaci_volby(self):
-        from game.menu_hlavni import normalizuj_volbu, vykresli_hlavni_menu
+        from game.menu_hlavni import (
+            MAPOVANI_CISEL_MENU,
+            normalizuj_volbu,
+            vykresli_hlavni_menu,
+        )
         from main import (
             _obnov_hru_runtime,
             _obsluz_volbu_hlavniho_menu,
@@ -484,8 +554,13 @@ class HraTesty(unittest.TestCase):
         hra = Hra()
 
         self.assertEqual(normalizuj_volbu("t"), "test")
-        self.assertEqual(normalizuj_volbu("10"), "test")
+        self.assertEqual(normalizuj_volbu("10"), "11")
+        self.assertEqual(normalizuj_volbu("31"), "32")
         self.assertEqual(normalizuj_volbu("s"), "26")
+        self.assertEqual(
+            list(MAPOVANI_CISEL_MENU),
+            [str(cislo) for cislo in range(1, 32)],
+        )
         self.assertEqual(normalizuj_volbu("$"), "cheat")
         self.assertEqual(normalizuj_volbu("&"), "cheat_suroviny")
         self.assertEqual(normalizuj_volbu("#"), "cheat_dovednosti")
@@ -500,7 +575,10 @@ class HraTesty(unittest.TestCase):
         self.assertNotIn("&) 🧪 Cheat:", vystup.getvalue())
         self.assertNotIn("#) 📈 Cheat:", vystup.getvalue())
         self.assertNotIn("*) 🏗️ Cheat:", vystup.getvalue())
-        self.assertIn("32) 📅 Kalendář a události", vystup.getvalue())
+        self.assertIn("10)", vystup.getvalue())
+        self.assertIn("🎯 Lov otrokyň", vystup.getvalue())
+        self.assertIn("31)", vystup.getvalue())
+        self.assertIn("📅 Kalendář a události", vystup.getvalue())
 
         zlato_pred = hra.hrac.gold
         with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
@@ -509,6 +587,7 @@ class HraTesty(unittest.TestCase):
             )
         self.assertEqual(hra.hrac.gold, zlato_pred)
         self.assertEqual(hra.harem.pocet(), 0)
+
         suroviny_pred = dict(hra.alchymie.suroviny)
         zasoby_pevnosti_pred = {
             atribut: getattr(hra.pevnost, atribut)
@@ -547,13 +626,14 @@ class HraTesty(unittest.TestCase):
         vystup = io.StringIO()
         with redirect_stdout(vystup):
             vykresli_hlavni_menu(hra)
-        self.assertIn("T) 🧪 Testovací otrokyně", vystup.getvalue())
+        self.assertIn("T)", vystup.getvalue())
+        self.assertIn("🧪 Testovací otrokyně", vystup.getvalue())
         self.assertIn("$) 💰 Cheat:", vystup.getvalue())
         self.assertIn("&) 🧪 Cheat:", vystup.getvalue())
         self.assertIn("#) 📈 Cheat:", vystup.getvalue())
         self.assertIn("*) 🏗️ Cheat:", vystup.getvalue())
 
-        for volba in ("t", "10"):
+        for volba in ("t",):
             hra = Hra()
             hra.nastaveni.vyvojarsky_rezim = True
             with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
@@ -634,6 +714,45 @@ class HraTesty(unittest.TestCase):
         ) as uloz, redirect_stdout(io.StringIO()):
             hlavni_menu(hra)
         uloz.assert_called_once_with(hra)
+
+    def test_hlavni_menu_doporucuje_konretni_cil_a_podminky_postupu(self):
+        from game.cile_hry import prehled_cilu
+        from game.pruvodce import _doporuceni
+        from game.menu_hlavni import vykresli_hlavni_menu
+
+        hra = Hra()
+        prehled = prehled_cilu(hra)
+        self.assertIn("Kampaň 1/5", prehled["aktivni"][0])
+        self.assertIn("Mapa (8)", prehled["doporuceni"])
+        self.assertIn("Starý trh", prehled["doporuceni"])
+        self.assertEqual(_doporuceni(hra)[0], prehled["doporuceni"])
+        self.assertTrue(any("volbě 3" in tip for tip in _doporuceni(hra)))
+
+        hra.questy.aktivni_quest = {
+            "nazev": "Zpráva pro Miru",
+            "lokace": "trh",
+        }
+        hra.questy.dny_zbyva = 2
+        prehled = prehled_cilu(hra)
+        self.assertTrue(any(cil.startswith("Úkol: Zpráva pro Miru") for cil in prehled["aktivni"]))
+        self.assertIn("zbývá 2 dní", prehled["doporuceni"])
+        self.assertIn("Mapa (8)", prehled["doporuceni"])
+
+        hra.questy.aktivni_quest = None
+        hra.kampan.kapitola = 4
+        if "observator" not in hra.svet.odhalene_lokace:
+            hra.svet.odhalene_lokace.append("observator")
+        hra.svet.aktualni_lokace = "observator"
+        prehled = prehled_cilu(hra)
+        self.assertIn("Souboj (17)", prehled["doporuceni"])
+        hra.kampan.boss_porazeni.append("strazce_hvezdne_brany")
+        self.assertIn("Kampaň (9)", prehled_cilu(hra)["doporuceni"])
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vykresli_hlavni_menu(hra)
+        self.assertIn("AKTIVNÍ CÍLE A DOPORUČENÝ KROK", vystup.getvalue())
+        self.assertIn("vyber závěr příběhu", vystup.getvalue())
 
     def test_denik_ukolu_zobrazuje_stav_bez_zmeny_hry(self):
         from game.denik_ukolu import zobraz_denik_ukolu

@@ -2,48 +2,14 @@
 
 from config import CYAN, DIM, GOLD, GREEN, MAGENTA, NC, YELLOW
 from game.kampan import KAPITOLY
+from game.cile_hry import doporuceni_pro_pruvodce
 from utils.vypis import clear, hlavicka, menu_cara
 
 
 def _doporuceni(hra):
-    doporuceni = []
-    kapitola = hra.kampan.aktualni()
-    if kapitola:
-        lokace_id = kapitola.get("lokace")
-        if lokace_id and lokace_id not in hra.svet.odhalene_lokace:
-            doporuceni.append(
-                "Pokračuj v příběhu přes volbu 9; další oblast se odhalí postupem kampaně."
-            )
-        elif lokace_id and hra.svet.aktualni_lokace != lokace_id:
-            doporuceni.append(
-                f"Kampaň čeká na lokaci {lokace_id}. Otevři mapu volbou 8 a vydej se tam."
-            )
-
-    if hra.questy.aktivni_quest:
-        quest = hra.questy.aktivni_quest
-        lokace_id = quest.get("lokace")
-        if lokace_id and hra.svet.aktualni_lokace != lokace_id:
-            doporuceni.append(
-                f"Úkol „{quest.get('nazev', 'aktivní úkol')}“ plň v lokaci "
-                f"{lokace_id}; mapu otevřeš volbou 8."
-            )
-        else:
-            doporuceni.append(
-                f"Pokračuj v úkolu „{quest.get('nazev', 'aktivní úkol')}“ přes volbu 14."
-            )
-
-    if not hra.npc_questy.aktivni:
-        doporuceni.append(
-            "Promluv s NPC v navštívených lokacích; dobré vztahy odemykají jejich úkoly."
-        )
+    doporuceni = doporuceni_pro_pruvodce(hra)
     if not hra.mafie.uzemi:
-        doporuceni.append(
-            "Pro stabilní příjem prozkoumej mafii a území ve volbě 3."
-        )
-    if not doporuceni:
-        doporuceni.append(
-            "Rozvíjej vztahy s NPC, plň jejich navazující úkoly a sleduj kroniku ve volbě 29."
-        )
+        doporuceni.append("Pro stabilní příjem prozkoumej mafii a území ve volbě 3.")
     return doporuceni
 
 

@@ -100,6 +100,9 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 
 Nabídky používají rámečky, barvy a tematické ikony. Emoji se mohou v některých
 starších terminálech zobrazit odlišně; číselné volby zůstávají plně funkční.
+Hlavní menu navíc ukazuje aktivní cíle a konkrétní doporučený krok včetně
+potřebné lokace, volby menu nebo podmínky pro postup kampaní. Stejná priorita
+doporučení se používá také v průvodci.
 Testovací volba `T` a cheaty `$`, `&`, `#` a `*` jsou skryté a neaktivní, dokud v nastavení hry
 (`26` → `3` → `6`) nezapneš **Vývojářský režim**. V tomto režimu `T` (nebo
 zpětně kompatibilní `10`) přidá testovací otrokyni a `$` přidá 10 000 zlata a
@@ -515,16 +518,36 @@ harem_dark_v18_autosave.json
 
 ## 🎨 Barevná témata
 
-`Menu 26 → Nastavení → 3) Barevné téma`
+`Menu 26 → Nastavení → 3) Skin / barevné schéma`
 
 | # | Téma | Popis |
 |---|------|-------|
 | 1 | **Temné dominium** | Výchozí — tmavá fialová a červená |
-| 2 | **Krvavý trůn** | Červená a černá |
-| 3 | **Ledová panenka** | Bílá a modrá |
-| 4 | **Zelený had** | Zelená a zlatá |
-| 5 | **Růžové hedvábí** | Růžová a béžová |
-| 6 | **Monochrom** | Pro staré terminály bez barev |
+| 2 | **Krvavý trůn** | Sytá červená a zlatá |
+| 3 | **Ledová panenka** | Studená modrá a stříbrná |
+| 4 | **Zelený had** | Jedovatě zelená a temná |
+| 5 | **Růžové hedvábí** | Jemná růžová a fialová |
+| 6 | **Monochrom** | Elegantní odstíny šedi |
+| 7 | **Azurový krystal** | Tyrkysová, safírová a stříbrná |
+| 8 | **Smaragdový dvůr** | Smaragdová a teplá zlatá |
+| 9 | **Jantarový pokoj** | Jantarová, měděná a vínová |
+| 10 | **Půlnoční nebe** | Indigová a noční modř |
+| 11 | **Ohnivý fénix** | Žhavá červeň, oranžová a měď |
+| 12 | **Lesní duch** | Mechová zeleň a měsíční stříbro |
+| 13 | **Neonová metropole** | Elektrická tyrkysová a růžová |
+
+Skin mění sémantickou barevnou paletu napříč herním rozhraním a v nastavení
+zobrazuje barevný náhled. Barvy terminálu lze nezávisle vypnout volbou **1**.
+
+V nastavení najdeš také **7) Styl hlavního menu**:
+- **Kategorie v rámečcích** — čtyři tematické panely.
+- **Seznam bez kategorií** — původní jednoduchý seznam všech voleb.
+- **Kompaktní dva sloupce** — úspornější zobrazení bez rámečků.
+- **Sekce bez rámečků** — kategorie jsou barevně oddělené nadpisy.
+- **Třísloupcová mřížka** — zkrácené názvy šetří místo na obrazovce.
+
+Skin i rozložení menu se ukládají do uložené hry. Starší uložené hry automaticky
+dostanou výchozí temný skin a kategorické menu.
 
 ---
 

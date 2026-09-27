@@ -1,10 +1,47 @@
 """Zobrazení hlavního herního menu a zpracování jeho textových zkratek."""
 
+import textwrap
+
 from config import (
     RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, NC, DIM,
 )
 from utils.vypis import ascii_art, terminalni_obrazek, ukazatel
+from game.cile_hry import prehled_cilu
 
+
+POLOZKY_HLAVNIHO_MENU = (
+    ("1", "👉 Interakce s otrokyněmi"),
+    ("2", "💰 Nájem otrokyně"),
+    ("3", "🏢 Mafie / gangy & území"),
+    ("4", "📈 Vývoj postavy"),
+    ("5", "🤝 Diplomacie & frakce"),
+    ("6", "🔬 Výzkum dominia"),
+    ("7", "🧠 Subky & domestikace"),
+    ("8", "🗺️ Mapa světa & lokace"),
+    ("9", "📖 Příběhová kampaň"),
+    ("11", "🎯 Lov otrokyň"),
+    ("12", "🛌 Odpočinek (nový den)"),
+    ("13", "🛒 Obchod města"),
+    ("14", "🎲 Questy & úkoly"),
+    ("15", "🏛️ Dražba otrokyň"),
+    ("16", "🏗️ Budovy dominia"),
+    ("17", "📊 Grafy & statistiky"),
+    ("18", "⚔️ Souboj & aréna"),
+    ("19", "🧪 Alchymie & lektvary"),
+    ("20", "📋 Rychlý přehled dne"),
+    ("21", "🏛️ Nevěstinec & prodej dívek"),
+    ("22", "📜 Deník úkolů"),
+    ("23", "🤝 Profily, osobnost, vztahy"),
+    ("24", "🛠️ Crafting & předměty"),
+    ("25", "⚡ Dobít energii"),
+    ("26", "🏠 Hlavní menu (uložit / načíst / nastavení)"),
+    ("27", "🧭 Průvodce dominiem"),
+    ("28", "💍 Manželství, žárlivost & rodina"),
+    ("29", "📖 Kronika dominia"),
+    ("30", "📋 Denní rozkazy harému"),
+    ("31", "🎭 Veřejný výkon"),
+    ("32", "📅 Kalendář a události"),
+)
 
 ZKRATKY_HLAVNIHO_MENU = {
     "s": "26",
@@ -13,17 +50,30 @@ ZKRATKY_HLAVNIHO_MENU = {
     "q": "0",
     "a": "auto",
     "t": "test",
-    "10": "test",
     "$": "cheat",
     "&": "cheat_suroviny",
     "#": "cheat_dovednosti",
     "*": "cheat_budovy",
 }
 
+MAPOVANI_CISEL_MENU = {
+    str(nove_cislo): stare_cislo
+    for nove_cislo, (stare_cislo, _popis) in enumerate(POLOZKY_HLAVNIHO_MENU, 1)
+}
+
+KATEGORIE_HLAVNIHO_MENU = (
+    ("👑 HARÉM & VZTAHY", (1, 7, 14, 20, 22, 27, 29, 30)),
+    ("🏰 PANSTVÍ & IMPÉRIUM", (2, 3, 5, 6, 12, 15)),
+    ("🗺️ SVĚT & DOBRODRUŽSTVÍ", (8, 9, 10, 13, 21, 26, 28, 31)),
+    ("⚙️ POSTAVA & PROVOZ", (4, 11, 16, 17, 18, 19, 23, 24, 25)),
+)
+
 
 def normalizuj_volbu(volba):
-    """Převede zkratky menu na kanonické hodnoty; 10 zůstává zpětně kompatibilní."""
-    return ZKRATKY_HLAVNIHO_MENU.get(volba, volba)
+    """Převede nové číslování a textové zkratky na interní volby."""
+    return ZKRATKY_HLAVNIHO_MENU.get(
+        volba, MAPOVANI_CISEL_MENU.get(volba, volba)
+    )
 
 
 def vykresli_hlavni_menu(hra):
@@ -50,46 +100,130 @@ def vykresli_hlavni_menu(hra):
         barva_plno=MAGENTA, barva_malo=RED,
     )
     print(
-        f"{GOLD}{BOLD}║{NC} ⚡ Energie   {bar_s}   🌑 Temno  {bar_t}  "
-        f"{RED}☩Inkvizice {hra.hrac.vliv_inkvizice:<3}{NC}  "
-        f"{CYAN}📍{hra.svet.aktualni_lokace}{NC}"
-        f"{GOLD}{BOLD}{'':>1}║{NC}"
+        f"{GOLD}{BOLD}║{NC} ⚡ Energie {bar_s}  🌑 Temno {bar_t}"
+        f"{GOLD}{BOLD}║{NC}"
+    )
+    print(
+        f"{GOLD}{BOLD}║{NC} {RED}☩ Inkvizice {hra.hrac.vliv_inkvizice:<3}{NC}  "
+        f"{CYAN}🏰 Pevnost {hra.pevnost.uroven}{NC}  "
+        f"📍 {hra.svet.aktualni_lokace} "
+        f"{GOLD}{BOLD}║{NC}"
     )
     print(f"{GOLD}{BOLD}╚{'═'*76}╝{NC}")
     print()
 
-    print(f"{GOLD}{BOLD}╔════ 👑 HARÉM & DÍVKY ══════════════════╗{NC}   {MAGENTA}{BOLD}╔════ 🏰 PANSTVÍ & IMPÉRIUM ═════════════╗{NC}")
-    print(f"║ {GREEN} 1){NC} 👉 Interakce s otrokyněmi            ║   ║ {MAGENTA} 3){NC} 🏢 Mafie / gangy & území        ║")
-    print(f"║ {GREEN}23){NC} 🤝 Profily, osobnost, vztahy        ║   ║ {CYAN}16){NC} 🏗️ Budovy dominia               ║")
-    print(f"║ {MAGENTA}28){NC} 💍 Manželství, žárlivost & rodina   ║   ║ {MAGENTA}21){NC} 🏛️ Nevěstinec & prodej dívek    ║")
-    print(f"║ {RED} 7){NC} 🧠 Subky & Domestikace             ║   ║ {CYAN} 2){NC} 💰 Nájem otrokyně               ║")
-    print(f"║ {YELLOW}11){NC} 🎯 Lov otrokyň                      ║   ║ {BLUE} 5){NC} 🤝 Diplomacie & frakce          ║")
-    print(f"║ {GREEN}15){NC} 🏛️ Dražba otrokyň                    ║   ║ {GOLD} 6){NC} 🔬 Výzkum dominia               ║")
-    print(f"║ {GOLD}30){NC} 📋 Denní rozkazy harému             ║   ║ {RED}31){NC} 🎭 Veřejný výkon                 ║")
-    print(f"{GOLD}{BOLD}╚════════════════════════════════════════╝{NC}   {MAGENTA}{BOLD}╚════════════════════════════════════════╝{NC}")
-    print(f"{CYAN}{BOLD}╔════ 🗺️ SVĚT & DOBRODRUŽSTVÍ ═══════════╗{NC}   {YELLOW}{BOLD}╔════ ⚙️ POSTAVA & PROVOZ ═══════════════╗{NC}")
-    print(f"║ {CYAN} 8){NC} 🗺️ Mapa světa & lokace             ║   ║ {YELLOW} 4){NC} 📈 Vývoj postavy                ║")
-    print(f"║ {GOLD} 9){NC} 📖 Příběhová kampaň                ║   ║ {YELLOW}18){NC} ⚔️ Souboj & aréna                ║")
-    print(f"║ {RED}14){NC} 🎲 Questy & úkoly                  ║   ║ {BLUE}19){NC} 🧪 Alchymie & lektvary          ║")
-    print(f"║ {GOLD}13){NC} 🛒 Obchod města                    ║   ║ {YELLOW}24){NC} 🛠️ Crafting & předměty          ║")
-    print(f"║ {CYAN}22){NC} 📜 Deník úkolů                      ║   ║ {CYAN}25){NC} ⚡ Dobít energii                ║")
-    print(f"║ {CYAN}29){NC} 📖 Kronika dominia                  ║   ║ {BLUE}12){NC} 🛌 Odpočinek (nový den)         ║")
-    print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {MAGENTA}17){NC} 📊 Grafy & statistiky         ║")
-    print(f"║ {YELLOW}27){NC} 🧭 Průvodce dominiem               ║   ║ {GREEN} A){NC} 🤖 Bezpečný automatický tah     ║")
-    print(f"{CYAN}{BOLD}╚════════════════════════════════════════╝{NC}   {YELLOW}{BOLD}╚════════════════════════════════════════╝{NC}")
-    print(f"{DIM}──────────────────────────────────────────────────────────────────────────────────{NC}")
-    menu_spodek = (
-        f"  {YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   │   "
-    )
+    cile = prehled_cilu(hra)
+    print(f"{GOLD}{BOLD}╔════ 🎯 AKTIVNÍ CÍLE A DOPORUČENÝ KROK ═════════════════════════════════╗{NC}")
+    if cile["aktivni"]:
+        text_cilu = " • ".join(cile["aktivni"])
+        for radek in textwrap.wrap(text_cilu, width=72):
+            print(f"{GOLD}║{NC} {YELLOW}{radek}{NC}")
+    else:
+        print(f"{GOLD}║{NC} {DIM}Nemáš žádný aktivní úkol.{NC}")
+    for radek in textwrap.wrap(cile["doporuceni"], width=72):
+        print(f"{GOLD}║{NC} {GREEN}➜ {radek}{NC}")
+    print(f"{GOLD}{BOLD}╚{'═'*76}╝{NC}")
+    print()
+
+    popisy = {
+        cislo: popis
+        for cislo, (_stare_cislo, popis) in enumerate(POLOZKY_HLAVNIHO_MENU, 1)
+    }
+    popisy[25] = "🏠 Uložit / načíst / nastavení"
+    styl = getattr(hra.nastaveni, "styl_menu", "kategorie")
+    if styl == "seznam":
+        print(f"{GOLD}{BOLD}╔════ 📜 HLAVNÍ MENU — VŠECHNY VOLBY ════╗{NC}")
+        for cislo, popis in popisy.items():
+            print(
+                f"{YELLOW}{cislo:>2}){NC} {popis}"
+            )
+        print(f"{GOLD}{BOLD}╚═══════════════════════════════════════╝{NC}")
+    elif styl == "kompaktni":
+        print(f"{CYAN}{BOLD}📜 HLAVNÍ MENU{NC}")
+        volby = list(popisy.items())
+        for index in range(0, len(volby), 2):
+            prvni = f"{volby[index][0]:>2}) {volby[index][1]}"
+            druhy = None
+            if index + 1 < len(volby):
+                druhy = f"{volby[index + 1][0]:>2}) {volby[index + 1][1]}"
+            print(
+                f"  {YELLOW}{prvni.ljust(58)}{NC} "
+                f"{CYAN}{druhy or ''}{NC}"
+            )
+    elif styl == "sekce":
+        barvy_sekci = (GOLD, MAGENTA, CYAN, YELLOW)
+        for index, (nazev, cisla) in enumerate(KATEGORIE_HLAVNIHO_MENU):
+            barva = barvy_sekci[index]
+            print(f"\n{barva}{BOLD}── {nazev} ──{NC}")
+            for cislo in cisla:
+                print(f"  {YELLOW}{cislo:>2}){NC} {popisy[cislo]}")
+    elif styl == "mrizka":
+        kratke_popisy = {
+            1: "Interakce s harémem", 2: "Nájem", 3: "Mafie a území",
+            4: "Vývoj postavy", 5: "Diplomacie", 6: "Výzkum",
+            7: "Domestikace", 8: "Mapa a lokace", 9: "Příběhová kampaň",
+            10: "Lov", 11: "Odpočinek", 12: "Obchod",
+            13: "Questy", 14: "Dražba", 15: "Budovy dominia",
+            16: "Grafy a statistiky", 17: "Souboj a aréna", 18: "Alchymie",
+            19: "Přehled dne", 20: "Nevěstinec", 21: "Deník úkolů",
+            22: "Profily a vztahy", 23: "Crafting", 24: "Dobít energii",
+            25: "Uložit a nastavení", 26: "Průvodce", 27: "Manželství",
+            28: "Kronika", 29: "Denní rozkazy", 30: "Veřejný výkon",
+            31: "Kalendář",
+        }
+        print(f"{CYAN}{BOLD}╔════ 📜 HLAVNÍ MENU — MŘÍŽKA ═══════════════════════════════════════════════╗{NC}")
+        cisla = list(kratke_popisy)
+        for index in range(0, len(cisla), 3):
+            bunky = [
+                f"{cislo:>2}) {kratke_popisy[cislo]}"
+                for cislo in cisla[index:index + 3]
+            ]
+            bunky.extend([""] * (3 - len(bunky)))
+            print(
+                f"{CYAN}║{NC} "
+                + f"  {CYAN}│{NC} ".join(f"{YELLOW}{bunka:<26}{NC}" for bunka in bunky)
+                + f"{CYAN}║{NC}"
+            )
+        print(f"{CYAN}{BOLD}╚═══════════════════════════════════════════════════════════════════════════╝{NC}")
+    else:
+        sirka_okna = 47
+        okna = []
+        for nazev, cisla in KATEGORIE_HLAVNIHO_MENU:
+            radky = [nazev]
+            radky.extend(f"{cislo:>2}) {popisy[cislo]}" for cislo in cisla)
+            okna.append(radky)
+
+        for indeks in range(0, len(okna), 2):
+            para = okna[indeks:indeks + 2]
+            max_radku = max(len(okno) for okno in para)
+            print(
+                f"{GOLD}{BOLD}╔{'═' * (sirka_okna + 2)}╗   "
+                f"╔{'═' * (sirka_okna + 2)}╗{NC}"
+            )
+            for radka in range(max_radku):
+                bunky = [
+                    okno[radka] if radka < len(okno) else ""
+                    for okno in para
+                ]
+                bunky = [bunka[:sirka_okna].ljust(sirka_okna) for bunka in bunky]
+                barva = f"{BOLD}{GOLD if radka == 0 else YELLOW}"
+                print(
+                    f"{barva}║{NC} {bunky[0]} "
+                    f"{barva}║{NC}   "
+                    f"{barva}║{NC} {bunky[1]} "
+                    f"{barva}║{NC}"
+                )
+            print(
+                f"{GOLD}{BOLD}╚{'═' * (sirka_okna + 2)}╝   "
+                f"╚{'═' * (sirka_okna + 2)}╝{NC}"
+            )
+    print(f"  {GREEN}A){NC} 🤖 Bezpečný automatický tah")
+    menu_spodek = ""
     if hra.nastaveni.vyvojarsky_rezim:
         menu_spodek += (
-            f"{MAGENTA}T) 🧪 Testovací otrokyně{NC}   │   "
-            f"{RED}0) 🚪 Konec hry{NC}"
+            f"  {MAGENTA}T){NC} 🧪 Testovací otrokyně   │   "
         )
-    else:
-        menu_spodek += f"{RED}0) 🚪 Konec hry{NC}"
-    print(menu_spodek)
-    print(f"  {CYAN}32) 📅 Kalendář a události{NC}")
+    print(f"{menu_spodek}{RED}0) 🚪 Konec hry{NC}")
     if hra.nastaveni.vyvojarsky_rezim:
         print(f"  {GOLD}$) 💰 Cheat: +10 000 zl. a doplnění všech energií{NC}")
         print(f"  {CYAN}&) 🧪 Cheat: +1 000 od všech surovin a zásob pevnosti{NC}")

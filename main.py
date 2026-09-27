@@ -32,7 +32,7 @@ from game.menu_extra import obsluz_extra_volbu
 from game.menu_hlavni import normalizuj_volbu, vykresli_hlavni_menu
 from game.nevestinec import menu_nevestinec
 from utils.vypis import (
-    clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
+    clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel, hlavicka,
 )
 from data.jmena import vyber_nove_jmeno
@@ -133,13 +133,14 @@ def menu_nastaveni(hra):
         hlavicka("Nastavení hry")
         print(f"1) Barvy terminálu: {'zapnuté' if nastaveni.barvy else 'vypnuté'}")
         print(f"2) Obtížnost: {nastaveni.obtiznost_text}")
-        print(f"3) Barevné téma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
+        print(f"3) Skin / barevné schéma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
         print(f"4) Ironman: {'ANO' if getattr(nastaveni, 'ironman', False) else 'ne'}")
         print(f"5) AI dialogy: {'zapnuté (Ollama/API)' if getattr(nastaveni, 'ai_dialogy', False) else 'vypnuté'}")
         print(
             f"6) Vývojářský režim (cheaty a testy): "
             f"{'zapnutý' if nastaveni.vyvojarsky_rezim else 'vypnutý'}"
         )
+        print(f"7) Styl hlavního menu: {nastaveni.styl_menu_text}")
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -168,7 +169,13 @@ def menu_nastaveni(hra):
             seznam = list(THEMES.items())
             for i, (tid, info) in enumerate(seznam, 1):
                 aktivni = " ← aktivní" if tid == getattr(nastaveni, "tema", "") else ""
-                print(f"{i}) {info['nazev']}{aktivni}")
+                vzorek = ""
+                if nastaveni.barvy:
+                    vzorek = "".join(
+                        f"{info['barvy'][barva]}██"
+                        for barva in ("RED", "GREEN", "BLUE", "MAGENTA", "GOLD")
+                    ) + "\033[0m "
+                print(f"{i}) {vzorek}{info['nazev']}{aktivni}")
                 print(f"   {info['popis']}")
             print("0) Zpět")
             vyber = input("> ").strip()
@@ -207,6 +214,33 @@ def menu_nastaveni(hra):
                 f"Vývojářský režim {stav}. "
                 "Změna se uloží spolu s uloženou hrou."
             )
+            input("Enter...")
+        elif volba == "7":
+            from game.settings import STYLY_MENU
+            nazvy_stylu = {
+                "kategorie": "Čtyři kategorie v rámečcích",
+                "seznam": "Seznam bez kategorií",
+                "kompaktni": "Kompaktní dva sloupce",
+                "sekce": "Kategorie jako barevné sekce bez rámečků",
+                "mrizka": "Kompaktní mřížka ve třech sloupcích",
+            }
+            print("\n--- Styl hlavního menu ---\n")
+            for index, styl in enumerate(STYLY_MENU, 1):
+                aktivni = " ← aktivní" if styl == nastaveni.styl_menu else ""
+                print(f"{index}) {nazvy_stylu[styl]}{aktivni}")
+            print("0) Zpět")
+            vyber = input("> ").strip()
+            if vyber == "0":
+                continue
+            try:
+                index = int(vyber) - 1
+                if 0 <= index < len(STYLY_MENU):
+                    nastaveni.styl_menu = STYLY_MENU[index]
+                    tisk_ok(f"Styl menu změněn: {nastaveni.styl_menu_text}.")
+                else:
+                    tisk_chyba("Špatná volba.")
+            except ValueError:
+                tisk_chyba("Zadej číslo.")
             input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")
@@ -553,8 +587,8 @@ def start():
     global _CURRENT_GAME
     while True:
         clear()
-        ascii_art()
-        print(f"{GOLD}{BOLD}HAREM DARK – Dark Expansion{NC}\n")
+        print(f"{GOLD}{BOLD}👑 HAREM DARK{NC}")
+        print(f"{DIM}Dark Expansion{NC}\n")
         print(f"{GREEN}1) Nová hra")
         print(f"{CYAN}2) Načíst hru")
         print(f"{WHITE}3) Nastavení")

@@ -92,7 +92,7 @@ THEMES = {
         },
     },
     "ruzovy_hedvab": {
-        "nazev": "Růžový hedváb",
+        "nazev": "Růžové hedvábí",
         "popis": "Jemná růžová a fialová – erotika a péče.",
         "barvy": {
             "RED": "\033[38;5;205m", "GREEN": "\033[38;5;176m", "YELLOW": "\033[38;5;218m",
@@ -109,6 +109,76 @@ THEMES = {
             "BLUE": "\033[38;5;245m", "MAGENTA": "\033[38;5;248m", "CYAN": "\033[38;5;251m",
             "GOLD": "\033[38;5;255m", "ORANGE": "\033[38;5;249m", "VIOLET": "\033[38;5;247m",
             "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;240m",
+        },
+    },
+    "azurovy_kristal": {
+        "nazev": "Azurový krystal",
+        "popis": "Jasná tyrkysová a safírová se stříbrnými akcenty.",
+        "barvy": {
+            "RED": "\033[38;5;203m", "GREEN": "\033[38;5;48m", "YELLOW": "\033[38;5;159m",
+            "BLUE": "\033[38;5;33m", "MAGENTA": "\033[38;5;117m", "CYAN": "\033[38;5;51m",
+            "GOLD": "\033[38;5;153m", "ORANGE": "\033[38;5;45m", "VIOLET": "\033[38;5;75m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;245m",
+        },
+    },
+    "smaragdovy_dvur": {
+        "nazev": "Smaragdový dvůr",
+        "popis": "Smaragdové, jadeitové a teplé zlaté odstíny.",
+        "barvy": {
+            "RED": "\033[38;5;203m", "GREEN": "\033[38;5;48m", "YELLOW": "\033[38;5;220m",
+            "BLUE": "\033[38;5;31m", "MAGENTA": "\033[38;5;114m", "CYAN": "\033[38;5;86m",
+            "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;172m", "VIOLET": "\033[38;5;115m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;244m",
+        },
+    },
+    "jantarovy_pokoj": {
+        "nazev": "Jantarový pokoj",
+        "popis": "Hřejivá jantarová a měděná s hlubokou vínovou.",
+        "barvy": {
+            "RED": "\033[38;5;167m", "GREEN": "\033[38;5;114m", "YELLOW": "\033[38;5;221m",
+            "BLUE": "\033[38;5;109m", "MAGENTA": "\033[38;5;175m", "CYAN": "\033[38;5;116m",
+            "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;214m", "VIOLET": "\033[38;5;139m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;245m",
+        },
+    },
+    "pulnocni_nebe": {
+        "nazev": "Půlnoční nebe",
+        "popis": "Indigová, noční modř a zářivé hvězdné akcenty.",
+        "barvy": {
+            "RED": "\033[38;5;203m", "GREEN": "\033[38;5;80m", "YELLOW": "\033[38;5;229m",
+            "BLUE": "\033[38;5;63m", "MAGENTA": "\033[38;5;141m", "CYAN": "\033[38;5;117m",
+            "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;215m", "VIOLET": "\033[38;5;135m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;243m",
+        },
+    },
+    "ohnivy_fenix": {
+        "nazev": "Ohnivý fénix",
+        "popis": "Zářivé ohnivé odstíny, měď a žhavá červeň.",
+        "barvy": {
+            "RED": "\033[38;5;196m", "GREEN": "\033[38;5;142m", "YELLOW": "\033[38;5;226m",
+            "BLUE": "\033[38;5;67m", "MAGENTA": "\033[38;5;199m", "CYAN": "\033[38;5;180m",
+            "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;208m", "VIOLET": "\033[38;5;163m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;245m",
+        },
+    },
+    "lesni_duch": {
+        "nazev": "Lesní duch",
+        "popis": "Mechová zeleň, listové tóny a měsíční stříbro.",
+        "barvy": {
+            "RED": "\033[38;5;167m", "GREEN": "\033[38;5;71m", "YELLOW": "\033[38;5;150m",
+            "BLUE": "\033[38;5;67m", "MAGENTA": "\033[38;5;108m", "CYAN": "\033[38;5;115m",
+            "GOLD": "\033[38;5;186m", "ORANGE": "\033[38;5;143m", "VIOLET": "\033[38;5;109m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;245m",
+        },
+    },
+    "neonova_metropole": {
+        "nazev": "Neonová metropole",
+        "popis": "Elektrická tyrkysová, neonová růžová a digitální modř.",
+        "barvy": {
+            "RED": "\033[38;5;201m", "GREEN": "\033[38;5;46m", "YELLOW": "\033[38;5;226m",
+            "BLUE": "\033[38;5;39m", "MAGENTA": "\033[38;5;198m", "CYAN": "\033[38;5;51m",
+            "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;208m", "VIOLET": "\033[38;5;165m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;244m",
         },
     },
 }
