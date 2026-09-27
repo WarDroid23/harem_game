@@ -1,4 +1,5 @@
 import random
+import textwrap
 from dataclasses import dataclass, field
 
 from config import (
@@ -245,6 +246,35 @@ LOKACE = {
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
+}
+
+POVESTI_LOKACI = {
+    "pevnost": "V nejstarším nádvoří je kámen hladký od kroků stráží; pod ním prý vede chodba do dávno zazděného skladu.",
+    "trh": "Každý stánek má dvě ceny: jednu napsanou na tabuli a druhou, kterou uslyší jen pozorný posluchač.",
+    "les": "Místní lovci nechávají u rozcestí bílé stužky. Neznačí kořist, ale místa, kde se mlha chová nepřirozeně.",
+    "pristav": "Příliv sem občas přinese lahve s cizími pečetěmi a jmény lodí, které podle přístavních knih nikdy neexistovaly.",
+    "hranice": "Na staré palisádě jsou vyryta jména těch, kdo varovali vesnici před nájezdem; nejnovější jméno je napsáno dnešním inkoustem.",
+    "ctvrt_remeselniku": "Cechovní zvon svolává řemeslníky nejen k práci, ale i k veřejnému posouzení každého výjimečného výrobku.",
+    "hostinec": "U Tří svící se neplatí za zvěsti předem. Hostinský si pamatuje, kdo si příběh vyslechl až do konce.",
+    "lazne": "Pramen pod starou dlažbou mění barvu podle počasí a někdy v páře ukáže obraz zapomenuté stezky.",
+    "haj_soumraku": "Když se setmí, světlušky se řadí do kruhů. Sava tvrdí, že ukazují bezpečné místo k odpočinku.",
+    "akademie": "Na tabuli v západním křídle zůstává nedokončený vzorec; několik učenců se přísahá, že se mění s roční dobou.",
+    "sklenena_zahrada": "Mezi orchidejemi roste jediná stříbrná květina. Zahradníci ji nikdy netrhají a pečlivě zaznamenávají, kdo se na ni ptá.",
+    "observator": "Jedna čočka věže míří mimo známá souhvězdí. Cassian ji ponechal tak schválně, aby sledovala pohyb astrální brány.",
+    "molo_mesicniho_pristavu": "Na kůlech mola jsou značky výšky přílivu a vedle nich drobné vzkazy pro posádky, které vyplouvají beze jména.",
+    "katakomby": "Na některých náhrobcích jsou vytesány dvě data narození. Mortis říká, že druhé patří tomu, kdo se vrátil z podzemí.",
+    "svatyne_krvaveho_mesice": "Oltář nepraská ohněm, ale rudým světlem; staré nápisy připomínají, že každý rituál má svou cenu.",
+    "palac_bohatych": "Za tanečním sálem visí portréty radních. U těch, kteří zmizeli z politiky, je rám vždy novější než obraz.",
+    "cervena_ctvrt": "Každý podnik má vlastní barvu luceren; podle nich se pozná, zda se dnes slaví, vyjednává, nebo drží ticho.",
+    "podzemni_arena": "Jména šampionů se mažou po každé sezoně, ale vyryté stopy zbraní zůstávají v kameni.",
+    "stribrne_terasy": "Z horní promenády je vidět celé město, ale slepé místo u kašny ukryje rozhovor před zvědavými okny paláce.",
+    "chram_cistoty": "V boční kapli hoří svíce i za ty, které chrám veřejně označil za ztracené; nikdo se neptá, kdo je zapaluje.",
+    "tajna_svatyne_stinu": "Za černými dveřmi visí mapa města s vyznačenými cestami, které existují jen tehdy, když o nich nikdo nemluví.",
+    "zahradni_altan": "Na hladině jezírka se za klidných večerů odráží hvězda, která není vidět z žádné jiné části města.",
+    "vezeni_inkvizice": "V nejstarší cele jsou dveře bez zámku. Dozorci tvrdí, že se nikdy neotevřely, ale prach před nimi bývá pravidelně narušený.",
+    "zricenina_astralni_veze": "Ruiny reagují na kroky návštěvníků slabým světlem; Selene pozná podle barvy, zda člověk přišel hledat moc, nebo odpovědi.",
+    "paserska_zatoka": "Vrak na severním útesu mění polohu podle přílivu, ačkoli se jeho kýl nikdy nedotkne vody.",
+    "krvavy_lom": "Ve stěně lomu se objevují tenké modré žíly. Krag je zakazuje těžit, protože po úderu kladiva prý odpovídají ozvěnou.",
 }
 
 VYCHOZI_ODHALENE = [
@@ -954,6 +984,10 @@ class SvetSystem:
             status_line = f"{nebezpeci_barva}⚠ {neb_line}{NC}   🏴 {mafie_stav}"
             print(f"{GOLD}{BOLD}║{NC}  {status_line}{GOLD}{BOLD}{'':>{W-4-len(neb_line)-len(mafie_stav)-8}}║{NC}")
             print(f"{GOLD}{BOLD}╚{'═'*W}╝{NC}")
+            povest = POVESTI_LOKACI.get(self.aktualni_lokace)
+            if povest:
+                for radek in textwrap.wrap(povest, width=W - 5):
+                    print(f"  {DIM}✦ {radek}{NC}")
             print()
 
             # Dostupné cesty
@@ -1587,6 +1621,9 @@ class SvetSystem:
         clear()
         hlavicka(f"⚡ AKCE LOKACE: {info['nazev'].upper()} ⚡")
         print(f"\n{DIM}{info['popis']}{NC}")
+        povest = POVESTI_LOKACI.get(lok_id)
+        if povest:
+            print(f"{DIM}✦ {povest}{NC}")
         print(f"{GOLD}Zlato: {hra.hrac.gold} 🪙{NC} | {CYAN}Sexuální energie: {hra.hrac.sex_energy}{NC} | {MAGENTA}Temná energie: {hra.hrac.dark_energy}{NC}")
         if hasattr(hra, "pevnost"):
             p = hra.pevnost
@@ -1610,16 +1647,17 @@ class SvetSystem:
             print("  2) ⚒️ Nákup surové železné rudy pro kovárnu (35 🪙 -> +40 železa)")
             print("  3) 💃 Odkup zocelené amazonky před popravou v lomu (110 🪙 -> nová otrokyně)")
         elif lok_id == "hranice":
-            print("  1) ⚔️ Verbování pohraničních veteránů (55 🪙 -> +2 vojáci pro gardu)")
-            print("  2) 🛡️ Posílení hraničních palisád (+4 obrana pevnosti, +5 reputace)")
-            print("  3) 🪙 Obchod s kožešinami se severskými lovci (+45 🪙)")
+            print("  1) ⚔️ Výcvik pohraniční hlídky (+boj a obrana)")
+            print("  2) 🛡️ Oprava palisád (20 🪵 -> +15 kamene a reputace)")
+            print("  3) 🪙 Obchod s kožešinami se severskými lovci (+45 🪙, +10 zásob)")
         elif lok_id == "zricenina_astralni_veze":
             print("  1) 🔮 Koupel v astrálním zřídle vědmy Selene (40 🪙 -> obnova energie a léčení)")
             print("  2) 📜 Luštění hvězdných run starého impéria (+35 XP, +3 krystaly)")
             print("  3) 🌌 Rituální spojení duší s vybranou společnicí (+20 loajalita)")
         elif lok_id == "haj_soumraku":
             print("  1) 🧘 Hluboká meditace pod stromy soumraku (+18 temné energie)")
-            print("  2) 🌿 Sběr nočních lilií pro lektvary a afrodiziaka")
+            print("  2) 🌿 Sběr nočních lilií a měsíčních bylin")
+            print("  3) 🕯️ Ztišit mysl u kamenného kruhu (+zkušenosti)")
         elif lok_id == "observator":
             print("  1) 🔭 Pozorování hvězdného orloje s Cassianem (odhalení skryté lokace)")
             print("  2) 📜 Studium prastarých hvězdných map (+30 XP)")
@@ -1627,33 +1665,36 @@ class SvetSystem:
             print("  1) 🩸 Krvavá oběť u oltáře Morany (-10 HP -> +35 temná energie)")
             print("  2) 🌑 Kletba na městskou inkvizici (-12 vliv inkvizice)")
         elif lok_id == "ctvrt_remeselniku":
-            print("  1) 🔨 Zbrojířská zakázka na zbraně pro gardu pevnosti (50 🪙 -> +výzbroj)")
+            print("  1) 🔨 Zbrojířská zakázka na zbraně pro gardu pevnosti (50 🪙 -> +2 boj)")
             print("  2) 💍 Klenotnická výroba ozdobných obojků (+submisivita pro dívky)")
             print("  3) ⚒️ Směna rudy za stavební nástroje (30 🪙 -> +25 železa)")
         elif lok_id == "lazne":
             print("  1) ♨️ Horká bylinná lázeň pro regeneraci těla (20 🪙 -> plné HP, +20 sex)")
             print("  2) 💋 Společná koupel s otrokyní (+15 touha a důvěra dívky)")
         elif lok_id == "sklenena_zahrada":
-            print("  1) 🌺 Romantická procházka s dívkou mezi orchidejemi (+důvěra, -strach)")
-            print("  2) 🌿 Sběr exotického nektaru pro výzkum a parfémy")
+            print("  1) 🌺 Klidná procházka zahradou (+důvěra a -strach harému)")
+            print("  2) 🌿 Sběr exotického nektaru a vzácných bylin")
+            print("  3) 🧭 Sledovat stříbrnou květinu (zvěst o skryté stezce)")
         elif lok_id == "stribrne_terasy":
-            print("  1) 🏛️ Diplomatické vyjednávání s městskou šlechtou (+reputace města)")
-            print("  2) 📜 Naslouchání aristokratickým intrikám (+kompro materiál)")
+            print("  1) 🏛️ Jednat s Lady Eleanor (+vztah a reputace)")
+            print("  2) 📜 Naslouchat intrikám a získat diskrétní honorář")
+            print("  3) 🪴 Darovat zahradníkům sazenice (+měsíční byliny)")
         elif lok_id == "zahradni_altan":
             print("  1) 🍵 Slavnostní čajový obřad manželek (žárlivost -15 %, harmonie v harému)")
-            print("  2) 🌹 Soukromé rande v altánu u jezírka (+25 touha a intimita)")
+            print("  2) 🌹 Soukromé rande u jezírka (+25 touha, +5 důvěra, +20 energie)")
         elif lok_id == "palac_bohatych":
-            print("  1) 👑 Účast na šlechtickém plese a banketu (+vliv a navázání kontaktů)")
-            print("  2) 🪙 Podplacení guvernérských úředníků (60 🪙 -> ochrana dominia)")
+            print("  1) 👑 Účastnit se audience u Lorda Vanea (+vztah a reputace)")
+            print("  2) 🪙 Podplatit úředníky (60 🪙 -> nižší vliv inkvizice)")
+            print("  3) 📜 Předložit důkazní listinu (+reputace a vztah s Eleanor)")
         elif lok_id == "cervena_ctvrt":
             print("  1) 🌹 Vstup do správy tvého nevěstince")
             print("  2) 💋 Průzkum uliček a hledání talentovaných dívek")
         elif lok_id == "pristav":
             print("  1) 📦 Zajištění lodní zásilky dřeva a železa (35 🪙 -> +30 dřeva, +15 železa)")
-            print("  2) 🍺 Naslouchání příběhům cizích námořníků v krčmě")
+            print("  2) ⚓ Pomoci Radanovi s bezpečným vyložením (+vztah, odměna)")
         elif lok_id == "molo_mesicniho_pristavu":
             print("  1) 🌊 Noční rozjímání při šumění přílivu (+15 sexuální energie, +10 temné)")
-            print("  2) 🔥 Signální oheň pro noční pašeráky (+40 🪙 provize)")
+            print("  2) 🔥 Zapálit signální oheň pro Terezinu posádku (+zlato a vztah)")
         elif lok_id == "paserska_zatoka":
             print("  1) 🏴‍☠️ Noční námořní razie s kapitánkou Drake (+kořist zlata a surovin)")
             print("  2) 💃 Odkup exotické zajatkyně z pirátského podpalubí (100 🪙 -> nová dívka)")
@@ -1666,18 +1707,20 @@ class SvetSystem:
             print("  2) 🔮 Nekromantský rituál u kostnice (+25 temné energie)")
         elif lok_id == "chram_cistoty":
             print("  1) ⛪ Veřejný dar chrámu a pokání (50 🪙 -> -15 vliv inkvizice)")
-            print("  2) 🤫 Naslouchání u zpovědnice (zisk kompro materiálu na inkvizici)")
+            print("  2) 🤫 Naslouchání u zpovědnice (+4 reputace, -3 vliv inkvizice)")
             print("  3) 🕯️ Znesvěcení oltáře stínovým rituálem (+35 temné energie, +5 inkvizice)")
         elif lok_id == "vezeni_inkvizice":
             print("  1) ⛓️ Infiltrace cel a osvobození čarodějky Vespery (zisk unikátní otrokyně)")
             print("  2) 🔥 Spálení inkvizičních archívů a spisů (-20 vliv inkvizice!)")
             print("  3) 🪙 Podplacení žalářníků a výkup vězenkyně (75 🪙 -> nová otrokyně)")
         elif lok_id == "tajna_svatyne_stinu":
-            print("  1) 🗡️ Zadání sabotáže konkurenčních syndikátů (+8 % kontrola území mafie)")
-            print("  2) 🧪 Nákup stínových jedů a zlodějského náčiní (40 🪙)")
+            print("  1) 🗡️ Zadání sabotáže konkurenčních syndikátů (+8 vliv, +3 kontrola území)")
+            print("  2) 🧪 Koupit stínové reagencie (40 🪙 -> alchymistické suroviny)")
+            print("  3) 🕵️ Vyslechnout Kageho síť (+vztah a informace)")
         elif lok_id == "akademie":
-            print("  1) 📜 Studium v magické knihovně (+35 XP, +1 magická esence)")
-            print("  2) 🧪 Pokusy v alchymistické laboratoři s Nelou")
+            print("  1) 📜 Studium v magické knihovně (+35 XP, +esence)")
+            print("  2) 🧪 Pomoci Nele s bezpečným pokusem (+suroviny a vztah)")
+            print("  3) 🧠 Procvičit soustředění (+temnota nebo vyjednávání)")
         elif lok_id == "hostinec":
             print("  1) 🍻 Koupit rundu pro celý sál (25 🪙 -> +6 reputace města)")
             print("  2) 🎲 Hazardní hra v kostky se štamgasty")
@@ -1690,6 +1733,7 @@ class SvetSystem:
         # Vyhodnocení lokačních akcí
         if lok_id == "pevnost":
             if volba == "1":
+                hra.hrac.skilly["obrana"] = hra.hrac.skilly.get("obrana", 0) + 3
                 tisk_ok("Provedl jsi inspekci stráží a hradeb. Obranná morálka dominia posílena (+3 obrana)!")
             elif volba == "2":
                 if hra.hrac.gold >= 20:
@@ -1744,6 +1788,216 @@ class SvetSystem:
                 if hasattr(hra, "alchymie"):
                     hra.alchymie.pridat_surovinu("bylina_mesicni", 1)
                 tisk_ok("Nalezena byla bylina měsíčnice pro alchymii!")
+
+        elif lok_id == "hranice":
+            if volba == "1":
+                hra.hrac.skilly["boj"] = hra.hrac.skilly.get("boj", 0) + 1
+                hra.hrac.skilly["obrana"] = hra.hrac.skilly.get("obrana", 0) + 1
+                tisk_ok("Veteráni tě provedli cvičením štítové linie. Boj +1, obrana +1.")
+            elif volba == "2":
+                if hra.pevnost.drevo >= 20:
+                    hra.pevnost.drevo -= 20
+                    hra.pevnost.kamen += 15
+                    hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 3)
+                    tisk_ok("Palisáda je opravená. Kámen +15, reputace města +3.")
+                else:
+                    tisk_chyba("Na opravu palisád potřebuješ 20 dřeva.")
+            elif volba == "3":
+                hra.hrac.gold += 45
+                hra.pevnost.zasoby += 10
+                tisk_ok("Lovci vykoupili kožešiny: zlato +45 a zásoby pevnosti +10.")
+
+        elif lok_id == "ctvrt_remeselniku":
+            if volba == "1":
+                if hra.hrac.gold >= 50:
+                    hra.hrac.gold -= 50
+                    hra.hrac.skilly["boj"] = hra.hrac.skilly.get("boj", 0) + 2
+                    tisk_ok("Zbrojíř dokončil zakázku. Výzbroj zvyšuje bojovou dovednost o 2.")
+                else:
+                    tisk_chyba("Zbrojíř požaduje 50 zlata před zahájením práce.")
+            elif volba == "2":
+                aktivni = hra.harem.vsechny_aktivni()
+                if not aktivni:
+                    tisk_info("Do dílny dnes nikdo z harému nedoprovodil.")
+                else:
+                    for otrok in aktivni:
+                        otrok.poslusnost = min(100, otrok.poslusnost + 3)
+                        otrok.loajalita = min(100, otrok.loajalita + 2)
+                    tisk_ok("Cech vyrobil osobní ozdoby. Harém získává +3 poslušnosti a +2 loajality.")
+            elif volba == "3":
+                if hra.hrac.gold >= 30:
+                    hra.hrac.gold -= 30
+                    hra.pevnost.zelezo += 25
+                    tisk_ok("Směna s cechem dokončena: železo pevnosti +25.")
+                else:
+                    tisk_chyba("Na směnu nástrojů potřebuješ 30 zlata.")
+
+        elif lok_id == "haj_soumraku":
+            if volba == "1":
+                pred = hra.hrac.dark_energy
+                hra.hrac.pridej_dark_energy(18)
+                tisk_ok(f"Meditace pročistila mysl. Temná energie +{hra.hrac.dark_energy - pred}.")
+            elif volba == "2":
+                hra.alchymie.pridat_surovinu("nocni_stin", 1)
+                hra.alchymie.pridat_surovinu("bylina_mesicni", 1)
+                tisk_ok("Nasbíral jsi noční stín a měsíční bylinu pro alchymii.")
+            elif volba == "3":
+                hra.hrac.pridej_xp(20)
+                hra.svet.zmen_vztah("sava", 4)
+                tisk_ok("V kamenném kruhu ses naučil číst ticho lesa. +20 XP, vztah se Savou +4.")
+
+        elif lok_id == "observator":
+            if volba == "1":
+                zamcene = [
+                    cil for cil in LOKACE[lok_id]["sousedni"]
+                    if cil not in self.odhalene_lokace
+                ]
+                if zamcene:
+                    nova_lokace = zamcene[0]
+                    self.odhal_lokaci(nova_lokace)
+                    hra.svet.zmen_vztah("cassian", 4)
+                    tisk_ok(
+                        f"Cassian nastavil čočky na nový úhel. "
+                        f"Odhalena lokace: {LOKACE[nova_lokace]['nazev']}."
+                    )
+                else:
+                    hra.hrac.pridej_xp(20)
+                    tisk_info("Čočky potvrdily všechny známé stezky. Získáváš +20 XP.")
+            elif volba == "2":
+                hra.hrac.pridej_xp(30)
+                hra.pevnost.krystaly += 1
+                tisk_ok("Studium hvězdných map přineslo +30 XP a +1 pevnostní krystal.")
+
+        elif lok_id == "sklenena_zahrada":
+            if volba == "1":
+                aktivni = hra.harem.vsechny_aktivni()
+                if not aktivni:
+                    tisk_info("Zahrada je klidná, ale dnes ji nemáš s kým sdílet.")
+                else:
+                    for otrok in aktivni:
+                        otrok.duvera = min(100, otrok.duvera + 5)
+                        otrok.strach = max(0, otrok.strach - 3)
+                    tisk_ok("Procházka bez spěchu posílila důvěru harému (+5) a zmírnila strach (-3).")
+            elif volba == "2":
+                hra.alchymie.pridat_surovinu("bylina_mesicni", 2)
+                hra.alchymie.pridat_surovinu("vzacna_houba", 1)
+                tisk_ok("Nasbíral jsi 2 měsíční byliny a 1 vzácnou houbu.")
+            elif volba == "3":
+                zamcene = [
+                    cil for cil in LOKACE[lok_id]["sousedni"]
+                    if cil not in self.odhalene_lokace
+                ]
+                if zamcene:
+                    nova_lokace = zamcene[0]
+                    self.odhal_lokaci(nova_lokace)
+                    tisk_ok(f"Za stříbrnou květinou jsi objevil stezku: {LOKACE[nova_lokace]['nazev']}.")
+                else:
+                    hra.frakce.frakce["obchodnici"].zmenit(2)
+                    tisk_info("Zahrada už žádnou skrytou cestu neukrývá. Obchodníci ocení tvůj nález (+2).")
+
+        elif lok_id == "stribrne_terasy":
+            if volba == "1":
+                hra.svet.zmen_vztah("lady_eleanor", 6)
+                hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 3)
+                tisk_ok("Lady Eleanor ocenila věcnou debatu. Vztah +6, reputace města +3.")
+            elif volba == "2":
+                hra.hrac.gold += 25
+                hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 1)
+                tisk_ok("Získal jsi diskrétní honorář +25 zl. a užitečnou pověst (+1).")
+            elif volba == "3":
+                hra.alchymie.pridat_surovinu("bylina_mesicni", 1)
+                hra.svet.zmen_vztah("lady_eleanor", 2)
+                tisk_ok("Zahradníci ti darovali měsíční bylinu. Lady Eleanor si všimla tvé zdvořilosti (+2 vztah).")
+
+        elif lok_id == "palac_bohatych":
+            if volba == "1":
+                hra.svet.zmen_vztah("lord_vane", 6)
+                hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 4)
+                tisk_ok("Audience u Lorda Vanea ti otevřela dveře. Vztah +6, reputace +4.")
+            elif volba == "2":
+                if hra.hrac.gold >= 60:
+                    hra.hrac.gold -= 60
+                    hra.hrac.vliv_inkvizice = max(0, hra.hrac.vliv_inkvizice - 10)
+                    tisk_ok("Úředníci přijali úplatek. Vliv inkvizice klesl o 10.")
+                else:
+                    tisk_chyba("Na diskrétní úplatek potřebuješ 60 zlata.")
+            elif volba == "3":
+                if hra.hrac.inventar.pocet_predmetu("dukazni_listina"):
+                    hra.hrac.inventar.odeber_predmet("dukazni_listina")
+                    hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 8)
+                    hra.svet.zmen_vztah("lady_eleanor", 5)
+                    tisk_ok("Zveřejněný důkaz otřásl radou. Reputace +8, vztah s Eleanor +5.")
+                else:
+                    tisk_info("Bez důkazní listiny by audience byla jen prázdným obviněním.")
+
+        elif lok_id == "pristav":
+            if volba == "1":
+                if hra.hrac.gold >= 35:
+                    hra.hrac.gold -= 35
+                    hra.pevnost.drevo += 30
+                    hra.pevnost.zelezo += 15
+                    tisk_ok("Lodní zásilka dorazila: +30 dřeva a +15 železa pro pevnost.")
+                else:
+                    tisk_chyba("Přeprava zásilky stojí 35 zlata.")
+            elif volba == "2":
+                hra.svet.zmen_vztah("radan", 5)
+                hra.hrac.gold += 20
+                tisk_ok("Pomohl jsi Radanovi vyložit zásilku. Vztah +5 a odměna +20 zl.")
+
+        elif lok_id == "molo_mesicniho_pristavu":
+            if volba == "1":
+                pred_sex = hra.hrac.sex_energy
+                pred_temno = hra.hrac.dark_energy
+                hra.hrac.pridej_sex_energy(15)
+                hra.hrac.pridej_dark_energy(10)
+                tisk_ok(
+                    f"Příliv zklidnil tvé myšlenky. Energie +{hra.hrac.sex_energy - pred_sex}, "
+                    f"temná energie +{hra.hrac.dark_energy - pred_temno}."
+                )
+            elif volba == "2":
+                hra.hrac.gold += 40
+                hra.svet.zmen_vztah("tereza", 5)
+                hra.frakce.frakce["syndikat_stinu"].zmenit(1)
+                tisk_ok("Signál bezpečně dovedl posádku do přístavu. +40 zl. a vztah s Terezou +5.")
+
+        elif lok_id == "tajna_svatyne_stinu":
+            if volba == "1":
+                hra.mafie.vliv_ve_meste = min(
+                    100, getattr(hra.mafie, "vliv_ve_meste", 0) + 8
+                )
+                for uzemi in hra.mafie.uzemi:
+                    uzemi.kontrola = min(100, uzemi.kontrola + 3)
+                hra.svet.zmen_vztah("stinovy_mistr_kage", 5)
+                hra.frakce.frakce["syndikat_stinu"].zmenit(3)
+                tisk_ok("Kageho síť odvedla pozornost soupeřů. Vliv ve městě +8, kontrola území +3, vztah s Kagem +5.")
+            elif volba == "2":
+                if hra.hrac.gold >= 40:
+                    hra.hrac.gold -= 40
+                    hra.alchymie.pridat_surovinu("nocni_stin", 1)
+                    hra.alchymie.pridat_surovinu("pelynek", 1)
+                    tisk_ok("Za 40 zlata jsi koupil noční stín a pelyněk.")
+                else:
+                    tisk_chyba("Stínové reagencie stojí 40 zlata.")
+            elif volba == "3":
+                hra.svet.zmen_vztah("stinovy_mistr_kage", 7)
+                hra.hrac.pridej_xp(15)
+                tisk_ok("Kage ti prozradil bezpečnou kurýrní trasu. Vztah +7, +15 XP.")
+
+        elif lok_id == "akademie":
+            if volba == "1":
+                hra.hrac.pridej_xp(35)
+                hra.alchymie.pridat_surovinu("esence_temna", 1)
+                hra.svet.zmen_vztah("nela", 3)
+                tisk_ok("Studium přineslo +35 XP, temnou esenci a uznání Nely (+3 vztah).")
+            elif volba == "2":
+                hra.alchymie.pridat_surovinu("krystal_sily", 1)
+                hra.alchymie.pridat_surovinu("vzacna_houba", 1)
+                hra.svet.zmen_vztah("nela", 5)
+                tisk_ok("Bezpečný pokus se vydařil: získáváš krystal síly, houbu a vztah s Nelou +5.")
+            elif volba == "3":
+                dovednost = "temnota" if hra.hrac.dark_energy < hra.hrac.max_temno() // 2 else "vyjednavani"
+                hra.hrac.skilly[dovednost] = hra.hrac.skilly.get(dovednost, 0) + 1
+                tisk_ok(f"Učební cvičení zvýšilo dovednost {dovednost} o 1.")
 
         elif lok_id == "krvavy_lom":
             if volba == "1":
@@ -1842,8 +2096,9 @@ class SvetSystem:
                 else:
                     tisk_chyba("Nedostatek zlata.")
             elif volba == "2":
+                hra.hrac.pridej_xp(35)
                 hra.pevnost.krystaly += 3
-                tisk_ok("Vyluštil jsi hvězdné stély a získal 3 temné krystaly a zkušenosti!")
+                tisk_ok("Vyluštil jsi hvězdné stély: získáváš +35 XP a 3 temné krystaly.")
             elif volba == "3":
                 aktivni = hra.harem.vsechny_aktivni()
                 if aktivni:
@@ -1860,12 +2115,14 @@ class SvetSystem:
                 else:
                     tisk_chyba("Nedostatek zlata.")
             elif volba == "2":
-                hra.hrac.reputace_mesta += 4
-                tisk_ok("U zpovědnice jsi vyslechl tajemství městských hodnostářů (reputace +4, kompro materiál)!")
+                hra.hrac.reputace_mesta = min(100, hra.hrac.reputace_mesta + 4)
+                hra.hrac.vliv_inkvizice = max(0, hra.hrac.vliv_inkvizice - 3)
+                tisk_ok("U zpovědnice jsi získal kompromitující informace: reputace +4, vliv inkvizice -3.")
             elif volba == "3":
-                hra.hrac.dark_energy = min(120, hra.hrac.dark_energy + 35)
+                pred = hra.hrac.dark_energy
+                hra.hrac.pridej_dark_energy(35)
                 hra.hrac.vliv_inkvizice = min(100, hra.hrac.vliv_inkvizice + 5)
-                tisk_ok("Znesvětil jsi oltář stínem (+35 temné energie, +5 vliv inkvizice)!")
+                tisk_ok(f"Znesvětil jsi oltář stínem (+{hra.hrac.dark_energy - pred} temné energie, +5 vliv inkvizice)!")
 
         elif lok_id == "zahradni_altan":
             if volba == "1":
@@ -1877,7 +2134,14 @@ class SvetSystem:
             elif volba == "2":
                 max_s = hra.hrac.max_sex() if hasattr(hra.hrac, "max_sex") else 100
                 hra.hrac.sex_energy = min(max_s, hra.hrac.sex_energy + 20)
-                tisk_ok("Romantická chvíle v altánu u leknínů tě naplnila novou vášní (+20 sexuální energie)!")
+                aktivni = hra.harem.vsechny_aktivni()
+                for otrok in aktivni:
+                    otrok.touha = min(100, otrok.touha + 25)
+                    otrok.duvera = min(100, otrok.duvera + 5)
+                if aktivni:
+                    tisk_ok("Romantické rande obnovilo +20 sexuální energie a zvýšilo touhu (+25) i důvěru (+5) harému.")
+                else:
+                    tisk_ok("Klidné rande ti obnovilo +20 sexuální energie.")
 
         elif lok_id == "podzemni_arena":
             if volba == "1":
@@ -1906,8 +2170,9 @@ class SvetSystem:
                     hra.hrac.hp = max(1, hra.hrac.hp - 15)
                     tisk_chyba("Kryptu střežil nemrtvý strážce! V boji jsi utržil zranění (-15 HP).")
             elif volba == "2":
-                hra.hrac.dark_energy = min(120, hra.hrac.dark_energy + 25)
-                tisk_ok("Rituál u kostnice tě naplnil temnou mocí (+25 temné energie)!")
+                pred = hra.hrac.dark_energy
+                hra.hrac.pridej_dark_energy(25)
+                tisk_ok(f"Rituál u kostnice tě naplnil temnou mocí (+{hra.hrac.dark_energy - pred} temné energie)!")
 
         elif lok_id == "lazne":
             if volba == "1":
@@ -1951,7 +2216,10 @@ class SvetSystem:
             elif volba == "2":
                 tisk_ok("Procházka po Červené čtvrti ti přinesla nové kontakty v podsvětí (+3 vliv mafie).")
                 if hasattr(hra, "mafie"):
-                    hra.mafie.vliv = min(100, getattr(hra.mafie, "vliv", 0) + 3)
+                    hra.mafie.vliv_ve_meste = min(
+                        100, getattr(hra.mafie, "vliv_ve_meste", 0) + 3
+                    )
+                    hra.frakce.frakce["syndikat_stinu"].zmenit(2)
 
         else:
             # Obecná akce pro ostatní lokace

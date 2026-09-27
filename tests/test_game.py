@@ -718,6 +718,49 @@ class HraTesty(unittest.TestCase):
             self.assertTrue(hra.svet.cestuj("trh", hra))
         self.assertEqual(hra.svet.aktualni_lokace, "trh")
 
+    def test_vsechny_lokace_maji_povest_a_unikatni_akce(self):
+        from game.svet import LOKACE, POVESTI_LOKACI
+
+        self.assertEqual(set(POVESTI_LOKACI), set(LOKACE))
+        hra = Hra()
+        hra.hrac.gold = 10000
+        hra.pevnost.drevo = 1000
+        hra.hrac.inventar.pridej_predmet("dukazni_listina")
+        akce = {
+            "hranice": ("1", "2", "3"),
+            "ctvrt_remeselniku": ("1", "2", "3"),
+            "haj_soumraku": ("1", "2", "3"),
+            "observator": ("1", "2"),
+            "sklenena_zahrada": ("1", "2", "3"),
+            "stribrne_terasy": ("1", "2", "3"),
+            "palac_bohatych": ("1", "2", "3"),
+            "pristav": ("1", "2"),
+            "molo_mesicniho_pristavu": ("1", "2"),
+            "tajna_svatyne_stinu": ("1", "2", "3"),
+            "akademie": ("1", "2", "3"),
+        }
+
+        for lokace, volby in akce.items():
+            hra.svet.aktualni_lokace = lokace
+            for volba in volby:
+                with self.subTest(lokace=lokace, volba=volba):
+                    with patch("builtins.input", side_effect=[volba, ""]), redirect_stdout(io.StringIO()):
+                        hra.svet.menu_lokacni_akce(hra)
+
+    def test_lokacni_odmeny_respektuji_limity_a_mafie_system(self):
+        hra = Hra()
+        hra.svet.aktualni_lokace = "tajna_svatyne_stinu"
+        hra.mafie.vliv_ve_meste = 99
+        with patch("builtins.input", side_effect=["1", ""]), redirect_stdout(io.StringIO()):
+            hra.svet.menu_lokacni_akce(hra)
+        self.assertEqual(hra.mafie.vliv_ve_meste, 100)
+
+        hra.svet.aktualni_lokace = "katakomby"
+        hra.hrac.dark_energy = hra.hrac.max_temno() - 2
+        with patch("builtins.input", side_effect=["2", ""]), redirect_stdout(io.StringIO()):
+            hra.svet.menu_lokacni_akce(hra)
+        self.assertEqual(hra.hrac.dark_energy, hra.hrac.max_temno())
+
     def test_mapa_pruzkum_lokace(self):
         hra = Hra()
         hra.hrac.sex_energy = 20

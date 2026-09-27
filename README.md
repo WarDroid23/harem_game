@@ -288,18 +288,18 @@ Cestuj po světě, prozkoumávej lokace a plň lokační úkoly.
 
 | Typ | Příklady lokací | Co zde najdeš |
 |-----|----------------|--------------|
-| **Město** | Hlavní tržiště, Chrám, Přístav, Červená čtvrť | Obchod, NPC, questy |
-| **Příroda** | Zakletý les, Bažinaté údolí, Ledová tundra | Suroviny, zvěř, příšery |
-| **Podzemí** | Opuštěné doly, Jeskyně, Katakomby králů, Svatyně krvavého měsíce | Poklady, bossové |
-| **Frakce** | Mafie, Inkvizice, Obchodní liga | Mise, reputace |
-| **Legendární** | Drak. hora, Prokletý palác, Věž starých bohů | Unikátní odměny |
+| **Město a řemesla** | Trh, čtvrť řemeslníků, palác, přístav | Obchod, reputace, zásoby a kontakty |
+| **Příroda a zahrady** | Mlžný les, Háj soumraku, Skleněná zahrada | Suroviny, odpočinek a skryté stezky |
+| **Magie a ruiny** | Akademie, observatoř, astrální citadela | Zkušenosti, alchymie a průzkum mapy |
+| **Nebezpečná místa** | Krvavý lom, katakomby, aréna, žalář | Odměny, rizikové výpravy a příběhové volby |
+| **Společenská místa** | Lázně, hostinec, Stříbrné terasy, zahradní altán | Regenerace, vztahy a městská pověst |
 
 ### Lokační akce
 
-Každá lokace nabízí až 3 speciální akce:
-- **Průzkum** — hledání surovin nebo zlata
-- **NPC dialog** — příběhové větvení, morální volby
-- **Lokační boss** — silný nepřítel, unikátní loot
+Každá z 26 lokací má vlastní pověst a nabídku tematických akcí. Podle místa
+můžeš získat suroviny pro pevnost či alchymii, zkušenosti, energii, reputaci,
+vztahy s NPC, vliv frakcí nebo odhalit dosud skrytou cestu. Některé akce mají
+cenu či riziko; před potvrzením zkontroluj požadované zlato a suroviny.
 
 ### Navazující úkoly NPC
 
