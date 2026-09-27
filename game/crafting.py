@@ -1,5 +1,5 @@
 from game.predmety import PREDMETY
-from utils.vypis import clear, tisk_chyba, tisk_ok, vytiskni_volbu
+from utils.vypis import clear, hlavicka, tisk_chyba, tisk_ok, vytiskni_volbu
 
 RECEPTY_PREDMETU = {
     "zdravotni_balicek": {
@@ -73,7 +73,7 @@ class CraftingSystem:
     def menu(self, hra):
         while True:
             clear()
-            print("--- Předměty a výroba ---\n")
+            hlavicka("Předměty a výroba")
             print("Inventář:")
             inventar = hra.hrac.inventar.seznam_predmetu()
             if inventar:

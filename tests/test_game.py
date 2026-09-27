@@ -13,12 +13,12 @@ from game.automaticky_tah import (
     proved_automaticky_tah,
 )
 from game.energie import meditace
-from game.save_load import Hra, nacti_slot, uloz_slot
+from game.save_load import Hra, nacti_hru, nacti_slot, uloz_hru, uloz_slot
 from game.settings import NastaveniHry
 from game.souboje import BOSSOVE, Nepritel, Souboj
 from main import nova_hra
 from models.otrokyne import Otrokyně
-from utils.vypis import barva
+from utils.vypis import barva, hlavicka, vytiskni_volbu
 
 
 class HraTesty(unittest.TestCase):
@@ -85,6 +85,127 @@ class HraTesty(unittest.TestCase):
             profil_obtiznosti("tezka")["odmena"],
             profil_obtiznosti("normalni")["odmena"],
         )
+
+    def test_npc_ukol_a_zvolena_vetev_preziji_save_load(self):
+        from game.balance import uprav_odmenu
+
+        hra = Hra()
+        hra.svet.vztahy_npc["mira"] = 100
+        hra.npc_questy.dokoncene["mira"] = 1
+        self.assertTrue(hra.npc_questy.prijmi(hra, "mira"))
+        self.assertEqual(
+            hra.npc_questy.aktivni["mira"]["quest"]["nazev"],
+            "Dům bez řetězů",
+        )
+
+        with tempfile.TemporaryDirectory() as slozka:
+            cesta = Path(slozka) / "quest-save.json"
+            with redirect_stdout(io.StringIO()):
+                self.assertTrue(uloz_hru(hra, cesta))
+                nactena = nacti_hru(cesta)
+
+        self.assertIsNotNone(nactena)
+        self.assertEqual(
+            nactena.npc_questy.aktivni["mira"]["quest"]["nazev"],
+            "Dům bez řetězů",
+        )
+        zlato_pred = nactena.hrac.gold
+        self.assertEqual(
+            nactena.npc_questy.dokoncit(nactena, "mira", temna=True),
+            "temna",
+        )
+        self.assertEqual(
+            nactena.hrac.gold - zlato_pred,
+            uprav_odmenu(340, nactena.nastaveni.obtiznost),
+        )
+        self.assertEqual(
+            nactena.hrac.inventar.pocet_predmetu("balzam_stinu"), 1
+        )
+        self.assertEqual(nactena.npc_questy.dokoncene["mira"], 2)
+
+    def test_stary_save_s_aktivnim_npc_ukolem_dokonci_spravnou_retezovou_cast(self):
+        from game.npc_questy import NPCQuestSystem
+
+        hra = Hra()
+        hra.svet.vztahy_npc["mira"] = 100
+        hra.npc_questy = NPCQuestSystem.from_dict({
+            "aktivni": {"mira": {"npc_id": "mira", "pokrok": 0, "temna": False}},
+            "dokoncene": {"mira": 1},
+        })
+        zlato_pred = hra.hrac.gold
+
+        self.assertEqual(hra.npc_questy.dokoncit(hra, "mira"), "normal")
+        self.assertEqual(hra.hrac.gold - zlato_pred, 260)
+        self.assertEqual(
+            hra.hrac.inventar.pocet_predmetu("zdravotni_balicek"), 1
+        )
+
+    def test_odmeny_questu_respektuji_obtiznost_a_nejsou_druhe_vyplaty(self):
+        from game.balance import uprav_odmenu, uprav_xp
+        from game.questy import QuestSystem
+        from game.menu_hlavni import vykresli_hlavni_menu
+
+        hra = Hra()
+        hra.nastaveni.obtiznost = "tezka"
+        hra.hrac.gold = 0
+        quest = {
+            "nazev": "Kontrolní úkol",
+            "popis": "Test odměn.",
+            "typ": "pomoc",
+            "narocnost": 2,
+            "odmena_zlato": 100,
+            "riziko": 0,
+            "doba_trvani": 1,
+        }
+        hra.questy = QuestSystem()
+        hra.questy.aktivni_quest = quest
+        hra.questy.dny_zbyva = 1
+
+        with patch("random.random", return_value=0.99), redirect_stdout(io.StringIO()):
+            hra.questy.proved_quest(hra.hrac, hra.harem, hra.mafie, hra)
+
+        odmena = uprav_odmenu(100, "tezka")
+        bonus = uprav_odmenu(25 + 2 * 12, "tezka")
+        self.assertEqual(hra.hrac.gold, odmena + bonus)
+        self.assertEqual(hra.hrac.bonus_za_questy, bonus)
+        self.assertEqual(hra.hrac.xp, uprav_xp(20 + 2 * 10, "tezka"))
+        self.assertFalse(hra.questy.aktivni_quest)
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vykresli_hlavni_menu(hra)
+        self.assertIn("Quest bonus získaný celkem", vystup.getvalue())
+        self.assertNotIn("k dispozici", vystup.getvalue())
+
+    def test_odmeny_npc_ukolu_respektuji_obtiznost(self):
+        from game.balance import uprav_odmenu, uprav_xp
+
+        hra = Hra()
+        hra.nastaveni.obtiznost = "tezka"
+        hra.svet.vztahy_npc["radan"] = 100
+        self.assertTrue(hra.npc_questy.prijmi(hra, "radan"))
+        zlato_pred = hra.hrac.gold
+        xp_pred = hra.hrac.xp
+
+        hra.npc_questy.dokoncit(hra, "radan")
+
+        self.assertEqual(
+            hra.hrac.gold - zlato_pred, uprav_odmenu(110, "tezka")
+        )
+        self.assertEqual(
+            hra.hrac.xp - xp_pred, uprav_xp(30, "tezka")
+        )
+
+    def test_spolecne_menu_nadpisy_a_volby_maji_ikonografii(self):
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            hlavicka("Menu nastavení")
+            vytiskni_volbu("0", "Zpět")
+            vytiskni_volbu("1", "Vybrat arénový souboj")
+        text = vystup.getvalue()
+        self.assertIn("⚙️", text)
+        self.assertIn("↩️", text)
+        self.assertIn("⚔️", text)
 
     def test_bossove_a_konce_reaguji_na_rozhodnuti(self):
         self.assertGreaterEqual(len(BOSSOVE), 3)
@@ -218,12 +339,14 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(normalizuj_volbu("t"), "test")
         self.assertEqual(normalizuj_volbu("10"), "test")
         self.assertEqual(normalizuj_volbu("s"), "26")
+        self.assertEqual(normalizuj_volbu("$"), "cheat")
         self.assertEqual(normalizuj_volbu("neznama"), "neznama")
 
         vystup = io.StringIO()
         with redirect_stdout(vystup):
             vykresli_hlavni_menu(hra)
         self.assertIn("T) 🧪 Testovací otrokyně", vystup.getvalue())
+        self.assertIn("$) 💰 Cheat:", vystup.getvalue())
 
         for volba in ("t", "10"):
             hra = Hra()
@@ -232,6 +355,20 @@ class HraTesty(unittest.TestCase):
                     hra, normalizuj_volbu(volba), _obnov_hru_runtime(hra)
                 )
             self.assertEqual(hra.harem.pocet(), 1)
+
+        hra = Hra()
+        hra.hrac.gold = 321
+        hra.hrac.sex_energy = 0
+        hra.hrac.dark_energy = 0
+        hra.hrac.max_sex_energy = 130
+        hra.hrac.max_dark_energy = 125
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("$"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.hrac.gold, 10_321)
+        self.assertEqual(hra.hrac.sex_energy, 130)
+        self.assertEqual(hra.hrac.dark_energy, 125)
 
         vystup = io.StringIO()
         with patch("builtins.input", side_effect=["neplatne", "0"]), redirect_stdout(vystup):

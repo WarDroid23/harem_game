@@ -267,7 +267,7 @@ def menu_profily(hra):
     while True:
         clear()
         aktivni = hra.harem.vsechny_aktivni()
-        print("--- Profily postav v harému ---\n")
+        hlavicka("Profily postav v harému")
         if not aktivni:
             tisk_chyba("Nemáš žádné aktivní postavy.")
             input("Enter...")
@@ -305,7 +305,7 @@ def menu_haremu(hra):
         partnerky = [o for o in aktivni if getattr(o, "partnerka", False)]
         manzelky = [o for o in aktivni if getattr(o, "je_manzelkou", False)]
 
-        print("--- Harem: péče, vztahy a privilegia ---\n")
+        hlavicka("Harém: péče, vztahy a privilegia")
         print(f"Členky: {hra.harem.pocet()} | Úroveň harému: {getattr(hra.harem, 'harem_level', 1)}")
         if oblibene:
             print(f"★ Oblíbenkyně: {oblibene[0].jmeno}")

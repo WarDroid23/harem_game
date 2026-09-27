@@ -78,20 +78,26 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `14` | **Questy** | Aktivní úkoly a odměny |
 | `15` | **Dražba** | Speciální aukce vzácných dívek |
 | `16` | **Budovy / Pevnost** | Stavba a správa pevnosti |
-| `17` | **Statistiky** | Přehled všech hodnot hráče a harému |
+| `17` | **Statistiky** | Přehled hodnot hráče, harému a achievementů |
 | `18` | **Souboj (Aréna)** | Tahový boj, žebříček, legendy |
 | `19` | **Alchymie** | Vaření elixírů a jedů |
 | `20` | **Rychlý přehled** | Stav harému a zdrojů na jedné obrazovce |
 | `21` | **Nevěstinec** | Správa Rudého sametu, VIP klienti, eventy |
-| `22` | **Kronika** | Historické záznamy tvých rozhodnutí |
 | `23` | **Harém** | Péče, odměny, oblíbenkyně, osudy, loajalita |
 | `24` | **Crafting** | Výroba předmětů ze surovin |
 | `25` | **Dobití energie** | Rychlá obnova energie za zlato/rituál |
 | `26` | **Hlavní menu** | Uložit / Načíst / Nastavení |
 | `28` | **Manželství a rodina** | Zasnoubení, svatba, potomstvo |
+| `29` | **Kronika dominia** | Historie rozhodnutí, questů a událostí |
+| `30` | **Denní rozkazy** | Naplánování běžných aktivit harému |
+| `31` | **Veřejný výkon** | Městská aktivita s odměnou a reputačními následky |
 | `A` | **Auto tah** | Bezpečný automatický tah |
 | `S/L/M` | Zkratky | Save / Load / Menu |
 | `0` | **Konec** | Uložit a ukončit |
+
+Nabídky používají rámečky, barvy a tematické ikony. Emoji se mohou v některých
+starších terminálech zobrazit odlišně; číselné volby zůstávají plně funkční.
+Testovací volba `T` je vývojová pomůcka (původní volba `10` stále funguje).
 
 ---
 
@@ -361,7 +367,26 @@ Napadni jiné organizace a přeber jejich území:
 
 ---
 
+## ⚖️ Obtížnost a odměny
+
+Obtížnost ovlivňuje souboje, expedice, běžné a NPC questy i vybrané ceny:
+
+| Obtížnost | Síla nepřátel a jejich poškození | Odměny ve zlatě | Zkušenosti | Ceny |
+|-----------|----------------------------------|-----------------|------------|------|
+| Lehká | ×0,85 | ×1,15 | ×1,10 | ×0,85 |
+| Normální | ×1,00 | ×1,00 | ×1,00 | ×1,00 |
+| Těžká | ×1,20 | ×1,25 | ×1,20 | ×1,15 |
+
+Odměny za splněný úkol se připisují ihned. Souhrnný ukazatel questových a
+bojových bonusů v hlavním menu zobrazuje dosud získanou částku, nikoli
+nevyzvednutý zůstatek.
+
+---
+
 ## 📜 Osobní osudy a questliny
+
+Vedle osobních příběhových linií nabízí mapa také navazující úkoly NPC.
+Postup úkolu, jeho větev i odměna zůstávají zachovány při uložení a načtení hry.
 
 Každá dívka může mít svůj unikátní questline. Speciální questliny mají tyto protagonistky:
 
@@ -477,7 +502,7 @@ harem_dark_v18_autosave.json
 7. **Spravuj mafii** (`3`) — územní příjem je nejrychlejší cesta k bohatství
 8. **Jmenuj ★ oblíbenkyni** až budeš chtít harémová dramata a privilegia
 9. **Přiřaď bojovou společnici** (loajalita 70+) — výrazně usnadní souboje
-10. **Čti Kroniku** (`22`) — zaznamenává tvá důležitá rozhodnutí
+10. **Čti Kroniku** (`29`) — zaznamenává tvá důležitá rozhodnutí
 
 ---
 
@@ -514,6 +539,7 @@ harem_game/
 │   ├── mafie.py         # Model mafie a území
 │   └── nevestinec.py    # Model nevěstince
 ├── game/                # Herní logika
+│   ├── menu_hlavni.py   # Vykreslení hlavního herního menu
 │   ├── souboje.py       # Tahové souboje
 │   ├── budovy.py        # Správa pevnosti
 │   ├── mafie.py         # Mafie menu
@@ -521,7 +547,7 @@ harem_game/
 │   ├── svet.py          # Mapa světa a lokace
 │   └── nocni_eventy.py  # Noční harémové eventy
 ├── tests/
-│   └── test_game.py     # 31 unit testů
+│   └── test_game.py     # Regresní a systémové testy
 └── NOVE_SYSTEMY.md      # Dokumentace nových systémů
 ```
 
@@ -533,7 +559,7 @@ harem_game/
 python -m unittest tests/test_game.py
 ```
 
-Všechny testy musí projít (`31 tests, OK`) před každým release.
+Před vydáním musí projít celá sada testů.
 
 ---
 

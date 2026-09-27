@@ -14,6 +14,7 @@ ZKRATKY_HLAVNIHO_MENU = {
     "a": "auto",
     "t": "test",
     "10": "test",
+    "$": "cheat",
 }
 
 
@@ -77,7 +78,8 @@ def vykresli_hlavni_menu(hra):
         f"  {YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   │   "
         f"{MAGENTA}T) 🧪 Testovací otrokyně{NC}   │   {RED}0) 🚪 Konec hry{NC}"
     )
+    print(f"  {GOLD}$) 💰 Cheat: +10 000 zl. a doplnění všech energií{NC}")
     if getattr(hra.hrac, "bonus_za_questy", 0):
-        print(f"  {GREEN}✨ Quest bonus: +{hra.hrac.bonus_za_questy} zl. k dispozici{NC}")
+        print(f"  {GREEN}✨ Quest bonus získaný celkem: {hra.hrac.bonus_za_questy} zl.{NC}")
     if getattr(hra.hrac, "bonus_za_souboje", 0):
-        print(f"  {RED}⚔️ Souboj bonus: +{hra.hrac.bonus_za_souboje} zl. k dispozici{NC}")
+        print(f"  {RED}⚔️ Soubojové bonusy získané celkem: {hra.hrac.bonus_za_souboje} zl.{NC}")

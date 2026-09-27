@@ -1,6 +1,9 @@
 # utils/vypis.py
 import os
+import re
 import sys
+import unicodedata
+import logging
 from config import (
     NC, GREEN, RED, YELLOW, BLUE, MAGENTA, CYAN, GOLD, ORANGE, VIOLET,
     WHITE, GRAY, BOLD, DIM,
@@ -19,7 +22,10 @@ def clear():
         clear_fast()
         return
     except Exception:
-        pass
+        logging.getLogger(__name__).debug(
+            "Rychlé vymazání terminálu selhalo; používá se systémový fallback.",
+            exc_info=True,
+        )
     os.system("cls" if os.name == "nt" else "clear")
 
 
@@ -61,7 +67,10 @@ def terminalni_obrazek(scena, hra=None, **kwargs):
             print(generuj_scenu(scena or "menu", **kwargs))
         return
     except Exception:
-        pass
+        logging.getLogger(__name__).debug(
+            "Generování terminální ilustrace selhalo; používá se textový fallback.",
+            exc_info=True,
+        )
     from config import GOLD, MAGENTA, CYAN, NC
     print(f"{MAGENTA}     ╔═══ {scena or 'menu'} ═══╗{NC}")
     print(f"{CYAN}     │  TEMNÉ DOMINIUM  │{NC}")
@@ -84,17 +93,90 @@ def ukazatel(hodnota, maximum, sirka=18, barva_plno=GREEN, barva_malo=RED):
     return f"{bv}{blok_plno}{DIM}{blok_prazdno}{NC} {hodnota}/{maximum}"
 
 
+_IKONY_HLAVICEK = (
+    (("souboj", "arén", "boss", "gladi"), "⚔️"),
+    (("quest", "úkol", "výpr", "kampa"), "📜"),
+    (("map", "cest", "lokac", "npc", "svět"), "🗺️"),
+    (("nevěst", "vip", "špion", "mecen"), "🏛️"),
+    (("maf", "syndik", "územ"), "🕶️"),
+    (("pevnost", "budov", "panstv", "hrad"), "🏰"),
+    (("alchym", "lektvar", "dro"), "⚗️"),
+    (("craft", "výrob", "předmět"), "🛠️"),
+    (("harém", "interak", "otroky", "péč"), "👑"),
+    (("manžel", "rodin", "svat"), "💍"),
+    (("obchod", "trh", "aukc", "draž"), "🪙"),
+    (("diplom", "frak"), "🤝"),
+    (("výzkum", "technolog"), "🔬"),
+    (("energie", "medit"), "⚡"),
+    (("statistik", "rekord"), "📊"),
+    (("kronik", "histor"), "📖"),
+    (("nastav", "hlavní menu"), "⚙️"),
+    (("personál", "dohlíž"), "🧑‍🤝‍🧑"),
+    (("odpoč", "nový den"), "🌙"),
+)
+
+_IKONY_VOLEB = (
+    (("zpět", "návrat", "zrušit"), "↩️"),
+    (("ukončit", "konec", "odejít"), "🚪"),
+    (("uložit", "ulož"), "💾"),
+    (("načíst", "načti"), "📂"),
+    (("nastavení", "nastav"), "⚙️"),
+    (("boj", "útok", "vyzvat", "arén", "boss"), "⚔️"),
+    (("obrana", "bránit"), "🛡️"),
+    (("léč", "zdrav"), "🩹"),
+    (("quest", "úkol", "výpr"), "📜"),
+    (("mapa", "cesta", "cestovat", "lokac"), "🗺️"),
+    (("obchod", "koupit", "nákup", "prodat", "prodej"), "🪙"),
+    (("harém", "otrokyn", "partner"), "👑"),
+    (("diplom", "frak", "vztah"), "🤝"),
+    (("výzkum", "technolog"), "🔬"),
+    (("energie", "medit"), "⚡"),
+    (("trest", "odměn", "péč"), "💝"),
+    (("stav", "budov", "pevnost", "panstv"), "🏰"),
+    (("karavan", "nájezd"), "🐫"),
+    (("nevěst", "vip", "mecen"), "✨"),
+    (("špion", "inform"), "🕵️"),
+    (("odpoč", "nový den"), "🌙"),
+    (("pokrač", "potvr", "přijm"), "✅"),
+)
+
+_ANSI_KODY = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+
+
+def _sirka_zobrazeni(text):
+    sirka = 0
+    for znak in text:
+        if unicodedata.combining(znak) or znak in ("\ufe0e", "\ufe0f", "\u200d"):
+            continue
+        sirka += 2 if unicodedata.east_asian_width(znak) in ("W", "F") else 1
+    return sirka
+
+
+def _ma_uvodni_ikonu(text):
+    viditelny = _ANSI_KODY.sub("", text).lstrip()
+    return bool(viditelny) and unicodedata.category(viditelny[0]).startswith("S")
+
+
+def _ikona_pro(stitek, pravidla):
+    nizky = stitek.casefold()
+    return next(
+        (ikona for klice, ikona in pravidla if any(klic in nizky for klic in klice)),
+        "✦",
+    )
+
+
 def hlavicka(stitek, podtitulek=""):
     print()
-    sirka = 60
     # Clean up standard titles from existing hyphens/equals
     stitek = stitek.replace("---", "").replace("===", "").strip()
-    mezera = sirka - 4 - len(stitek)
-    if mezera < 0:
-        mezera = 0
+    if not _ma_uvodni_ikonu(stitek):
+        stitek = f"{_ikona_pro(stitek, _IKONY_HLAVICEK)}  {stitek}"
+    sirka_titulu = _sirka_zobrazeni(stitek)
+    sirka = max(60, sirka_titulu + 4)
+    mezera = sirka - 4 - sirka_titulu
     l_mezera = mezera // 2
     p_mezera = mezera - l_mezera
-    
+
     print(f"{CYAN}{BOLD}╔{'═' * (sirka-2)}╗{NC}")
     print(f"{CYAN}{BOLD}║{NC} {' ' * l_mezera}{BOLD}{WHITE}{stitek}{NC}{' ' * p_mezera} {CYAN}{BOLD}║{NC}")
     print(f"{CYAN}{BOLD}╚{'═' * (sirka-2)}╝{NC}")
@@ -103,6 +185,8 @@ def hlavicka(stitek, podtitulek=""):
 
 
 def vytiskni_volbu(cislo, text, barva=YELLOW):
+    if not _ma_uvodni_ikonu(text):
+        text = f"{_ikona_pro(text, _IKONY_VOLEB)} {text}"
     print(f"  {BOLD}{barva}{cislo}){NC} {text}")
 
 def menu_cara():

@@ -61,7 +61,7 @@ class HlavniMenuRuntime:
 def _vykresli_sloty(hlavni_soubor=None):
     for slot in seznam_slotu(hlavni_soubor) if hlavni_soubor else seznam_slotu():
         if not slot["existuje"]:
-            print(f"{slot['slot']}) {slot['nazev']} — prázdný")
+            print(f"  {slot['slot']}) 🆕 {slot['nazev']} — prázdný")
             continue
         meta = slot.get("meta") or {}
         den = meta.get("den", "?")
@@ -71,7 +71,7 @@ def _vykresli_sloty(hlavni_soubor=None):
         oblib = meta.get("oblibenkyně")
         oblib_txt = f" | ★ {oblib}" if oblib else ""
         print(
-            f"{slot['slot']}) {slot['nazev']} — den {den}, zlato {zlato}, "
+            f"  {slot['slot']}) 💾 {slot['nazev']} — den {den}, zlato {zlato}, "
             f"harém {harem}{oblib_txt}"
         )
         print(f"    uloženo: {kdy} (JSON)")
@@ -83,7 +83,7 @@ def menu_ulozeni(hra):
         tisk_chyba("V režimu IRONMAN nelze manuálně ukládat do libovolných slotů!")
         tisk_info("Hra se automaticky a trvale ukládá při odpočinku (nový den) nebo ukončení hry.")
         return False
-    print("--- Uložení hry (JSON) ---\n")
+    hlavicka("Uložení hry (JSON)")
     _vykresli_sloty()
     print("0) Zpět")
     try:
@@ -105,7 +105,7 @@ def menu_ulozeni(hra):
 
 def menu_nacteni():
     clear()
-    print("--- Načtení hry (JSON) ---\n")
+    hlavicka("Načtení hry (JSON)")
     _vykresli_sloty()
     print("0) Zpět")
     try:
@@ -130,7 +130,7 @@ def menu_nastaveni(hra):
         clear()
         nastaveni = hra.nastaveni
         terminalni_obrazek("nastaveni")
-        print("--- Nastavení hry ---\n")
+        hlavicka("Nastavení hry")
         print(f"1) Barvy terminálu: {'zapnuté' if nastaveni.barvy else 'vypnuté'}")
         print(f"2) Obtížnost: {nastaveni.obtiznost_text}")
         print(f"3) Barevné téma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
@@ -205,7 +205,7 @@ def menu_meta_hlavni(hra):
     while True:
         clear()
         terminalni_obrazek("nastaveni")
-        print(f"{GOLD}{BOLD}--- Hlavní menu ---{NC}\n")
+        hlavicka("Hlavní menu")
         print(f"{GREEN}1) 💾 Uložit hru")
         print(f"{CYAN}2) 📂 Načíst hru")
         print(f"{WHITE}3) ⚙️ Nastavení hry")
@@ -274,6 +274,15 @@ def _obsluz_volbu_hlavniho_menu(
 
     if volba == "auto":
         obsluz_automaticky_tah(hra)
+        _pockej_na_enter()
+    elif volba == "cheat":
+        hra.hrac.gold += 10_000
+        hra.hrac.dopln_energie_naplno()
+        tisk_ok(
+            f"Cheat aktivován: +10 000 zl. | energie doplněna "
+            f"(⚡ {hra.hrac.sex_energy}/{hra.hrac.max_sex()}, "
+            f"🌑 {hra.hrac.dark_energy}/{hra.hrac.max_temno()})."
+        )
         _pockej_na_enter()
     elif volba == "1":
         aktivni = hra.harem.vsechny_aktivni()

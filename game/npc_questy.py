@@ -1,7 +1,8 @@
 """Opakovatelné úkoly NPC (MPC) s reputačními prahy, odměnami a temnými variantami."""
 
 from dataclasses import dataclass, field
-import random
+
+from game.balance import uprav_odmenu, uprav_xp
 
 NPC_QUESTY = {
     "mira": {
@@ -171,15 +172,24 @@ class NPCQuestSystem:
         aktivni = self.aktivni[npc_id]
         quest = aktivni.get("quest") if isinstance(aktivni, dict) else None
         if not isinstance(quest, dict):
-            quest = NPC_QUESTY[npc_id]
+            zaklad = NPC_QUESTY[npc_id]
+            quest = (
+                zaklad.get("navazujici")
+                if int(self.dokoncene.get(npc_id, 0)) >= 1
+                else zaklad
+            )
+            quest = quest or zaklad
         je_retezec = int(self.dokoncene.get(npc_id, 0)) >= 1
         self.aktivni.pop(npc_id)
         self.dokoncene[npc_id] = self.dokoncene.get(npc_id, 0) + 1
 
         if temna and "temna_varianta" in quest:
             var = quest["temna_varianta"]
-            hra.hrac.gold += var["odmena"]
-            hra.hrac.pridej_xp(var["xp"])
+            obtiznost = getattr(
+                getattr(hra, "nastaveni", None), "obtiznost", "normalni"
+            )
+            hra.hrac.gold += uprav_odmenu(var["odmena"], obtiznost)
+            hra.hrac.pridej_xp(uprav_xp(var["xp"], obtiznost))
             hra.svet.zmen_vztah(npc_id, var["reputace"])
             hra.hrac.reputace_mesta += var["reputace"] // 2
             if hasattr(hra.hrac, "dark_energy"):
@@ -189,8 +199,11 @@ class NPCQuestSystem:
             self._zapis_vysledek(hra, quest, npc_id, "temná")
             return "temna"
         else:
-            hra.hrac.gold += quest["odmena"]
-            hra.hrac.pridej_xp(quest["xp"])
+            obtiznost = getattr(
+                getattr(hra, "nastaveni", None), "obtiznost", "normalni"
+            )
+            hra.hrac.gold += uprav_odmenu(quest["odmena"], obtiznost)
+            hra.hrac.pridej_xp(uprav_xp(quest["xp"], obtiznost))
             hra.svet.zmen_vztah(npc_id, quest["reputace"])
             hra.hrac.reputace_mesta += quest["reputace"] // 2
             self._udelej_extra_odmenu(hra, quest)

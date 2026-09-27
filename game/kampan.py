@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 from game.svet import LOKACE
-from utils.vypis import clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
+from utils.vypis import clear, hlavicka, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
 
 KAPITOLY = (
     {
@@ -230,7 +230,7 @@ class KampanSystem:
         self.zkontroluj_postup(hra)
         while True:
             clear()
-            print("--- Příběhová kampaň ---\n")
+            hlavicka("Příběhová kampaň")
             kapitola = self.aktualni()
             if not kapitola:
                 print(f"Kampaň je dokončena. Konec: {self.zaver or 'nevyhodnocen'}")

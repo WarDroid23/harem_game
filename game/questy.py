@@ -2,6 +2,7 @@
 import random
 from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, GREEN, RED, CYAN, NC
+from game.balance import uprav_odmenu, uprav_xp
 
 QUESTY = [
     {
@@ -262,11 +263,18 @@ class QuestSystem:
             return
 
         uspech = random.random() > quest["riziko"]
+        obtiznost = getattr(
+            getattr(hra, "nastaveni", None), "obtiznost", "normalni"
+        )
 
         if uspech:
-            hrac.gold += quest["odmena_zlato"]
-            bonus_questu = 25 + quest["narocnost"] * 12
-            hrac.pridej_xp(20 + quest["narocnost"] * 10)
+            odmena = uprav_odmenu(quest["odmena_zlato"], obtiznost)
+            bonus_questu = uprav_odmenu(
+                25 + quest["narocnost"] * 12, obtiznost
+            )
+            zisk_xp = uprav_xp(20 + quest["narocnost"] * 10, obtiznost)
+            hrac.gold += odmena
+            hrac.pridej_xp(zisk_xp)
             hrac.bonus_za_questy += bonus_questu
             hrac.gold += bonus_questu
             hrac.streak_uspesnych_dnu = getattr(hrac, "streak_uspesnych_dnu", 0) + 1
@@ -290,9 +298,14 @@ class QuestSystem:
             if quest.get("npc_id") and hra is not None and hasattr(hra, "svet"):
                 hra.svet.zmen_vztah(quest["npc_id"], 8)
             self._uprav_frakce(hra, quest.get("frakce_dopad", {}))
-            tisk_ok(f"Quest '{quest['nazev']}' dokončen! Odměna: {quest['odmena_zlato']} zlaťáků + {bonus_questu} bonusu za výkon, +20 XP.")
+            tisk_ok(
+                f"Quest '{quest['nazev']}' dokončen! Odměna: {odmena} zlaťáků "
+                f"+ {bonus_questu} bonusu za výkon, +{zisk_xp} XP."
+            )
         else:
-            pokuta = int(quest["odmena_zlato"] * 0.5)
+            pokuta = uprav_odmenu(
+                int(quest["odmena_zlato"] * 0.5), obtiznost
+            )
             hrac.gold = max(0, hrac.gold - pokuta)
             hrac.vliv_inkvizice = min(100, hrac.vliv_inkvizice + 5)
             self._uprav_frakce(hra, quest.get("frakce_dopad", {}), nasobek=-1)
