@@ -60,6 +60,7 @@ class Hra:
         except Exception:
             self.kronika = None
         self.denni_rezim = "laskavy"
+        self.harem._hra_ref = self
 
     def to_dict(self):
         from datetime import datetime
@@ -161,6 +162,7 @@ class Hra:
             }
         if hra.kampan.kapitola >= 3 and not hra.kampan.dokonceno:
             hra.svet.odhal_lokaci("sklenena_zahrada")
+        hra.harem._hra_ref = hra
         return hra
 
 

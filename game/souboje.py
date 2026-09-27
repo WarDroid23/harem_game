@@ -430,6 +430,12 @@ class Souboj:
     def hracova_obrana(self):
         zaklad = self.hrac.skill_body + self.hrac.skilly.get("obrana", 0) * 2
         zaklad += self.mafie.vojaci // 2
+        if self.hra is not None:
+            from game.charakter_bonusy import bonus_obrany
+            jmeno_partnerky = getattr(
+                getattr(self.hra, "pevnost", None), "bojova_partnerka", ""
+            )
+            zaklad += bonus_obrany(self.hra, jmeno_partnerky)
         # Bonus z budov pevnosti (Hradby a Strážní věž)
         if self.hra is not None and getattr(self.hra, "pevnost", None):
             zaklad += self.hra.pevnost.bonusy().get("obrana", 0)

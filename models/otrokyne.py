@@ -61,6 +61,11 @@ class Otrokyně:
     lecba_zavislosti: int = 0
     vybaveni: list = field(default_factory=list)
     osud_zaver: str = ""
+    osobni_pribeh_krok: int = 0
+    osobni_pribeh_dokonceno: bool = False
+    osobni_pribeh_volby: list = field(default_factory=list)
+    osobni_pribeh_zaver: str = ""
+    historie_statistik: list = field(default_factory=list)
     manzelstvi: dict = field(default_factory=dict)
     je_manzelkou: bool = False
     den_zasnubin: int = 0
@@ -110,6 +115,24 @@ class Otrokyně:
         if den is not None:
             zaznam["den"] = den
         self.historie_voleb.append(zaznam)
+        if den is not None:
+            self.zaznamenej_statistiky(den)
+
+    def zaznamenej_statistiky(self, den):
+        """Uloží denní bod do krátké časové řady pro profilové grafy."""
+        bod = {
+            "den": max(0, int(den)),
+            "duvera": int(self.duvera),
+            "loajalita": int(self.loajalita),
+            "poslusnost": int(self.poslusnost),
+            "touha": int(self.touha),
+            "hp": int(self.hp),
+        }
+        if self.historie_statistik and self.historie_statistik[-1].get("den") == bod["den"]:
+            self.historie_statistik[-1] = bod
+        else:
+            self.historie_statistik.append(bod)
+        self.historie_statistik = self.historie_statistik[-30:]
 
     def to_dict(self):
         return asdict(self)
@@ -135,6 +158,33 @@ class Otrokyně:
             otrok.romance_volby = []
         if not isinstance(otrok.historie_voleb, list):
             otrok.historie_voleb = []
+        if not isinstance(otrok.osobni_pribeh_volby, list):
+            otrok.osobni_pribeh_volby = []
+        if not isinstance(otrok.osobni_pribeh_zaver, str):
+            otrok.osobni_pribeh_zaver = ""
+        if not isinstance(otrok.osobni_pribeh_dokonceno, bool):
+            otrok.osobni_pribeh_dokonceno = bool(otrok.osobni_pribeh_dokonceno)
+        try:
+            otrok.osobni_pribeh_krok = max(0, min(3, int(otrok.osobni_pribeh_krok)))
+        except (TypeError, ValueError):
+            otrok.osobni_pribeh_krok = 0
+        if otrok.osobni_pribeh_krok >= 3:
+            otrok.osobni_pribeh_dokonceno = True
+        if not isinstance(otrok.historie_statistik, list):
+            otrok.historie_statistik = []
+        vycistena_historie = []
+        for bod in otrok.historie_statistik[-30:]:
+            if not isinstance(bod, dict):
+                continue
+            try:
+                den = max(0, int(bod["den"]))
+                snapshot = {"den": den}
+                for stat in ("duvera", "loajalita", "poslusnost", "touha", "hp"):
+                    snapshot[stat] = int(bod.get(stat, 0))
+            except (KeyError, TypeError, ValueError):
+                continue
+            vycistena_historie.append(snapshot)
+        otrok.historie_statistik = vycistena_historie
         if not isinstance(otrok.vybaveni, list):
             otrok.vybaveni = []
         if not isinstance(otrok.osud_zaver, str):

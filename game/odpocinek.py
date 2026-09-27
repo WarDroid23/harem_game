@@ -187,6 +187,8 @@ def odpocinek(hra, rezim=None):
             print(z)
     except Exception as e:
         tisk_chyba(f"Noční event: {e}")
+    for otrok in hra.harem.vsechny_aktivni():
+        otrok.zaznamenej_statistiky(hrac.den)
     try:
         from game.kronika import zaznamenej
         zaznamenej(hra, f"Odpočinek ({rezim}), den {hrac.den}")

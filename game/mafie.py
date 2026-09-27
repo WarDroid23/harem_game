@@ -73,7 +73,7 @@ def valka_uzemi(hrac, mafie, hra=None):
     import random
     from game.kronika import zaznamenej
     from models.otrokyne import Otrokyně
-    from data.jmena import JMENA
+    from data.jmena import vyber_nove_jmeno
 
     if not mafie.uzemi:
         tisk_chyba("Bez vlastních území nemá smysl vést válku syndikátů.")
@@ -155,9 +155,13 @@ def valka_uzemi(hrac, mafie, hra=None):
         # Speciální odměna u Krvavého kultu nebo drtivého vítězství
         if vyber == "3" and rozdil >= 15 and hra is not None:
             if random.random() < 0.65:
-                jmeno = random.choice(["Morgana", "Valerie", "Lilith", "Morana", "Kassandra"])
-                zajatkyne = Otrokyně(jmeno=jmeno, vek=random.randint(19, 27))
-                zajatkyne.charakter = "zvrácená"
+                from data.charaktery import vyber_charakter
+                jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
+                zajatkyne = Otrokyně(
+                    jmeno=jmeno,
+                    vek=random.randint(19, 27),
+                    charakter=vyber_charakter(),
+                )
                 zajatkyne.faze_zkazenosti = 4
                 zajatkyne.poslusnost = 45
                 zajatkyne.loajalita = 40
@@ -448,4 +452,3 @@ def vydirani_a_korupce(hrac, mafie, hra=None):
             hrac.dark_energy = min(100, hrac.dark_energy + 20)
             mafie.vliv_ve_meste = min(100, getattr(mafie, "vliv_ve_meste", 0) + 8)
             tisk_ok("Církevní soudce je plně ve tvé moci! Tlak inkvizice drasticky klesl (-25%).")
-

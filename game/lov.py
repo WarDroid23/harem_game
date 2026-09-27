@@ -1,8 +1,8 @@
 # game/lov.py
 import random
 from models.otrokyne import Otrokyně
-from data.jmena import JMENA
-from data.charaktery import CHARAKTERY, nazev_charakteru
+from data.jmena import vyber_nove_jmeno
+from data.charaktery import nazev_charakteru, vyber_charakter
 from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
 from config import RED, GREEN, CYAN, MAGENTA, GOLD, NC
 from game.alchymie import SUROVINY
@@ -145,8 +145,8 @@ def lov_otrokyn(hra):
 
     if random.random() < oblast["sance"]:
         kvalita = random.randint(*oblast["kvalita"])
-        jmeno = random.choice(JMENA)
-        charakter = random.choice(list(CHARAKTERY.keys()))
+        jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
+        charakter = vyber_charakter()
         otrok = Otrokyně(
             jmeno=jmeno,
             srdce=min(100, random.randint(40, 90) + kvalita * 5),

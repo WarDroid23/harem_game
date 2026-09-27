@@ -3,6 +3,8 @@ import random
 from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
 from config import GOLD, GREEN, RED, CYAN, NC
 from game.balance import uprav_odmenu, uprav_xp
+from data.jmena import vyber_nove_jmeno
+from data.charaktery import vyber_charakter
 
 QUESTY = [
     {
@@ -280,9 +282,9 @@ class QuestSystem:
             hrac.streak_uspesnych_dnu = getattr(hrac, "streak_uspesnych_dnu", 0) + 1
             if quest["typ"] == "lov":
                 from models.otrokyne import Otrokyně
-                from data.jmena import JMENA
                 otrok = Otrokyně(
-                    jmeno=random.choice(JMENA),
+                    jmeno=vyber_nove_jmeno(harem.otrokyne),
+                    charakter=vyber_charakter(),
                     submisivita=random.randint(30, 80),
                     poslusnost=random.randint(20, 70),
                     loajalita=random.randint(10, 50)

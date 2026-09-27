@@ -1,4 +1,9 @@
+from collections import Counter
+
 from utils.vypis import hlavicka, clear, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
+from utils.vypis import ukazatel
+from config import CYAN, GREEN, MAGENTA, RED, YELLOW, NC
+from data.charaktery import CHARAKTERY, nazev_charakteru, normalizuj_charakter
 from game.tresty_odmeny import nastav_oblibenou, menu_odmen
 
 
@@ -19,7 +24,8 @@ def _vyber_otrokyni(hra):
             znacky.append("♥")
         zn = (" " + " ".join(znacky)) if znacky else ""
         print(
-            f"{index}) {hvezda}{otrok.jmeno}{zn} — role: {otrok.role}, "
+            f"{index}) {hvezda}{otrok.jmeno}{zn} — {nazev_charakteru(otrok.charakter)}, "
+            f"role: {otrok.role}, "
             f"loajalita {otrok.loajalita}, důvěra {otrok.duvera}, osud {stav_osudu}"
         )
     vytiskni_volbu('0', 'Zpět')
@@ -40,6 +46,10 @@ def _vyber_otrokyni(hra):
 
 def _osobni_akce(hra, otrok):
     hlavicka(f'Péče o {otrok.jmeno}')
+    print(
+        f"Osobnost: {nazev_charakteru(otrok.charakter)} — "
+        f"{CHARAKTERY[normalizuj_charakter(otrok.charakter)]['popis']}"
+    )
     vytiskni_volbu('1', 'Rozhovor o minulosti (+důvěra, +loajalita)')
     vytiskni_volbu('2', 'Péče a zotavení (20 zlata, +HP)')
     vytiskni_volbu('3', 'Přidělit roli v pevnosti')
@@ -50,6 +60,10 @@ def _osobni_akce(hra, otrok):
     vytiskni_volbu('8', 'Jmenovat oblíbenkyní harému')
     vytiskni_volbu('9', 'Odměny (systém odměn)')
     vytiskni_volbu('10', 'Bojová společnice (jmenovat/odvolat z doprovodu v soubojích)')
+    vytiskni_volbu('11', 'Poznat její osobnost a promluvit si o jejích přáních')
+    vytiskni_volbu('12', 'Pokračovat v jejím osobním příběhu')
+    vytiskni_volbu('13', 'Otevřít její osobní deník')
+    vytiskni_volbu('14', 'Graf vývoje jejích statistik')
     vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "1":
@@ -183,10 +197,64 @@ def _osobni_akce(hra, otrok):
                 tisk_ok(f"★ {otrok.jmeno} byla jmenována tvou bojovou společnicí a bude stát po tvém boku v soubojích!")
         else:
             tisk_chyba("Pevnost není k dispozici.")
+    elif volba == "11":
+        _rozhovor_o_osobnosti(hra, otrok)
+    elif volba == "12":
+        from game.osobni_pribehy import pokracuj_v_pribehu
+        pokracuj_v_pribehu(hra, otrok)
+    elif volba == "13":
+        from game.osobni_pribehy import zobraz_denik_postavy
+        zobraz_denik_postavy(otrok)
+    elif volba == "14":
+        zobraz_graf_statistik(otrok)
     elif volba != "0":
         tisk_chyba("Neplatná volba.")
     if volba != "4":
         input("Enter...")
+
+
+def _rozhovor_o_osobnosti(hra, otrok):
+    charakter = CHARAKTERY[normalizuj_charakter(otrok.charakter)]
+    modifikatory = charakter.get("modifikatory", {})
+    print(f"\n{CYAN}Rozhovor s {otrok.jmeno}{NC}")
+    print(f"„{charakter['popis']}“")
+    vytiskni_volbu("1", "Naslouchat bez přerušování (+7 důvěra, +3 loajalita)")
+    vytiskni_volbu("2", "Povzbudit její silnou stránku (+5 vybraný vztahový rys, +3 důvěra)")
+    vytiskni_volbu("3", "Domluvit si jasné hranice (+5 důvěra, -5 strach)")
+    vytiskni_volbu("0", "Rozhovor odložit")
+    volba = input("> ").strip()
+    reakce = max(0.5, float(charakter.get("reakce_na_odmenu", 1.0)))
+
+    if volba == "1":
+        duvera = max(1, int(7 * modifikatory.get("duvera", 1.0) * reakce))
+        loajalita = max(1, int(3 * modifikatory.get("loajalita", 1.0) * reakce))
+        otrok.zvysit_stat("duvera", duvera)
+        otrok.zvysit_stat("loajalita", loajalita)
+        vysledek = f"Důvěra +{duvera}, loajalita +{loajalita}."
+    elif volba == "2":
+        rysy = ("duvera", "loajalita", "touha")
+        rys = max(rysy, key=lambda stat: modifikatory.get(stat, 1.0))
+        hodnota = max(1, int(5 * modifikatory.get(rys, 1.0) * reakce))
+        duvera = max(1, int(3 * modifikatory.get("duvera", 1.0) * reakce))
+        otrok.zvysit_stat(rys, hodnota)
+        otrok.zvysit_stat("duvera", duvera)
+        popisy = {"duvera": "důvěra", "loajalita": "loajalita", "touha": "nadšení"}
+        vysledek = f"{popisy[rys]} +{hodnota}, důvěra +{duvera}."
+    elif volba == "3":
+        duvera = max(1, int(5 * modifikatory.get("duvera", 1.0) * reakce))
+        otrok.zvysit_stat("duvera", duvera)
+        otrok.zvysit_stat("strach", -5)
+        vysledek = f"Důvěra +{duvera}, strach -5."
+    elif volba == "0":
+        tisk_info("Rozhovor byl odložen; její rozhodnutí i soukromí respektuješ.")
+        return
+    else:
+        tisk_chyba("Neplatná volba rozhovoru.")
+        return
+
+    otrok.nalada = "klidná"
+    otrok.zaznamenej_volbu("rozhovor", "Naslouchání osobním přáním", hra.hrac.den)
+    tisk_ok(f"{otrok.jmeno} ocenila, že jsi jí věnoval čas. {vysledek}")
 
 
 def porada_haremu(hra):
@@ -229,7 +297,15 @@ def proved_poradu(hra, postavy=None):
 def zobraz_profil(otrok):
     hlavicka(f'Profil: {otrok.jmeno}')
     print(f"Věk: {max(18, int(otrok.vek))} | Role: {otrok.role}")
-    print(f"Charakter: {otrok.charakter} | Osud: {otrok.popis_osudu()}")
+    charakter_id = normalizuj_charakter(otrok.charakter)
+    charakter = CHARAKTERY[charakter_id]
+    print(f"Charakter: {charakter['nazev']} | Osud: {otrok.popis_osudu()}")
+    print(f"  {charakter['popis']}")
+    from game.charakter_bonusy import schopnost_postavy
+    print(f"Schopnost: {schopnost_postavy(otrok)}")
+    krok_pribehu = min(3, int(getattr(otrok, "osobni_pribeh_krok", 0)))
+    stav_pribehu = "dokončen" if getattr(otrok, "osobni_pribeh_dokonceno", False) else f"{krok_pribehu}/3"
+    print(f"Osobní příběh: {stav_pribehu}")
     if getattr(otrok, "oblibena", False):
         print(f"★ Oblíbenkyně (od dne {getattr(otrok, 'oblibena_od_den', '?')})")
     if otrok.partnerka:
@@ -242,11 +318,17 @@ def zobraz_profil(otrok):
         f"Vztah: {otrok.romance_stav} ({otrok.romance_body}/100) | "
         f"Loajalita: {otrok.loajalita} | Důvěra: {otrok.duvera}"
     )
-    print(
-        "Statistiky: "
-        f"HP {otrok.hp}/{otrok.max_hp}, poslušnost {otrok.poslusnost}, "
-        f"submisivita {otrok.submisivita}, touha {otrok.touha}, strach {otrok.strach}"
-    )
+    print(f"\n{CYAN}Přehled postavy{NC}")
+    for nazev, hodnota, maximum, barva in (
+        ("Zdraví", otrok.hp, otrok.max_hp, GREEN),
+        ("Důvěra", otrok.duvera, 100, CYAN),
+        ("Loajalita", otrok.loajalita, 100, MAGENTA),
+        ("Poslušnost", otrok.poslusnost, 100, YELLOW),
+        ("Touha", otrok.touha, 100, MAGENTA),
+        ("Strach", otrok.strach, 100, RED),
+        ("Romantika", otrok.romance_body, 100, CYAN),
+    ):
+        print(f"  {nazev:12} {ukazatel(hodnota, maximum, 16, barva)}")
     historie = list(otrok.historie_voleb)
     if not historie:
         historie = [
@@ -261,6 +343,46 @@ def zobraz_profil(otrok):
         for zaznam in historie[-12:]:
             den = f" (den {zaznam['den']})" if "den" in zaznam else ""
             print(f"  • {zaznam.get('typ', 'volba')}: {zaznam.get('volba', '')}{den}")
+
+
+def zobraz_graf_statistik(otrok):
+    hlavicka(f"Vývoj statistik: {otrok.jmeno}")
+    historie = getattr(otrok, "historie_statistik", [])
+    if not historie:
+        print("Časová řada zatím prázdná. Statistiky se ukládají na konci každého dne.")
+        print("Aktuální stav:")
+        historie = [{
+            "den": 0,
+            "duvera": otrok.duvera,
+            "loajalita": otrok.loajalita,
+            "poslusnost": otrok.poslusnost,
+            "touha": otrok.touha,
+            "hp": otrok.hp,
+        }]
+    historie = historie[-14:]
+    grafy = (
+        ("Důvěra", "duvera", CYAN),
+        ("Loajalita", "loajalita", MAGENTA),
+        ("Poslušnost", "poslusnost", YELLOW),
+        ("Touha", "touha", RED),
+        ("Zdraví", "hp", GREEN),
+    )
+    znaky = "▁▂▃▄▅▆▇█"
+    for nazev, klic, barva in grafy:
+        hodnoty = [max(0, int(bod.get(klic, 0))) for bod in historie]
+        minimum, maximum = min(hodnoty), max(hodnoty)
+        if minimum == maximum:
+            linka = znaky[3] * len(hodnoty)
+        else:
+            linka = "".join(
+                znaky[round((hodnota - minimum) / (maximum - minimum) * 7)]
+                for hodnota in hodnoty
+            )
+        print(
+            f"  {nazev:12} {barva}{linka}{NC} "
+            f"{hodnoty[0]} → {hodnoty[-1]}"
+        )
+    print("  Dny:       " + " ".join(str(bod.get("den", "?")) for bod in historie))
 
 
 def menu_profily(hra):
@@ -307,6 +429,37 @@ def menu_haremu(hra):
 
         hlavicka("Harém: péče, vztahy a privilegia")
         print(f"Členky: {hra.harem.pocet()} | Úroveň harému: {getattr(hra.harem, 'harem_level', 1)}")
+        if aktivni:
+            prumer_duvery = sum(o.duvera for o in aktivni) // len(aktivni)
+            prumer_loajality = sum(o.loajalita for o in aktivni) // len(aktivni)
+            prumer_zdravi = sum(o.hp for o in aktivni) // len(aktivni)
+            print(f"\n{CYAN}Stav harému{NC}")
+            for nazev, hodnota, barva in (
+                ("Důvěra", prumer_duvery, CYAN),
+                ("Loajalita", prumer_loajality, MAGENTA),
+                ("Zdraví", prumer_zdravi, GREEN),
+            ):
+                print(f"  {nazev:10} {ukazatel(hodnota, 100, 18, barva)}")
+            pocty_charakteru = Counter(
+                normalizuj_charakter(o.charakter) for o in aktivni
+            )
+            rozdeleni = ", ".join(
+                f"{CHARAKTERY[charakter]['nazev']} ×{pocet}"
+                for charakter, pocet in pocty_charakteru.most_common(5)
+            )
+            print(f"  Povahy: {rozdeleni}")
+            print(f"\n{YELLOW}Členky harému{NC}")
+            for otrok in aktivni[:8]:
+                stav_ikona = "💍" if getattr(otrok, "je_manzelkou", False) else (
+                    "♥" if getattr(otrok, "partnerka", False) else " "
+                )
+                print(
+                    f"  {stav_ikona} {otrok.jmeno:<14} "
+                    f"{nazev_charakteru(otrok.charakter):<22} "
+                    f"♥ {ukazatel(otrok.duvera, 100, 10, CYAN)}"
+                )
+            if len(aktivni) > 8:
+                print(f"  … a dalších {len(aktivni) - 8} členek")
         if oblibene:
             print(f"★ Oblíbenkyně: {oblibene[0].jmeno}")
         else:
@@ -321,6 +474,8 @@ def menu_haremu(hra):
         vytiskni_volbu('3', 'Profily postav a historie voleb')
         vytiskni_volbu('4', 'Rychle jmenovat / změnit oblíbenkyni')
         vytiskni_volbu('5', 'Odměny pro vybranou otrokyni')
+        vytiskni_volbu('6', 'Osobní deník vybrané členky')
+        vytiskni_volbu('7', 'Graf vývoje statistik vybrané členky')
         vytiskni_volbu('0', 'Zpět')
         volba = input("> ").strip()
         if volba == "0":
@@ -342,6 +497,17 @@ def menu_haremu(hra):
             otrok = _vyber_otrokyni(hra)
             if otrok:
                 menu_odmen(otrok, hra.hrac)
+                input("Enter...")
+        elif volba == "6":
+            otrok = _vyber_otrokyni(hra)
+            if otrok:
+                from game.osobni_pribehy import zobraz_denik_postavy
+                zobraz_denik_postavy(otrok)
+                input("Enter...")
+        elif volba == "7":
+            otrok = _vyber_otrokyni(hra)
+            if otrok:
+                zobraz_graf_statistik(otrok)
                 input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")

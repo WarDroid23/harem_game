@@ -26,7 +26,130 @@ class HraTesty(unittest.TestCase):
         hra = nova_hra()
         self.assertEqual(len(hra.harem.otrokyne), 2)
         self.assertTrue(all(otrok.vek >= 18 for otrok in hra.harem.otrokyne))
+        self.assertEqual(len({otrok.jmeno.casefold() for otrok in hra.harem.otrokyne}), 2)
+        from data.charaktery import CHARAKTERY
+        self.assertTrue(all(otrok.charakter in CHARAKTERY for otrok in hra.harem.otrokyne))
         self.assertEqual(hra.nastaveni.obtiznost, "normalni")
+
+    def test_generator_jmen_a_legacy_aliasy_charakteru(self):
+        from data.charaktery import CHARAKTERY, normalizuj_charakter, vyber_charakter
+        from data.jmena import vyber_nove_jmeno
+
+        obsazena = [Otrokyně("Aurelia"), Otrokyně("Nela")]
+        nove_jmeno = vyber_nove_jmeno(obsazena)
+        self.assertNotIn(nove_jmeno.casefold(), {o.jmeno.casefold() for o in obsazena})
+        self.assertIn(vyber_charakter(), CHARAKTERY)
+        self.assertEqual(normalizuj_charakter("Amazonka (bojovnice)"), "amazonka")
+        self.assertEqual(normalizuj_charakter("Čarodějka"), "carodejka")
+
+    def test_harem_a_statistiky_vykresluji_grafy_a_povahy(self):
+        from game.harem_interakce import menu_haremu
+        from game.statistiky import zobraz_statistiky
+
+        hra = Hra()
+        hra.harem.pridat(Otrokyně("Amálie", charakter="badatelka", duvera=75))
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value="0"), redirect_stdout(vystup):
+            menu_haremu(hra)
+        self.assertIn("Zvídavá badatelka", vystup.getvalue())
+        self.assertIn("█", vystup.getvalue())
+
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value=""), redirect_stdout(vystup):
+            zobraz_statistiky(hra)
+        self.assertIn("Průměrná důvěra", vystup.getvalue())
+        self.assertIn("Zvídavá badatelka", vystup.getvalue())
+        self.assertIn("Postup XP", vystup.getvalue())
+
+    def test_osobni_rozhovor_respektuje_volbu_a_zaznamena_historii(self):
+        from game.harem_interakce import _osobni_akce
+
+        hra = Hra()
+        otrok = Otrokyně("Mira", charakter="badatelka", duvera=50, strach=20)
+        with patch("builtins.input", side_effect=["11", "3", ""]), redirect_stdout(io.StringIO()):
+            _osobni_akce(hra, otrok)
+        self.assertGreater(otrok.duvera, 50)
+        self.assertEqual(otrok.strach, 15)
+        self.assertEqual(otrok.historie_voleb[-1]["typ"], "rozhovor")
+
+    def test_osobni_pribeh_a_statistiky_se_ukladaji_a_vykresli_diary(self):
+        from game.osobni_pribehy import pokracuj_v_pribehu, zobraz_denik_postavy
+        from game.harem_interakce import zobraz_graf_statistik
+        from data.charaktery import CHARAKTERY
+        from game.osobni_pribehy import PRIBEHY
+
+        self.assertEqual(set(PRIBEHY), set(CHARAKTERY))
+        self.assertTrue(all(len(pribeh["sceny"]) == 3 for pribeh in PRIBEHY.values()))
+
+        hra = Hra()
+        otrok = Otrokyně("Alma", charakter="umelkyne", duvera=55, loajalita=45)
+        hra.harem.pridat(otrok)
+        with patch("builtins.input", side_effect=["1", "1", "2"]), redirect_stdout(io.StringIO()):
+            for _ in range(3):
+                self.assertTrue(pokracuj_v_pribehu(hra, otrok))
+        self.assertTrue(otrok.osobni_pribeh_dokonceno)
+        self.assertEqual(otrok.osobni_pribeh_krok, 3)
+        self.assertEqual(len(otrok.osobni_pribeh_volby), 3)
+
+        otrok.zaznamenej_statistiky(1)
+        otrok.duvera = 90
+        otrok.zaznamenej_statistiky(2)
+        nactena = Otrokyně.from_dict(otrok.to_dict())
+        self.assertEqual(nactena.osobni_pribeh_krok, 3)
+        self.assertTrue(nactena.osobni_pribeh_dokonceno)
+        self.assertEqual([bod["den"] for bod in nactena.historie_statistik], [1, 2])
+        stara = Otrokyně.from_dict({"jmeno": "Stará členka"})
+        self.assertEqual(stara.osobni_pribeh_krok, 0)
+        self.assertFalse(stara.osobni_pribeh_dokonceno)
+        self.assertEqual(stara.historie_statistik, [])
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            zobraz_denik_postavy(nactena)
+            zobraz_graf_statistik(nactena)
+        self.assertIn("umělkyně", vystup.getvalue().lower())
+        self.assertIn("uzavřený příběh", vystup.getvalue().lower())
+        self.assertIn("Důvěra", vystup.getvalue())
+        self.assertIn("1 2", vystup.getvalue())
+
+    def test_povahove_schopnosti_pusobi_v_prislusnych_systemech(self):
+        from game.diplomacie import Diplomacie
+        from game.souboje import Souboj
+        from game.vyzkum import VyzkumSystem
+
+        hra = Hra()
+        badatelka = Otrokyně("Ada", charakter="badatelka", duvera=40)
+        diplomatka = Otrokyně("Běla", charakter="diplomatka", duvera=50)
+        ochranitelka = Otrokyně("Cora", charakter="ochranitelka", duvera=50)
+        umelkyne = Otrokyně("Dora", charakter="umelkyne", duvera=40)
+        for otrok in (badatelka, diplomatka, ochranitelka, umelkyne):
+            hra.harem.pridat(otrok)
+
+        vyzkum = VyzkumSystem()
+        self.assertEqual(vyzkum.cena_vyzkumu(hra.hrac, "temna_magie", hra), 270)
+        zlato_pred = hra.hrac.gold
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "temna_magie", hra))
+        self.assertEqual(hra.hrac.gold, zlato_pred - 270)
+
+        diplomacie = Diplomacie(hra.frakce)
+        hra.hrac.gold = 500
+        with patch("random.randint", return_value=10), redirect_stdout(io.StringIO()):
+            diplomacie.vyjednavat(hra.hrac, "obchodnici", "uplatek", hra)
+        self.assertEqual(hra.frakce.frakce["obchodnici"].reputace, 22)
+
+        hra.pevnost.bojova_partnerka = ochranitelka.jmeno
+        souboj = Souboj(hra.hrac, hra.mafie, hra)
+        self.assertEqual(souboj.hracova_obrana(), hra.hrac.skill_body + 5)
+        self.assertEqual(
+            hra.harem.pasivni_prijem(),
+            10 * hra.harem.harem_level
+            + sum(b.uroven * 3 for b in hra.harem.budovy.values())
+            + sum(o.loajalita for o in hra.harem.vsechny_aktivni())
+            // len(hra.harem.vsechny_aktivni())
+            // 10
+            + 5,
+        )
 
     def test_save_load_slotu_neprepise_hlavni_save(self):
         hra = Hra()

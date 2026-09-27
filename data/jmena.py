@@ -1,4 +1,7 @@
 # data/jmena.py
+import random
+
+
 JMENA = [
     "Luna", "Nova", "Vesper", "Nyx", "Lilith", "Sable", "Aria", "Mira", "Zara", "Eva",
     "Ivy", "Rose", "Jade", "Raven", "Willow", "Selene", "Freya", "Morrigan", "Belladonna",
@@ -23,5 +26,33 @@ JMENA = [
     "Amina", "Farah", "Inaya", "Layla", "Nour", "Samira", "Zahra",
     "Akari", "Emi", "Kaori", "Natsuki", "Rin", "Tomoe", "Umiko",
 ]
+
+JMENA.extend([
+    "Anežka", "Běla", "Božena", "Cecílie", "Dita", "Ema", "Hedvika", "Ilona",
+    "Irena", "Josefína", "Klára", "Lída", "Milada", "Otilie", "Pavla", "Růžena",
+    "Šárka", "Zora", "Ayla", "Darya", "Esme", "Ingrid", "Katerina",
+    "Mirela", "Nika", "Oksana", "Petra", "Rhea", "Sabina", "Talia", "Varya",
+    "Xenia", "Yara", "Zoraida", "Amara", "Briar", "Cleo", "Evelyn", "Isla",
+    "Mara", "Nerina", "Sienna", "Tamsin", "Violetta", "Zarina",
+])
+JMENA[:] = list(dict.fromkeys(JMENA))
+
+
+def vyber_nove_jmeno(obsazena_jmena=()):
+    """Vybere jméno, které ještě nepoužívá žádná postava v seznamu."""
+    obsazena = {
+        str(getattr(postava, "jmeno", postava)).strip().casefold()
+        for postava in obsazena_jmena
+    }
+    dostupna = [jmeno for jmeno in JMENA if jmeno.casefold() not in obsazena]
+    if dostupna:
+        return random.choice(dostupna)
+
+    zaklad = random.choice(JMENA)
+    cislo = 2
+    while f"{zaklad} {cislo}".casefold() in obsazena:
+        cislo += 1
+    return f"{zaklad} {cislo}"
+
 
 JMENA_AGENTU = ["Shadow", "Vesper", "Cinder", "Raven", "Silas", "Nyx", "Ash", "Wraith", "Echo"]

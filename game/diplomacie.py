@@ -8,10 +8,16 @@ from config import GOLD, CYAN, MAGENTA, GREEN, RED, YELLOW, NC
 class Diplomacie:
     def __init__(self, frakce: FrakcniSystem):
         self.frakce = frakce
+        self._hra_ref = None
 
     def zobraz_frakce(self):
         clear()
         print(f"{GOLD}--- Diplomacie ---{NC}")
+        sleva = self._bonus_diplomatky(self._hra_ref)
+        if sleva:
+            tisk_info(
+                f"Diplomatka v dominiu posiluje kladné diplomatické zisky o {sleva} %."
+            )
         if not getattr(self.frakce, "frakce", None):
             print("Žádné frakce.")
             return
@@ -23,7 +29,13 @@ class Diplomacie:
                 print(f"      {frakce.popis}")
         print()
 
-    def vyjednavat(self, hrac, cilova_frakce, akce):
+    def _bonus_diplomatky(self, hra):
+        if hra is None:
+            return 0
+        from game.charakter_bonusy import bonus_diplomacie
+        return bonus_diplomacie(hra)
+
+    def vyjednavat(self, hrac, cilova_frakce, akce, hra=None):
         if cilova_frakce not in self.frakce.frakce:
             tisk_chyba("Neplatná frakce.")
             return
@@ -32,14 +44,16 @@ class Diplomacie:
             cena = 100
             if hrac.gold >= cena:
                 hrac.gold -= cena
-                delta = random.randint(5, 15)
-                frakce.reputace += delta
+                zaklad = random.randint(5, 15)
+                delta = int(zaklad * (100 + self._bonus_diplomatky(hra)) / 100)
+                frakce.reputace = max(-100, min(100, frakce.reputace + delta))
                 tisk_ok(f"Podplatil jsi {frakce.nazev}. Reputace +{delta} (aktuálně {frakce.reputace})")
             else:
                 tisk_chyba("Nedostatek zlata.")
         elif akce == "spojenectvi":
             if frakce.reputace >= 50:
-                frakce.reputace += 10
+                delta = int(10 * (100 + self._bonus_diplomatky(hra)) / 100)
+                frakce.reputace = min(100, frakce.reputace + delta)
                 tisk_ok(f"Uzavřeno spojenectví s {frakce.nazev}.")
             else:
                 tisk_chyba("Reputace je příliš nízká pro spojenectví (potřeba 50).")
@@ -53,18 +67,22 @@ class Diplomacie:
         else:
             tisk_chyba("Neznámá akce.")
 
-    def obchodovat(self, hrac, cilova_frakce, typ_zbozi="bezny"):
+    def obchodovat(self, hrac, cilova_frakce, typ_zbozi="bezny", hra=None):
         if cilova_frakce not in self.frakce.frakce:
             tisk_chyba("Neplatná frakce.")
             return
         frakce = self.frakce.frakce[cilova_frakce]
         cena = int(50 * (1 + frakce.reputace / 100))
         hrac.gold += max(10, cena)
-        frakce.reputace += random.randint(1, 5)
+        zaklad = random.randint(1, 5)
+        delta = int(zaklad * (100 + self._bonus_diplomatky(hra)) / 100)
+        frakce.reputace = max(-100, min(100, frakce.reputace + delta))
         tisk_ok(f"Obchodoval jsi s {frakce.nazev}. Zisk {max(10, cena)} zlaťáků.")
 
     def menu(self, hra):
         hrac = hra.hrac if hasattr(hra, "hrac") else hra
+        hra_ref = hra if hasattr(hra, "hrac") else None
+        self._hra_ref = hra_ref
         while True:
             self.zobraz_frakce()
             print(f"{GREEN}1) Úplatek (100 zl)")
@@ -107,13 +125,13 @@ class Diplomacie:
                     return
                 continue
             if volba == "1":
-                self.vyjednavat(hrac, cil, "uplatek")
+                self.vyjednavat(hrac, cil, "uplatek", hra_ref)
             elif volba == "2":
-                self.vyjednavat(hrac, cil, "spojenectvi")
+                self.vyjednavat(hrac, cil, "spojenectvi", hra_ref)
             elif volba == "3":
-                self.vyjednavat(hrac, cil, "hrozba")
+                self.vyjednavat(hrac, cil, "hrozba", hra_ref)
             elif volba == "4":
-                self.obchodovat(hrac, cil)
+                self.obchodovat(hrac, cil, hra=hra_ref)
             else:
                 tisk_chyba("Neplatná volba.")
             try:

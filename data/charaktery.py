@@ -1,4 +1,7 @@
 # data/charaktery.py
+import random
+
+
 # Dark Expansion v1.0 – nové archetypy
 
 CHARAKTERY = {
@@ -367,14 +370,87 @@ CHARAKTERY = {
         "reakce_na_odmenu": 1.2,
         "utek_sance": 0.10
     },
+    "badatelka": {
+        "nazev": "Zvídavá badatelka",
+        "popis": "Všímavá a přemýšlivá žena, která si důvěru buduje rozhovorem a poznáním.",
+        "modifikatory": {
+            "duvera": 1.25,
+            "loajalita": 1.1,
+            "strach": 0.8,
+            "touha": 0.9
+        },
+        "reakce_na_trest": 0.7,
+        "reakce_na_odmenu": 1.2,
+        "utek_sance": 0.07
+    },
+    "diplomatka": {
+        "nazev": "Bystrá diplomatka",
+        "popis": "Umí číst nálady lidí, vyjednávat a hledat řešení, která dávají smysl oběma stranám.",
+        "modifikatory": {
+            "duvera": 1.15,
+            "loajalita": 1.2,
+            "poslusnost": 0.9,
+            "submisivita": 0.8
+        },
+        "reakce_na_trest": 0.65,
+        "reakce_na_odmenu": 1.25,
+        "utek_sance": 0.08
+    },
+    "ochranitelka": {
+        "nazev": "Odvážná ochranitelka",
+        "popis": "Statečná a spolehlivá; nejvíc si cení bezpečí svých blízkých a férového jednání.",
+        "modifikatory": {
+            "loajalita": 1.2,
+            "duvera": 1.1,
+            "tolerance_bolesti": 1.2,
+            "strach": 0.7
+        },
+        "reakce_na_trest": 0.65,
+        "reakce_na_odmenu": 1.1,
+        "utek_sance": 0.1
+    },
+    "umelkyne": {
+        "nazev": "Citlivá umělkyně",
+        "popis": "Vnímavá a tvořivá duše, která se otevírá při sdílení příběhů, hudby a nápadů.",
+        "modifikatory": {
+            "duvera": 1.2,
+            "touha": 1.1,
+            "loajalita": 1.05,
+            "strach": 0.9
+        },
+        "reakce_na_trest": 0.75,
+        "reakce_na_odmenu": 1.25,
+        "utek_sance": 0.08
+    },
 }
 
 
 def normalizuj_charakter(charakter):
     """Vrátí platný klíč charakteru nebo bezpečný fallback."""
-    if isinstance(charakter, str) and charakter in CHARAKTERY:
-        return charakter
+    if isinstance(charakter, str):
+        klic = charakter.strip().casefold()
+        if klic in CHARAKTERY:
+            return klic
+        aliasy = {
+            "amazonka (bojovnice)": "amazonka",
+            "amazonka bojovnice": "amazonka",
+            "válečnice": "amazonka",
+            "čarodějka": "carodejka",
+            "kurtizána": "kurtizana",
+            "alchymistka": "alchymistka",
+            "stínová zlodějka": "zlodejka",
+            "svůdnice": "touha",
+            "zvrácená": "posedla",
+            "zvracena": "posedla",
+        }
+        if klic in aliasy:
+            return aliasy[klic]
     return "subka"
+
+
+def vyber_charakter():
+    """Vybere platný archetyp pro nově získanou postavu."""
+    return random.choice(tuple(CHARAKTERY))
 
 
 def nazev_charakteru(charakter):

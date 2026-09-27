@@ -45,6 +45,11 @@ class Harem:
         partnerky = sum(1 for o in aktivni if getattr(o, "partnerka", False))
         loajalita_avg = sum(getattr(o, "loajalita", 0) for o in aktivni) / len(aktivni)
         bonus = oblibena * 8 + partnerky * 6 + int(loajalita_avg / 10)
+        try:
+            from game.charakter_bonusy import bonus_prijmu_haremu
+            bonus += bonus_prijmu_haremu(getattr(self, "_hra_ref", None))
+        except ImportError:
+            pass
         return zaklad + bonus
 
     def to_dict(self):

@@ -169,10 +169,14 @@ def cerny_trh(hra):
     elif v == "7":
         if hrac.gold >= 400:
             hrac.gold -= 400
-            jmena_exoticka = ["Shae", "Azira", "Nefret", "Salma", "Kailani", "Sora"]
-            jmeno = random.choice(jmena_exoticka)
-            otrok = Otrokyně(jmeno=jmeno, vek=random.randint(20, 26))
-            otrok.charakter = random.choice(["svůdnice", "subka", "zvrácená"])
+            from data.jmena import vyber_nove_jmeno
+            from data.charaktery import vyber_charakter
+            jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
+            otrok = Otrokyně(
+                jmeno=jmeno,
+                vek=random.randint(20, 26),
+                charakter=vyber_charakter(),
+            )
             otrok.faze_zkazenosti = 3
             otrok.poslusnost = 55
             otrok.loajalita = 45
@@ -190,4 +194,3 @@ def cerny_trh(hra):
         input("Enter...")
     except EOFError:
         pass
-

@@ -64,8 +64,20 @@ def _efekt_temna_magie(hrac):
 class VyzkumSystem:
     def __init__(self):
         self.ziskane = set()
+        self._hra_ref = None
 
-    def muzes_vyzkoumat(self, hrac, id_vyzkumu):
+    def cena_vyzkumu(self, hrac, id_vyzkumu, hra=None):
+        if id_vyzkumu not in VYZKUM:
+            return 0
+        sleva = 0
+        try:
+            from game.charakter_bonusy import bonus_vyzkumu
+            sleva = bonus_vyzkumu(hra or self._hra_ref or getattr(hrac, "_hra_ref", None))
+        except ImportError:
+            pass
+        return max(1, int(VYZKUM[id_vyzkumu]["cena"] * (100 - sleva) / 100))
+
+    def muzes_vyzkoumat(self, hrac, id_vyzkumu, hra=None):
         if id_vyzkumu not in VYZKUM:
             return False, "Neznámý výzkum."
         vyzkum = VYZKUM[id_vyzkumu]
@@ -74,17 +86,18 @@ class VyzkumSystem:
         for pozadavek in vyzkum["vyzaduje"]:
             if pozadavek not in self.ziskane:
                 return False, f"Chybí požadavek: {VYZKUM[pozadavek]['nazev']}"
-        if hrac.gold < vyzkum["cena"]:
-            return False, "Nedostatek zlata."
+        cena = self.cena_vyzkumu(hrac, id_vyzkumu, hra)
+        if hrac.gold < cena:
+            return False, f"Nedostatek zlata (potřeba {cena})."
         return True, ""
 
-    def vyzkoumat(self, hrac, id_vyzkumu):
-        mozne, duvod = self.muzes_vyzkoumat(hrac, id_vyzkumu)
+    def vyzkoumat(self, hrac, id_vyzkumu, hra=None):
+        mozne, duvod = self.muzes_vyzkoumat(hrac, id_vyzkumu, hra)
         if not mozne:
             tisk_chyba(duvod)
             return False
         vyzkum = VYZKUM[id_vyzkumu]
-        hrac.gold -= vyzkum["cena"]
+        hrac.gold -= self.cena_vyzkumu(hrac, id_vyzkumu, hra)
         try:
             vyzkum["efekt"](hrac)
         except Exception as e:
@@ -95,13 +108,21 @@ class VyzkumSystem:
         tisk_ok(f"Vyzkoumáno: {vyzkum['nazev']}")
         return True
 
-    def zobraz_vyzkum(self, hrac):
+    def zobraz_vyzkum(self, hrac, hra=None):
         clear()
         print(f"{GOLD}--- Výzkum ---{NC}")
         print(f"Zlato: {hrac.gold} 🪙\n")
+        hra = hra or self._hra_ref or getattr(hrac, "_hra_ref", None)
+        sleva = 0
+        if hra is not None:
+            from game.charakter_bonusy import bonus_vyzkumu
+            sleva = bonus_vyzkumu(hra)
+        if sleva:
+            print(f"🔬 Badatelka v dominiu snižuje ceny výzkumu o {sleva} %.\n")
         for i, (id_vyzkumu, vyzkum) in enumerate(VYZKUM.items(), 1):
             status = f"{GREEN}✔{NC}" if id_vyzkumu in self.ziskane else f"{RED}✖{NC}"
-            print(f"{i}) {status} {vyzkum['nazev']} (id: {id_vyzkumu}, cena: {vyzkum['cena']})")
+            cena = self.cena_vyzkumu(hrac, id_vyzkumu, hra)
+            print(f"{i}) {status} {vyzkum['nazev']} (id: {id_vyzkumu}, cena: {cena})")
             print(f"   {vyzkum['popis']}")
             if vyzkum["vyzaduje"]:
                 poz = ", ".join(VYZKUM[p]["nazev"] for p in vyzkum["vyzaduje"])
@@ -110,9 +131,11 @@ class VyzkumSystem:
 
     def menu(self, hra):
         hrac = hra.hrac if hasattr(hra, "hrac") else hra
+        if hasattr(hra, "hrac"):
+            self._hra_ref = hra
         ids = list(VYZKUM.keys())
         while True:
-            self.zobraz_vyzkum(hrac)
+            self.zobraz_vyzkum(hrac, hra if hasattr(hra, "hrac") else None)
             print("Zadej číslo nebo id výzkumu (0 = zpět)")
             try:
                 volba = input("> ").strip().lower()
@@ -140,7 +163,7 @@ class VyzkumSystem:
                 except EOFError:
                     return
                 continue
-            self.vyzkoumat(hrac, id_v)
+            self.vyzkoumat(hrac, id_v, hra if hasattr(hra, "hrac") else None)
             try:
                 input("Enter...")
             except EOFError:

@@ -158,6 +158,31 @@ Fáze se zvyšuje při opakovaných interakcích a trestech. Každá nová fáze
 
 Po výběru otrokyně se zobrazí seznam dostupných interakcí. Každá spotřebuje **sexuální nebo temnou energii** a ovlivní statistiky.
 
+### Profily, povahy a přehledy
+
+Nové členky harému dostávají jedinečná jména z rozšířeného seznamu a jednu z
+dostupných povah. Mezi nové archetypy patří badatelka, diplomatka, ochranitelka
+a umělkyně; povaha ovlivňuje reakce na rozhovor i běžné interakce. Starší
+varianty názvů povah se při načtení převedou na platný archetyp.
+
+V menu **23** najdeš souhrn harému s grafickými ukazateli důvěry, loajality a
+zdraví, rozdělení povah, profily a historii rozhodnutí. Osobní nabídka přidává
+rozhovor o přáních postavy: můžeš jí naslouchat, povzbudit její silnou stránku
+nebo společně vyjasnit hranice. Volba rozhovoru se zaznamená do její historie.
+Menu **17** nově vykresluje grafy zdraví, energie, postupu, dovedností,
+charakterů harému, vlivu mafie a reputace frakcí.
+
+Každá povaha má také osobní třídílný příběh (volba **12** v osobní nabídce).
+Příběh se rozvíjí rozhovory a důvěrou; hráč může naslouchat nebo nabídnout
+pomoc, ale rozhodnutí postavy zůstává její. Osobní deník (volba **13**) shrnuje
+její přání, stav příběhu a důležité volby. Volba **14** ukazuje graf statistik
+v čase; hodnoty se zaznamenávají po významných interakcích a při uzavření dne.
+
+Vybrané povahy poskytují i praktické schopnosti: badatelka zlevňuje výzkum,
+diplomatka posiluje kladné diplomatické zisky, ochranitelka přidává obranu jako
+bojová společnice a umělkyně zvyšuje denní příjem harému. Schopnosti mají
+podmínky důvěry a nevztahují se na členky, které jsou právě na nájmu.
+
 ### Hlavní kategorie interakcí
 
 | Kategorie | Příklady akcí |

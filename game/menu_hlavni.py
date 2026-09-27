@@ -60,7 +60,7 @@ def vykresli_hlavni_menu(hra):
 
     print(f"{GOLD}{BOLD}╔════ 👑 HARÉM & DÍVKY ══════════════════╗{NC}   {MAGENTA}{BOLD}╔════ 🏰 PANSTVÍ & IMPÉRIUM ═════════════╗{NC}")
     print(f"║ {GREEN} 1){NC} 👉 Interakce s otrokyněmi            ║   ║ {MAGENTA} 3){NC} 🏢 Mafie / gangy & území        ║")
-    print(f"║ {GREEN}23){NC} 🤝 Péče, oblíbenkyně, osudy         ║   ║ {CYAN}16){NC} 🏗️ Budovy dominia               ║")
+    print(f"║ {GREEN}23){NC} 🤝 Profily, osobnost, vztahy        ║   ║ {CYAN}16){NC} 🏗️ Budovy dominia               ║")
     print(f"║ {MAGENTA}28){NC} 💍 Manželství, žárlivost & rodina   ║   ║ {MAGENTA}21){NC} 🏛️ Nevěstinec & prodej dívek    ║")
     print(f"║ {RED} 7){NC} 🧠 Subky & Domestikace             ║   ║ {CYAN} 2){NC} 💰 Nájem otrokyně               ║")
     print(f"║ {YELLOW}11){NC} 🎯 Lov otrokyň                      ║   ║ {BLUE} 5){NC} 🤝 Diplomacie & frakce          ║")
@@ -74,7 +74,7 @@ def vykresli_hlavni_menu(hra):
     print(f"║ {GOLD}13){NC} 🛒 Obchod města                    ║   ║ {YELLOW}24){NC} 🛠️ Crafting & předměty          ║")
     print(f"║ {CYAN}22){NC} 📜 Deník úkolů                      ║   ║ {CYAN}25){NC} ⚡ Dobít energii                ║")
     print(f"║ {CYAN}29){NC} 📖 Kronika dominia                  ║   ║ {BLUE}12){NC} 🛌 Odpočinek (nový den)         ║")
-    print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {MAGENTA}17){NC} 📊 Statistiky a rekordy        ║")
+    print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {MAGENTA}17){NC} 📊 Grafy & statistiky         ║")
     print(f"║ {YELLOW}27){NC} 🧭 Průvodce dominiem               ║   ║ {GREEN} A){NC} 🤖 Bezpečný automatický tah     ║")
     print(f"{CYAN}{BOLD}╚════════════════════════════════════════╝{NC}   {YELLOW}{BOLD}╚════════════════════════════════════════╝{NC}")
     print(f"{DIM}──────────────────────────────────────────────────────────────────────────────────{NC}")

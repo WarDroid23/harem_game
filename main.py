@@ -35,8 +35,8 @@ from utils.vypis import (
     clear, ascii_art, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel, hlavicka,
 )
-from data.jmena import JMENA
-from data.charaktery import nazev_charakteru
+from data.jmena import vyber_nove_jmeno
+from data.charaktery import nazev_charakteru, vyber_charakter
 from data.degradace import nazev_faze
 from models.otrokyne import Otrokyně
 
@@ -417,8 +417,8 @@ def _obsluz_volbu_hlavniho_menu(
     elif volba == "9":
         hra.kampan.menu(hra)
     elif volba == "test":
-        jmeno = random.choice(JMENA)
-        otrok = Otrokyně(jmeno=jmeno)
+        jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
+        otrok = Otrokyně(jmeno=jmeno, charakter=vyber_charakter())
         hra.harem.pridat(otrok)
         tisk_ok(f"Přidána testovací otrokyně: {jmeno}")
         _pockej_na_enter()
@@ -539,8 +539,10 @@ def nova_hra(nastaveni=None):
     if nastaveni is not None:
         hra.nastaveni = aplikuj_nastaveni(NastaveniHry.from_dict(nastaveni.to_dict()))
     for _ in range(2):
-        jmeno = random.choice(JMENA)
-        otrok = Otrokyně(jmeno, vek=random.randint(18, 28))
+        jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
+        otrok = Otrokyně(
+            jmeno, vek=random.randint(18, 28), charakter=vyber_charakter()
+        )
         hra.harem.pridat(otrok)
     global _CURRENT_GAME
     _CURRENT_GAME = hra

@@ -7,6 +7,8 @@ from config import (
 )
 from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu, hlavicka
 from game.predmety import PREDMETY
+from data.jmena import vyber_nove_jmeno
+from data.charaktery import vyber_charakter
 
 LOKACE = {
     "pevnost": {
@@ -663,10 +665,12 @@ class SvetSystem:
             volba = input("> ").strip()
             if volba == "1":
                 from models.otrokyne import Otrokyně
-                from data.jmena import JMENA
-                jmeno = random.choice(JMENA)
-                nova = Otrokyně(jmeno=jmeno, vek=random.randint(18, 24))
-                nova.charakter = random.choice(["subka", "ustrasena", "kurtizana"])
+                jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
+                nova = Otrokyně(
+                    jmeno=jmeno,
+                    vek=random.randint(18, 24),
+                    charakter=vyber_charakter(),
+                )
                 nova.loajalita = 55
                 nova.poslusnost = 50
                 hra.harem.pridat(nova)
@@ -734,8 +738,7 @@ class SvetSystem:
             elif v == "2" and hra.hrac.gold >= 60:
                 hra.hrac.gold -= 60
                 from models.otrokyne import Otrokyně
-                from data.jmena import JMENA
-                jmeno = random.choice(JMENA)
+                jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
                 nova = Otrokyně(jmeno=jmeno, charakter="kurtizana", vek=random.randint(20, 26))
                 nova.touha = 75
                 nova.vlhkost = 70
@@ -1493,8 +1496,7 @@ class SvetSystem:
                 if hra.hrac.gold >= 90:
                     hra.hrac.gold -= 90
                     from models.otrokyne import Otrokyně
-                    from data.jmena import JMENA
-                    jmeno = random.choice(JMENA)
+                    jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
                     nova = Otrokyně(
                         jmeno=jmeno,
                         vek=random.randint(19, 25),
@@ -1569,8 +1571,7 @@ class SvetSystem:
                 if hra.hrac.gold >= 85:
                     hra.hrac.gold -= 85
                     from models.otrokyne import Otrokyně
-                    from data.jmena import JMENA
-                    jmeno = random.choice(JMENA)
+                    jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
                     nova = Otrokyně(
                         jmeno=jmeno,
                         vek=random.randint(20, 26),
@@ -2018,8 +2019,7 @@ class SvetSystem:
                 if hra.hrac.gold >= 110:
                     hra.hrac.gold -= 110
                     from models.otrokyne import Otrokyně
-                    from data.jmena import JMENA
-                    jmeno = random.choice(JMENA)
+                    jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
                     nova = Otrokyně(jmeno=jmeno, vek=22, charakter="Amazonka (bojovnice)", loajalita=80, poslusnost=65)
                     hra.harem.pridat(nova)
                     tisk_ok(f"★ Zocelená amazonka {jmeno} byla zachráněna a vděčně tě následuje do dominia!")
@@ -2049,8 +2049,7 @@ class SvetSystem:
                 if hra.hrac.gold >= 75:
                     hra.hrac.gold -= 75
                     from models.otrokyne import Otrokyně
-                    from data.jmena import JMENA
-                    jmeno = random.choice(JMENA)
+                    jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
                     nova = Otrokyně(jmeno=jmeno, vek=random.randint(18, 24), charakter="ustrasena", loajalita=75, poslusnost=60)
                     hra.harem.pridat(nova)
                     tisk_ok(f"★ Vězenkyně {jmeno} byla vykoupena z mučírny a připojila se k tvému harému!")
@@ -2072,8 +2071,7 @@ class SvetSystem:
                 if hra.hrac.gold >= 100:
                     hra.hrac.gold -= 100
                     from models.otrokyne import Otrokyně
-                    from data.jmena import JMENA
-                    jmeno = random.choice(JMENA)
+                    jmeno = vyber_nove_jmeno(hra.harem.otrokyne)
                     nova = Otrokyně(jmeno=jmeno, vek=21, charakter="kurtizana", loajalita=70, touha=75)
                     hra.harem.pridat(nova)
                     tisk_ok(f"★ Exotická zajatkyně {jmeno} z moře byla vykoupena do tvého harému!")
