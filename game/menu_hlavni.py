@@ -15,6 +15,9 @@ ZKRATKY_HLAVNIHO_MENU = {
     "t": "test",
     "10": "test",
     "$": "cheat",
+    "&": "cheat_suroviny",
+    "#": "cheat_dovednosti",
+    "*": "cheat_budovy",
 }
 
 
@@ -69,16 +72,29 @@ def vykresli_hlavni_menu(hra):
     print(f"║ {GOLD} 9){NC} 📖 Příběhová kampaň                ║   ║ {YELLOW}18){NC} ⚔️ Souboj & aréna                ║")
     print(f"║ {RED}14){NC} 🎲 Questy & úkoly                  ║   ║ {BLUE}19){NC} 🧪 Alchymie & lektvary          ║")
     print(f"║ {GOLD}13){NC} 🛒 Obchod města                    ║   ║ {YELLOW}24){NC} 🛠️ Crafting & předměty          ║")
-    print(f"║ {CYAN}29){NC} 📜 Kronika dominia                  ║   ║ {CYAN}25){NC} ⚡ Dobít energii                ║")
-    print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {BLUE}12){NC} 🛌 Odpočinek (nový den)         ║")
-    print(f"║ {MAGENTA}17){NC} 📊 Statistiky a rekordy            ║   ║ {GREEN} A){NC} 🤖 Bezpečný automatický tah     ║")
+    print(f"║ {CYAN}22){NC} 📜 Deník úkolů                      ║   ║ {CYAN}25){NC} ⚡ Dobít energii                ║")
+    print(f"║ {CYAN}29){NC} 📖 Kronika dominia                  ║   ║ {BLUE}12){NC} 🛌 Odpočinek (nový den)         ║")
+    print(f"║ {CYAN}20){NC} 📋 Rychlý přehled dne              ║   ║ {MAGENTA}17){NC} 📊 Statistiky a rekordy        ║")
+    print(f"║ {YELLOW}27){NC} 🧭 Průvodce dominiem               ║   ║ {GREEN} A){NC} 🤖 Bezpečný automatický tah     ║")
     print(f"{CYAN}{BOLD}╚════════════════════════════════════════╝{NC}   {YELLOW}{BOLD}╚════════════════════════════════════════╝{NC}")
     print(f"{DIM}──────────────────────────────────────────────────────────────────────────────────{NC}")
-    print(
+    menu_spodek = (
         f"  {YELLOW}26) 🏠 Hlavní menu (uložit / načíst / nastavení){NC}   │   "
-        f"{MAGENTA}T) 🧪 Testovací otrokyně{NC}   │   {RED}0) 🚪 Konec hry{NC}"
     )
-    print(f"  {GOLD}$) 💰 Cheat: +10 000 zl. a doplnění všech energií{NC}")
+    if hra.nastaveni.vyvojarsky_rezim:
+        menu_spodek += (
+            f"{MAGENTA}T) 🧪 Testovací otrokyně{NC}   │   "
+            f"{RED}0) 🚪 Konec hry{NC}"
+        )
+    else:
+        menu_spodek += f"{RED}0) 🚪 Konec hry{NC}"
+    print(menu_spodek)
+    print(f"  {CYAN}32) 📅 Kalendář a události{NC}")
+    if hra.nastaveni.vyvojarsky_rezim:
+        print(f"  {GOLD}$) 💰 Cheat: +10 000 zl. a doplnění všech energií{NC}")
+        print(f"  {CYAN}&) 🧪 Cheat: +1 000 od všech surovin a zásob pevnosti{NC}")
+        print(f"  {MAGENTA}#) 📈 Cheat: +10 ke každé dovednosti{NC}")
+        print(f"  {YELLOW}*) 🏗️ Cheat: vylepšit všechny budovy{NC}")
     if getattr(hra.hrac, "bonus_za_questy", 0):
         print(f"  {GREEN}✨ Quest bonus získaný celkem: {hra.hrac.bonus_za_questy} zl.{NC}")
     if getattr(hra.hrac, "bonus_za_souboje", 0):

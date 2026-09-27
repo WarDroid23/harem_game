@@ -136,6 +136,10 @@ def menu_nastaveni(hra):
         print(f"3) Barevné téma: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
         print(f"4) Ironman: {'ANO' if getattr(nastaveni, 'ironman', False) else 'ne'}")
         print(f"5) AI dialogy: {'zapnuté (Ollama/API)' if getattr(nastaveni, 'ai_dialogy', False) else 'vypnuté'}")
+        print(
+            f"6) Vývojářský režim (cheaty a testy): "
+            f"{'zapnutý' if nastaveni.vyvojarsky_rezim else 'vypnutý'}"
+        )
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -195,6 +199,14 @@ def menu_nastaveni(hra):
                 tisk_ok("AI dialogy zapnuty. Ollama :11434 nebo AI_API_KEY.")
             else:
                 tisk_ok("AI dialogy vypnuty.")
+            input("Enter...")
+        elif volba == "6":
+            nastaveni.vyvojarsky_rezim = not nastaveni.vyvojarsky_rezim
+            stav = "zapnut" if nastaveni.vyvojarsky_rezim else "vypnut"
+            tisk_info(
+                f"Vývojářský režim {stav}. "
+                "Změna se uloží spolu s uloženou hrou."
+            )
             input("Enter...")
         else:
             tisk_chyba("Neplatná volba.")
@@ -272,6 +284,16 @@ def _obsluz_volbu_hlavniho_menu(
     hra: Hra, volba: str, runtime: HlavniMenuRuntime
 ):
 
+    if volba in (
+        "test", "cheat", "cheat_suroviny", "cheat_dovednosti",
+        "cheat_budovy",
+    ) and not hra.nastaveni.vyvojarsky_rezim:
+        tisk_chyba(
+            "Vývojářské volby jsou vypnuté. Zapni Vývojářský režim v nastavení hry."
+        )
+        _pockej_na_enter()
+        return hra, runtime, False
+
     if volba == "auto":
         obsluz_automaticky_tah(hra)
         _pockej_na_enter()
@@ -282,6 +304,40 @@ def _obsluz_volbu_hlavniho_menu(
             f"Cheat aktivován: +10 000 zl. | energie doplněna "
             f"(⚡ {hra.hrac.sex_energy}/{hra.hrac.max_sex()}, "
             f"🌑 {hra.hrac.dark_energy}/{hra.hrac.max_temno()})."
+        )
+        _pockej_na_enter()
+    elif volba == "cheat_suroviny":
+        from game.alchymie import SUROVINY
+
+        for surovina_id in SUROVINY:
+            hra.alchymie.pridat_surovinu(surovina_id, 1_000)
+        for atribut in ("zasoby", "drevo", "kamen", "zelezo", "krystaly"):
+            setattr(hra.pevnost, atribut, getattr(hra.pevnost, atribut) + 1_000)
+        tisk_ok(
+            f"Cheat aktivován: +1 000 ks všech {len(SUROVINY)} "
+            "alchymistických surovin a zásob pevnosti."
+        )
+        _pockej_na_enter()
+    elif volba == "cheat_dovednosti":
+        for dovednost in hra.hrac.skilly:
+            hra.hrac.skilly[dovednost] += 10
+        hra.hrac.skill_body += 10
+        tisk_ok(
+            f"Cheat aktivován: +10 ke každé dovednosti "
+            f"({len(hra.hrac.skilly)} dovedností) a bojové zdatnosti."
+        )
+        _pockej_na_enter()
+    elif volba == "cheat_budovy":
+        from models.fortress import PEVNOSTNI_BUDOVY
+
+        for budova_id in PEVNOSTNI_BUDOVY:
+            hra.pevnost.budovy[budova_id] = (
+                hra.pevnost.budovy.get(budova_id, 0) + 1
+            )
+        hra.pevnost.uroven += 1
+        tisk_ok(
+            f"Cheat aktivován: všechny {len(PEVNOSTNI_BUDOVY)} budovy "
+            f"i hlavní citadela byly vylepšeny o 1 úroveň."
         )
         _pockej_na_enter()
     elif volba == "1":
@@ -392,6 +448,17 @@ def _obsluz_volbu_hlavniho_menu(
         hra.alchymie.zobraz_menu(hra.hrac, hra.harem)
     elif volba == "21":
         _bezpecne_volba("Nevěstinec", menu_nevestinec, hra)
+    elif volba == "22":
+        from game.denik_ukolu import zobraz_denik_ukolu
+        zobraz_denik_ukolu(hra)
+        _pockej_na_enter()
+    elif volba == "27":
+        from game.pruvodce import zobraz_pruvodce
+        zobraz_pruvodce(hra)
+        _pockej_na_enter()
+    elif volba == "32":
+        from game.kalendar import zobraz_kalendar
+        _bezpecne_volba("Kalendář", zobraz_kalendar, hra)
     elif volba == "23":
         menu_haremu(hra)
     elif volba == "24":

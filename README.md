@@ -71,7 +71,7 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `7` | **Domestikace** | Hloubkové zlomení vůle a psychologické podmínění |
 | `8` | **Mapa světa** | Cestování po 26 lokacích, NPC, questy |
 | `9` | **Kampaň** | Hlavní příběhová linie s kapitolami |
-| `T` | **Testovací volba** | Přidá jednu testovací otrokyni (vývojová funkce; funguje také stará volba `10`) |
+| `22` | **Deník úkolů** | Aktivní běžné a NPC úkoly, dostupné úkoly a postup kampaně |
 | `11` | **Lov otrokyň** | Získání nových žen (trh, únos, duel) |
 | `12` | **Odpočinek / Nový den** | Regenerace energie + autosave |
 | `13` | **Obchod** | Nákup a prodej předmětů |
@@ -83,21 +83,33 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `19` | **Alchymie** | Vaření elixírů a jedů |
 | `20` | **Rychlý přehled** | Stav harému a zdrojů na jedné obrazovce |
 | `21` | **Nevěstinec** | Správa Rudého sametu, VIP klienti, eventy |
+| `T` | **Testovací volba** | Přidá jednu testovací otrokyni (jen ve vývojářském režimu; zachována i stará volba `10`) |
 | `23` | **Harém** | Péče, odměny, oblíbenkyně, osudy, loajalita |
 | `24` | **Crafting** | Výroba předmětů ze surovin |
 | `25` | **Dobití energie** | Rychlá obnova energie za zlato/rituál |
 | `26` | **Hlavní menu** | Uložit / Načíst / Nastavení |
+| `27` | **Průvodce dominiem** | Základy hry a doporučené další kroky podle aktuálního postupu |
 | `28` | **Manželství a rodina** | Zasnoubení, svatba, potomstvo |
 | `29` | **Kronika dominia** | Historie rozhodnutí, questů a událostí |
 | `30` | **Denní rozkazy** | Naplánování běžných aktivit harému |
 | `31` | **Veřejný výkon** | Městská aktivita s odměnou a reputačními následky |
+| `32` | **Kalendář a události** | Sezóna a historie posledních událostí světa |
 | `A` | **Auto tah** | Bezpečný automatický tah |
 | `S/L/M` | Zkratky | Save / Load / Menu |
 | `0` | **Konec** | Uložit a ukončit |
 
 Nabídky používají rámečky, barvy a tematické ikony. Emoji se mohou v některých
 starších terminálech zobrazit odlišně; číselné volby zůstávají plně funkční.
-Testovací volba `T` je vývojová pomůcka (původní volba `10` stále funguje).
+Testovací volba `T` a cheaty `$`, `&`, `#` a `*` jsou skryté a neaktivní, dokud v nastavení hry
+(`26` → `3` → `6`) nezapneš **Vývojářský režim**. V tomto režimu `T` (nebo
+zpětně kompatibilní `10`) přidá testovací otrokyni a `$` přidá 10 000 zlata a
+doplní energie; `&` přidá 1 000 kusů každé alchymistické suroviny a zásob
+pevnosti (jídlo, dřevo, kámen, železo a krystaly); `#` zvýší všechny dovednosti
+postavy včetně bojové zdatnosti o 10; `*` zvýší všechny budovy i hlavní citadelu
+o jednu úroveň. Režim je
+uložený v save a je standardně vypnutý.
+Náhodné události při odpočinku se vybírají podle místa, roční doby, stavu harému
+a hrozeb ve světě; jejich historii najdeš v kalendáři (`32`).
 
 ---
 

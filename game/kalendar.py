@@ -9,8 +9,18 @@ def zobraz_kalendar(hra):
         print(f"Den {hra.hrac.den} | týden {kalendar.tyden} | sezóna: {kalendar.sezona}")
         print(kalendar.sezonni_udalost())
         print("\nPoslední události:")
-        for udalost in kalendar.udalosti[-8:]:
-            print(f"  den {udalost.get('den')}: {udalost.get('udalost')}")
+        zaznamy = [
+            udalost for udalost in kalendar.udalosti
+            if isinstance(udalost, dict)
+        ]
+        if zaznamy:
+            for udalost in zaznamy[-8:]:
+                print(f"  den {udalost.get('den', '?')}: {udalost.get('udalost', 'Neznámá událost')}")
+        else:
+            print("  Zatím se nestala žádná zaznamenaná událost.")
         vytiskni_volbu('0', 'Zpět')
-        if input("> ").strip() == "0":
+        try:
+            if input("> ").strip() == "0":
+                return
+        except EOFError:
             return

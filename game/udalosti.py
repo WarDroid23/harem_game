@@ -1,8 +1,6 @@
 # game/udalosti.py
 import random
 from utils.vypis import tisk_ok, tisk_chyba, tisk_info
-from models.otrokyne import Otrokyně
-from data.jmena import JMENA
 
 def spust_nahodnou_udalost(hra):
     if random.random() > 0.3:
@@ -12,63 +10,108 @@ def spust_nahodnou_udalost(hra):
         {
             "nazev": "Přepadení harému",
             "popis": "Skupina banditů zaútočila na harém.",
-            "efekt": lambda h: prepadeni(h)
+            "efekt": prepadeni,
+            "podminka": lambda h: bool(h.harem.vsechny_aktivni()),
+            "vaha": lambda h: max(1, 4 - h.mafie.bojova_sila() // 10),
         },
         {
             "nazev": "Nemoc otrokyně",
             "popis": "Jedna z otrokyň vážně onemocněla.",
-            "efekt": lambda h: nemoc(h)
+            "efekt": nemoc,
+            "podminka": lambda h: any(
+                o.hp > 0 for o in h.harem.vsechny_aktivni()
+            ),
+            "vaha": lambda h: 1 + sum(
+                o.hp < 40 for o in h.harem.vsechny_aktivni()
+            ),
         },
         {
             "nazev": "Vzpoura otrokyň",
             "popis": "Otrokyně se pokusily o vzpouru.",
-            "efekt": lambda h: vzpoura(h)
+            "efekt": vzpoura,
+            "podminka": lambda h: bool(h.harem.vsechny_aktivni()),
+            "vaha": lambda h: 1 + sum(
+                o.loajalita < 30 for o in h.harem.vsechny_aktivni()
+            ),
         },
         {
             "nazev": "Inkvizice je blízko",
             "popis": "Inkvizice zesílila hlídky.",
-            "efekt": lambda h: inkvizice(h)
+            "efekt": inkvizice,
+            "vaha": lambda h: 1 + h.hrac.vliv_inkvizice // 20,
         },
         {
             "nazev": "Obchodní příležitost",
             "popis": "Bohatý kupec chce koupit otrokyni.",
-            "efekt": lambda h: kupec(h)
+            "efekt": kupec,
+            "podminka": lambda h: bool(h.harem.vsechny_aktivni()),
+            "vaha": lambda h: 1 + (h.hrac.gold < 300),
         },
         {
             "nazev": "Setkání s NPC",
             "popis": "Na cestě tě oslovila neznámá postava.",
-            "efekt": lambda h: setkani_npc(h)
+            "efekt": setkani_npc,
         },
         {
             "nazev": "Večer světel",
             "popis": "Skleněná zahrada se rozzářila lucernami; Lyra zve k upřímnému rozhovoru.",
-            "efekt": lambda h: vecer_svetel(h)
+            "efekt": vecer_svetel,
+            "podminka": lambda h: (
+                h.svet.aktualni_lokace == "sklenena_zahrada"
+            ),
+            "vaha": lambda h: 3,
         },
         {
             "nazev": "Signál z věže",
             "popis": "Observatoř vyslala varovný záblesk. Někdo se blíží k hvězdné bráně.",
-            "efekt": lambda h: signal_z_veze(h)
+            "efekt": signal_z_veze,
+            "podminka": lambda h: (
+                h.svet.aktualni_lokace == "observator"
+            ),
+            "vaha": lambda h: (
+                3 if "strazce_hvezdne_brany" not in h.kampan.boss_porazeni else 1
+            ),
         },
         {
             "nazev": "Tichá sklizeň",
-            "popis": "Zahradnice objevily vzácné byliny ukryté pod noční rosou.",
-            "efekt": lambda h: ticha_sklizen(h)
+            "popis": "Po jarním dešti se objevily vzácné měsíční byliny.",
+            "efekt": ticha_sklizen,
+            "podminka": lambda h: (
+                h.svet.aktualni_lokace == "sklenena_zahrada"
+                or h.kalendar.sezona == "jaro"
+            ),
+            "vaha": lambda h: (
+                3 if h.svet.aktualni_lokace == "sklenena_zahrada" else 1
+            ),
         },
         {
             "nazev": "Výkupné za posla",
             "popis": "Přístavní cech zadržel tvého posla a požaduje okamžité výkupné.",
-            "efekt": lambda h: vykupne_za_posla(h)
+            "efekt": vykupne_za_posla,
         },
         {
             "nazev": "Prasklý krystal",
             "popis": "Ve skladišti pevnosti se uvolnila temná esence z poškozeného krystalu.",
-            "efekt": lambda h: praskly_krystal(h)
+            "efekt": praskly_krystal,
+            "podminka": lambda h: h.svet.aktualni_lokace == "pevnost",
+            "vaha": lambda h: 1 + (h.hrac.dark_energy < h.hrac.max_temno() // 2),
         },
     ]
 
-    udalost = random.choice(udalosti)
+    dostupne = [
+        udalost for udalost in udalosti
+        if udalost.get("podminka", lambda _hra: True)(hra)
+    ]
+    vaha = [max(1, udalost.get("vaha", lambda _hra: 1)(hra)) for udalost in dostupne]
+    udalost = random.choices(dostupne, weights=vaha, k=1)[0]
     print(f"\n{udalost['nazev']}: {udalost['popis']}")
     udalost["efekt"](hra)
+    if hasattr(hra, "kalendar"):
+        hra.kalendar.udalosti.append({
+            "den": hra.hrac.den,
+            "udalost": udalost["nazev"],
+        })
+        hra.kalendar.udalosti = hra.kalendar.udalosti[-30:]
 
 def prepadeni(hra):
     if hra.mafie.bojova_sila() > 20:
@@ -153,7 +196,7 @@ def setkani_npc(hra):
             tisk_chyba("Nemáš dost zlata.")
             return
         hrac.gold -= cena
-        hrac.dark_energy = min(100, hrac.dark_energy + 15)
+        hrac.dark_energy = min(hrac.max_temno(), hrac.dark_energy + 15)
         tisk_ok("Pašerák ti předal zakázanou zásobu. Temná energie +15.")
     else:
         cena = 20
@@ -173,7 +216,9 @@ def vecer_svetel(hra):
     volba = input("Zůstaneš a budeš respektovat její tempo? (a/n): ").strip().lower()
     if volba in ("a", "ano"):
         hra.svet.zmen_vztah("lyra", 8)
-        hra.hrac.sex_energy = min(100, hra.hrac.sex_energy + 15)
+        hra.hrac.sex_energy = min(
+            hra.hrac.max_sex(), hra.hrac.sex_energy + 15
+        )
         hra.hrac.reputace_mesta += 1
         tisk_ok("Večer posílil důvěru. Sexuální energie +15, vztah s Lyrou +8.")
     else:
@@ -185,7 +230,9 @@ def signal_z_veze(hra):
         tisk_info("Záblesk z věže zahlédneš jen z dálky.")
         return
     hra.svet.zmen_vztah("cassian", 5)
-    hra.hrac.dark_energy = min(100, hra.hrac.dark_energy + 12)
+    hra.hrac.dark_energy = min(
+        hra.hrac.max_temno(), hra.hrac.dark_energy + 12
+    )
     if "strazce_hvezdne_brany" not in hra.kampan.boss_porazeni:
         tisk_info("Cassian tě varoval: Strážce hvězdné brány je vzhůru. Temná energie +12.")
     else:

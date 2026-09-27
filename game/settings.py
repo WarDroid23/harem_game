@@ -1,4 +1,4 @@
-"""Nastavení hry včetně barevných témat, Ironman a AI dialogů."""
+"""Nastavení hry včetně témat, Ironman, AI dialogů a vývojářských pomůcek."""
 
 from dataclasses import dataclass
 
@@ -16,6 +16,7 @@ class NastaveniHry:
     tema: str = VYCHOZI_TEMA
     ironman: bool = False
     ai_dialogy: bool = False
+    vyvojarsky_rezim: bool = False
 
     def __post_init__(self):
         if isinstance(self.barvy, str):
@@ -37,6 +38,12 @@ class NastaveniHry:
             self.ai_dialogy = self.ai_dialogy.strip().lower() in {"1", "true", "ano", "on"}
         else:
             self.ai_dialogy = bool(self.ai_dialogy)
+        if isinstance(self.vyvojarsky_rezim, str):
+            self.vyvojarsky_rezim = self.vyvojarsky_rezim.strip().lower() in {
+                "1", "true", "ano", "on",
+            }
+        else:
+            self.vyvojarsky_rezim = bool(self.vyvojarsky_rezim)
 
     def aplikuj(self):
         set_colors_enabled(self.barvy)
@@ -50,6 +57,7 @@ class NastaveniHry:
             "tema": self.tema,
             "ironman": self.ironman,
             "ai_dialogy": self.ai_dialogy,
+            "vyvojarsky_rezim": self.vyvojarsky_rezim,
         }
 
     @classmethod
@@ -62,6 +70,7 @@ class NastaveniHry:
             tema=data.get("tema", VYCHOZI_TEMA),
             ironman=data.get("ironman", False),
             ai_dialogy=data.get("ai_dialogy", False),
+            vyvojarsky_rezim=data.get("vyvojarsky_rezim", False),
         )
 
     @property

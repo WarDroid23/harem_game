@@ -75,6 +75,30 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(hra.nastaveni.obtiznost, "normalni")
         self.assertFalse(hra.nastaveni.ironman)
         self.assertFalse(hra.nastaveni.ai_dialogy)
+        self.assertFalse(hra.nastaveni.vyvojarsky_rezim)
+
+    def test_vyvojarsky_rezim_se_uklada_a_stary_save_jej_ma_vypnuty(self):
+        hra = Hra()
+        hra.nastaveni.vyvojarsky_rezim = True
+        with tempfile.TemporaryDirectory() as slozka:
+            cesta = Path(slozka) / "developer-mode.json"
+            with redirect_stdout(io.StringIO()):
+                self.assertTrue(uloz_hru(hra, cesta))
+                nactena = nacti_hru(cesta)
+
+        self.assertIsNotNone(nactena)
+        self.assertTrue(nactena.nastaveni.vyvojarsky_rezim)
+        self.assertFalse(NastaveniHry.from_dict({"barvy": True}).vyvojarsky_rezim)
+
+    def test_menu_nastaveni_preklopi_vyvojarsky_rezim(self):
+        from main import menu_nastaveni
+
+        hra = Hra()
+        with patch("builtins.input", side_effect=["6", "", "0"]), redirect_stdout(
+            io.StringIO()
+        ):
+            menu_nastaveni(hra)
+        self.assertTrue(hra.nastaveni.vyvojarsky_rezim)
 
     def test_obtiznost_meni_silu_a_odmenu(self):
         self.assertLess(
@@ -340,16 +364,75 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(normalizuj_volbu("10"), "test")
         self.assertEqual(normalizuj_volbu("s"), "26")
         self.assertEqual(normalizuj_volbu("$"), "cheat")
+        self.assertEqual(normalizuj_volbu("&"), "cheat_suroviny")
+        self.assertEqual(normalizuj_volbu("#"), "cheat_dovednosti")
+        self.assertEqual(normalizuj_volbu("*"), "cheat_budovy")
         self.assertEqual(normalizuj_volbu("neznama"), "neznama")
 
         vystup = io.StringIO()
         with redirect_stdout(vystup):
             vykresli_hlavni_menu(hra)
+        self.assertNotIn("T) 🧪 Testovací otrokyně", vystup.getvalue())
+        self.assertNotIn("$) 💰 Cheat:", vystup.getvalue())
+        self.assertNotIn("&) 🧪 Cheat:", vystup.getvalue())
+        self.assertNotIn("#) 📈 Cheat:", vystup.getvalue())
+        self.assertNotIn("*) 🏗️ Cheat:", vystup.getvalue())
+        self.assertIn("32) 📅 Kalendář a události", vystup.getvalue())
+
+        zlato_pred = hra.hrac.gold
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("$"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.hrac.gold, zlato_pred)
+        self.assertEqual(hra.harem.pocet(), 0)
+        suroviny_pred = dict(hra.alchymie.suroviny)
+        zasoby_pevnosti_pred = {
+            atribut: getattr(hra.pevnost, atribut)
+            for atribut in ("zasoby", "drevo", "kamen", "zelezo", "krystaly")
+        }
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("&"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.alchymie.suroviny, suroviny_pred)
+        self.assertEqual(
+            {
+                atribut: getattr(hra.pevnost, atribut)
+                for atribut in zasoby_pevnosti_pred
+            },
+            zasoby_pevnosti_pred,
+        )
+        dovednosti_pred = dict(hra.hrac.skilly)
+        skill_body_pred = hra.hrac.skill_body
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("#"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.hrac.skilly, dovednosti_pred)
+        self.assertEqual(hra.hrac.skill_body, skill_body_pred)
+        budovy_pred = dict(hra.pevnost.budovy)
+        uroven_citadely_pred = hra.pevnost.uroven
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("*"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.pevnost.budovy, budovy_pred)
+        self.assertEqual(hra.pevnost.uroven, uroven_citadely_pred)
+
+        hra.nastaveni.vyvojarsky_rezim = True
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vykresli_hlavni_menu(hra)
         self.assertIn("T) 🧪 Testovací otrokyně", vystup.getvalue())
         self.assertIn("$) 💰 Cheat:", vystup.getvalue())
+        self.assertIn("&) 🧪 Cheat:", vystup.getvalue())
+        self.assertIn("#) 📈 Cheat:", vystup.getvalue())
+        self.assertIn("*) 🏗️ Cheat:", vystup.getvalue())
 
         for volba in ("t", "10"):
             hra = Hra()
+            hra.nastaveni.vyvojarsky_rezim = True
             with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
                 _obsluz_volbu_hlavniho_menu(
                     hra, normalizuj_volbu(volba), _obnov_hru_runtime(hra)
@@ -357,6 +440,7 @@ class HraTesty(unittest.TestCase):
             self.assertEqual(hra.harem.pocet(), 1)
 
         hra = Hra()
+        hra.nastaveni.vyvojarsky_rezim = True
         hra.hrac.gold = 321
         hra.hrac.sex_energy = 0
         hra.hrac.dark_energy = 0
@@ -370,6 +454,51 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(hra.hrac.sex_energy, 130)
         self.assertEqual(hra.hrac.dark_energy, 125)
 
+        from game.alchymie import SUROVINY
+        hra.alchymie.suroviny["bylina_mesicni"] = 17
+        zasoby_pevnosti_pred = {
+            atribut: getattr(hra.pevnost, atribut)
+            for atribut in ("zasoby", "drevo", "kamen", "zelezo", "krystaly")
+        }
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("&"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.alchymie.suroviny["bylina_mesicni"], 1_017)
+        self.assertTrue(all(
+            hra.alchymie.suroviny.get(surovina_id) == 1_000
+            for surovina_id in SUROVINY
+            if surovina_id != "bylina_mesicni"
+        ))
+        for atribut, puvodni in zasoby_pevnosti_pred.items():
+            self.assertEqual(getattr(hra.pevnost, atribut), puvodni + 1_000)
+
+        dovednosti_pred = dict(hra.hrac.skilly)
+        skill_body_pred = hra.hrac.skill_body
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("#"), _obnov_hru_runtime(hra)
+            )
+        self.assertTrue(all(
+            hra.hrac.skilly[klic] == hodnota + 10
+            for klic, hodnota in dovednosti_pred.items()
+        ))
+        self.assertEqual(hra.hrac.skill_body, skill_body_pred + 10)
+
+        from models.fortress import PEVNOSTNI_BUDOVY
+        hra.pevnost.budovy["pila"] = 3
+        uroven_citadely_pred = hra.pevnost.uroven
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra, normalizuj_volbu("*"), _obnov_hru_runtime(hra)
+            )
+        self.assertEqual(hra.pevnost.budovy["pila"], 4)
+        self.assertTrue(all(
+            hra.pevnost.budovy[budova_id] >= 1
+            for budova_id in PEVNOSTNI_BUDOVY
+        ))
+        self.assertEqual(hra.pevnost.uroven, uroven_citadely_pred + 1)
+
         vystup = io.StringIO()
         with patch("builtins.input", side_effect=["neplatne", "0"]), redirect_stdout(vystup):
             start()
@@ -382,6 +511,155 @@ class HraTesty(unittest.TestCase):
         ) as uloz, redirect_stdout(io.StringIO()):
             hlavni_menu(hra)
         uloz.assert_called_once_with(hra)
+
+    def test_denik_ukolu_zobrazuje_stav_bez_zmeny_hry(self):
+        from game.denik_ukolu import zobraz_denik_ukolu
+        from game.questy import QuestSystem
+
+        hra = Hra()
+        hra.svet.vztahy_npc["mira"] = 100
+        self.assertTrue(hra.npc_questy.prijmi(hra, "mira"))
+        hra.questy = QuestSystem()
+        hra.questy.aktivni_quest = {
+            "nazev": "Zkouška deníku",
+            "popis": "Kontrolní popis úkolu.",
+            "odmena_zlato": 120,
+            "riziko": 0.25,
+            "lokace": "trh",
+        }
+        hra.questy.dny_zbyva = 2
+        stav_pred = hra.to_dict()
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            zobraz_denik_ukolu(hra)
+
+        text = vystup.getvalue()
+        self.assertIn("Deník úkolů", text)
+        self.assertIn("Zkouška deníku", text)
+        self.assertIn("Léky pro poutníky", text)
+        self.assertIn("Hlavní kampaň", text)
+        self.assertEqual(hra.to_dict(), stav_pred)
+
+    def test_pruvodce_dava_doporuceni_a_nemeni_hru(self):
+        from game.pruvodce import zobraz_pruvodce
+
+        hra = Hra()
+        stav_pred = hra.to_dict()
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            zobraz_pruvodce(hra)
+
+        text = vystup.getvalue()
+        self.assertIn("Průvodce dominiem", text)
+        self.assertIn("Doporučení pro tuto hru", text)
+        self.assertIn("volbě 3", text)
+        self.assertEqual(hra.to_dict(), stav_pred)
+
+    def test_nahodne_udalosti_se_ridi_lokaci_a_zapisuji_do_kalendare(self):
+        from game.udalosti import spust_nahodnou_udalost
+
+        hra = Hra()
+        hra.kalendar.den = 8
+        vyber = {}
+
+        def vyber_udalost(udalosti, weights, k):
+            vyber["nazvy"] = [udalost["nazev"] for udalost in udalosti]
+            vyber["weights"] = weights
+            return [next(
+                udalost for udalost in udalosti
+                if udalost["nazev"] == "Inkvizice je blízko"
+            )]
+
+        with patch("game.udalosti.random.random", return_value=0), patch(
+            "game.udalosti.random.choices", side_effect=vyber_udalost
+        ), patch("game.udalosti.random.randint", return_value=3), redirect_stdout(
+            io.StringIO()
+        ):
+            spust_nahodnou_udalost(hra)
+
+        self.assertNotIn("Večer světel", vyber["nazvy"])
+        self.assertNotIn("Signál z věže", vyber["nazvy"])
+        self.assertNotIn("Tichá sklizeň", vyber["nazvy"])
+        self.assertNotIn("Nemoc otrokyně", vyber["nazvy"])
+        self.assertEqual(
+            hra.kalendar.udalosti[-1],
+            {"den": hra.hrac.den, "udalost": "Inkvizice je blízko"},
+        )
+        nactena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(nactena.kalendar.udalosti[-1], hra.kalendar.udalosti[-1])
+
+    def test_jaro_zvysi_dostupnost_udalosti_tiche_sklizne(self):
+        from game.udalosti import spust_nahodnou_udalost
+
+        hra = Hra()
+        hra.kalendar.den = 1
+        zachycene = {}
+
+        def vyber_udalost(udalosti, weights, k):
+            zachycene["nazvy"] = [udalost["nazev"] for udalost in udalosti]
+            zachycene["weights"] = dict(
+                zip(zachycene["nazvy"], weights)
+            )
+            return [next(
+                udalost for udalost in udalosti
+                if udalost["nazev"] == "Inkvizice je blízko"
+            )]
+
+        with patch("game.udalosti.random.random", return_value=0), patch(
+            "game.udalosti.random.choices", side_effect=vyber_udalost
+        ), patch("game.udalosti.random.randint", return_value=3), redirect_stdout(
+            io.StringIO()
+        ):
+            spust_nahodnou_udalost(hra)
+
+        self.assertIn("Tichá sklizeň", zachycene["nazvy"])
+        self.assertEqual(zachycene["weights"]["Tichá sklizeň"], 1)
+
+    def test_hrozby_a_stav_haremu_vyvazuji_udalosti(self):
+        from game.udalosti import spust_nahodnou_udalost
+
+        hra = Hra()
+        otrokyne = Otrokyně("Nela", loajalita=20, hp=30)
+        hra.harem.pridat(otrokyne)
+        hra.hrac.vliv_inkvizice = 80
+        zachycene = {}
+
+        def vyber_udalost(udalosti, weights, k):
+            zachycene.update(dict(
+                zip((udalost["nazev"] for udalost in udalosti), weights)
+            ))
+            return [next(
+                udalost for udalost in udalosti
+                if udalost["nazev"] == "Inkvizice je blízko"
+            )]
+
+        with patch("game.udalosti.random.random", return_value=0), patch(
+            "game.udalosti.random.choices", side_effect=vyber_udalost
+        ), patch("game.udalosti.random.randint", return_value=3), redirect_stdout(
+            io.StringIO()
+        ):
+            spust_nahodnou_udalost(hra)
+
+        self.assertEqual(zachycene["Inkvizice je blízko"], 5)
+        self.assertEqual(zachycene["Vzpoura otrokyň"], 2)
+        self.assertEqual(zachycene["Nemoc otrokyně"], 2)
+
+    def test_kalendar_zobrazi_ulozenou_historii_udalosti(self):
+        from game.kalendar import zobraz_kalendar
+
+        hra = Hra()
+        hra.kalendar.udalosti.append({
+            "den": 4,
+            "udalost": "Večer světel",
+        })
+        stav_pred = hra.to_dict()
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value="0"), redirect_stdout(vystup):
+            zobraz_kalendar(hra)
+
+        self.assertIn("Kalendář a sezónní události", vystup.getvalue())
+        self.assertIn("den 4: Večer světel", vystup.getvalue())
+        self.assertEqual(hra.to_dict(), stav_pred)
 
     def test_prvni_npc_ukol_neodemkne_achievement_retezce(self):
         hra = Hra()
