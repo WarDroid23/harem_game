@@ -1293,24 +1293,84 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(hra.hrac.inventar.pocet_predmetu("elixir_temnoty"), 1)
 
     def test_mapa_nove_lokace_a_cestovani(self):
-        from game.svet import LOKACE
+        from game.svet import LOKACE, NOVE_MESTSKE_LOKACE
         hra = Hra()
         self.assertIn("katakomby", LOKACE)
         self.assertIn("svatyne_krvaveho_mesice", LOKACE)
         self.assertIn("palac_bohatych", LOKACE)
+        self.assertEqual(len(LOKACE), 37)
+        self.assertEqual(len(NOVE_MESTSKE_LOKACE), 11)
+        for lokace_id, data in LOKACE.items():
+            for soused_id in data["sousedni"]:
+                self.assertIn(lokace_id, LOKACE[soused_id]["sousedni"])
 
         self.assertEqual(hra.svet.aktualni_lokace, "pevnost")
         with patch("random.random", return_value=0.99):
             self.assertTrue(hra.svet.cestuj("trh", hra))
         self.assertEqual(hra.svet.aktualni_lokace, "trh")
 
+    def test_uzemi_odhaluje_mapu_a_starai_save_zachova_mestske_cesty(self):
+        from game.mafie import koupit_uzemi
+        from game.svet import LOKACE
+
+        hra = Hra()
+        hra.hrac.gold = 2000
+        self.assertTrue(koupit_uzemi(
+            hra.hrac, hra.mafie, "Akademické náměstí", hra
+        ))
+        self.assertIn("akademicke_namesti", hra.svet.odhalene_lokace)
+        with patch("random.random", return_value=0.99):
+            self.assertTrue(hra.svet.cestuj("trh", hra))
+            self.assertTrue(hra.svet.cestuj("akademicke_namesti", hra))
+
+        stare_ulozeni = Hra.from_dict({
+            "svet": {
+                "aktualni_lokace": "trh",
+                "odhalene_lokace": ["pevnost", "trh"],
+            },
+            "mafie": {
+                "uzemi": [{
+                    "nazev": "Dýmová čtvrť",
+                    "prijem": 160,
+                    "kontrola": 50,
+                    "obsazeno": True,
+                }],
+            },
+        })
+        self.assertNotIn("dymova_ctvrt", stare_ulozeni.svet.odhalene_lokace)
+        with redirect_stdout(io.StringIO()):
+            stare_ulozeni.svet.vykresli_ascii_mapu(stare_ulozeni)
+        self.assertIn("dymova_ctvrt", LOKACE)
+        self.assertIn("dymova_ctvrt", stare_ulozeni.svet.odhalene_lokace)
+
+    def test_mapa_zobrazi_quest_teritorium_npc_a_bosse(self):
+        from game.mafie import koupit_uzemi
+
+        hra = Hra()
+        hra.hrac.gold = 2000
+        koupit_uzemi(hra.hrac, hra.mafie, "Akademické náměstí", hra)
+        hra.svet.odhal_lokaci("dymova_ctvrt")
+        hra.questy.aktivni_quest = {"nazev": "Mapa", "lokace": "akademicke_namesti"}
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            hra.svet.vykresli_ascii_mapu(hra)
+
+        text = vystup.getvalue()
+        self.assertIn("👤", text)
+        self.assertIn("👹", text)
+        self.assertIn("🎯", text)
+        self.assertIn("🛡️", text)
+        self.assertIn("PROPOJENÉ MĚSTSKÉ ČTVRTI", text)
+
     def test_vsechny_lokace_maji_povest_a_unikatni_akce(self):
-        from game.svet import LOKACE, POVESTI_LOKACI
+        from game.svet import LOKACE, NOVE_MESTSKE_LOKACE, POVESTI_LOKACI
 
         self.assertEqual(set(POVESTI_LOKACI), set(LOKACE))
         hra = Hra()
         hra.hrac.gold = 10000
         hra.pevnost.drevo = 1000
+        hra.pevnost.zelezo = 1000
+        hra.pevnost.kamen = 1000
         hra.hrac.inventar.pridej_predmet("dukazni_listina")
         akce = {
             "hranice": ("1", "2", "3"),
@@ -1325,6 +1385,10 @@ class HraTesty(unittest.TestCase):
             "tajna_svatyne_stinu": ("1", "2", "3"),
             "akademie": ("1", "2", "3"),
         }
+        akce.update({
+            lokace: ("1", "2", "3")
+            for lokace in NOVE_MESTSKE_LOKACE
+        })
 
         for lokace, volby in akce.items():
             hra.svet.aktualni_lokace = lokace

@@ -2,6 +2,24 @@
 from dataclasses import dataclass, field, asdict, fields
 
 BOSSOVE_MAFIE = {"zelezny_baron_vargan", "vevoda_beze_jmena"}
+LOKACE_PODLE_UZEMI = {
+    "Přístav": "pristav",
+    "Tržiště": "trh",
+    "Čtvrť bohatých": "palac_bohatych",
+    "Doky": "molo_mesicniho_pristavu",
+    "Staré město": "katakomby",
+    "Černá čtvrť": "cerna_ctvrt",
+    "Říční nábřeží": "ricni_nabrezi",
+    "Univerzitní okrsek": "univerzitni_okrsek",
+    "Dýmová čtvrť": "dymova_ctvrt",
+    "Cechovní uličky": "cechovni_ulicky",
+    "Půlnoční trh": "pulnocni_trh",
+    "Staré katakomby": "stare_katakomby",
+    "Kovárenský okrsek": "kovarensky_okrsek",
+    "Lucernová čtvrť": "lucernova_ctvrt",
+    "Severní hradby": "severni_hradby",
+    "Akademické náměstí": "akademicke_namesti",
+}
 
 @dataclass
 class Uzemi:

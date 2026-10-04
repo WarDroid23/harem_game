@@ -69,7 +69,7 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `5` | **Diplomacie** | Vztahy s frakcemi (Inkvizice, Syndikát, Podsvětí) |
 | `6` | **Výzkum** | Technologický strom dominia |
 | `7` | **Domestikace** | Hloubkové zlomení vůle a psychologické podmínění |
-| `8` | **Mapa světa** | Cestování po 26 lokacích, NPC, questy |
+| `8` | **Mapa světa** | Cestování po 37 lokacích, NPC, questy |
 | `9` | **Kampaň** | Hlavní příběhová linie s kapitolami |
 | `22` | **Deník úkolů** | Aktivní běžné a NPC úkoly, dostupné úkoly a postup kampaně |
 | `11` | **Lov otrokyň** | Získání nových žen (trh, únos, duel) |
@@ -309,9 +309,13 @@ Postupuj žebříčkem a porážej stále silnější protivníky. Na vrcholu č
 
 ---
 
-## 🗺️ Mapa světa — 26 lokací (Menu 8)
+## 🗺️ Mapa světa — 37 lokací (Menu 8)
 
 Cestuj po světě, prozkoumávej lokace a plň lokační úkoly.
+Mapa nově obsahuje také 11 propojených městských čtvrtí, včetně čtvrtí
+spravovaných mafií. Ovládnutí čtvrti ji odhalí na mapě; starší uložené hry
+odhalí vlastněná území při příštím otevření mapy. Prozkoumávej sousední stezky
+nebo je hledej pomocí lokačních akcí.
 
 ### Kategorie lokací
 
@@ -325,7 +329,10 @@ Cestuj po světě, prozkoumávej lokace a plň lokační úkoly.
 
 ### Lokační akce
 
-Každá z 26 lokací má vlastní pověst a nabídku tematických akcí. Podle místa
+Každá z 37 lokací má vlastní pověst a nabídku tematických akcí. Nové čtvrti
+nabízejí lokální zdroje, výzkumné body, reputaci frakcí a další cesty.
+Mapa označuje aktuální polohu, aktivní úkol, ovládaná území, NPC a neporažené
+bossy. Podle místa
 můžeš získat suroviny pro pevnost či alchymii, zkušenosti, energii, reputaci,
 vztahy s NPC, vliv frakcí nebo odhalit dosud skrytou cestu. Některé akce mají
 cenu či riziko; před potvrzením zkontroluj požadované zlato a suroviny.

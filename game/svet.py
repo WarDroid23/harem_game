@@ -9,6 +9,7 @@ from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_o
 from game.predmety import PREDMETY
 from data.jmena import vyber_nove_jmeno
 from data.charaktery import vyber_charakter
+from models.mafie import LOKACE_PODLE_UZEMI
 
 LOKACE = {
     "pevnost": {
@@ -27,7 +28,9 @@ LOKACE = {
         "popis": "Obchodníci, překupníci a lidé, kteří slyší víc, než říkají.",
         "sousedni": [
             "pevnost", "pristav", "ctvrt_remeselniku", "hostinec", "lazne",
-            "akademie", "katakomby", "palac_bohatych", "cervena_ctvrt", "chram_cistoty"
+            "akademie", "katakomby", "palac_bohatych", "cervena_ctvrt",
+            "chram_cistoty", "cechovni_ulicky", "pulnocni_trh",
+            "akademicke_namesti",
         ],
         "uroven": 1,
         "nebezpeci": "nízké",
@@ -46,7 +49,11 @@ LOKACE = {
         "kratky": "Přístav",
         "ikona": "⚓",
         "popis": "Místo pašeráků, lodí a zpráv z dalekých zemí.",
-        "sousedni": ["trh", "molo_mesicniho_pristavu", "palac_bohatych", "cervena_ctvrt", "paserska_zatoka"],
+        "sousedni": [
+            "trh", "molo_mesicniho_pristavu", "palac_bohatych",
+            "cervena_ctvrt", "paserska_zatoka", "dymova_ctvrt",
+            "ricni_nabrezi",
+        ],
         "uroven": 2,
         "nebezpeci": "střední",
     },
@@ -55,7 +62,10 @@ LOKACE = {
         "kratky": "Hranice",
         "ikona": "⚔",
         "popis": "Opevněná vesnice na pomezí říše, ohrožovaná nájezdy ze severu.",
-        "sousedni": ["les", "observator", "krvavy_lom", "zricenina_astralni_veze"],
+        "sousedni": [
+            "les", "observator", "krvavy_lom", "zricenina_astralni_veze",
+            "severni_hradby",
+        ],
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
@@ -64,7 +74,10 @@ LOKACE = {
         "kratky": "Řemesla",
         "ikona": "🔨",
         "popis": "Dílny, cechy a lidé, kteří umí proměnit suroviny v užitečné vybavení.",
-        "sousedni": ["trh", "akademie", "palac_bohatych", "krvavy_lom"],
+        "sousedni": [
+            "trh", "akademie", "palac_bohatych", "krvavy_lom",
+            "cechovni_ulicky", "kovarensky_okrsek",
+        ],
         "uroven": 2,
         "nebezpeci": "nízké",
     },
@@ -100,7 +113,10 @@ LOKACE = {
         "kratky": "Akademie",
         "ikona": "📜",
         "popis": "Učenci zde zkoumají esence a vyměňují je za vzácné suroviny.",
-        "sousedni": ["ctvrt_remeselniku", "trh", "sklenena_zahrada"],
+        "sousedni": [
+            "ctvrt_remeselniku", "trh", "sklenena_zahrada",
+            "univerzitni_okrsek", "akademicke_namesti",
+        ],
         "uroven": 2,
         "nebezpeci": "nízké",
     },
@@ -127,7 +143,10 @@ LOKACE = {
         "kratky": "Molo",
         "ikona": "🌊",
         "popis": "Tiché molo na okraji přístavu, kde se uzavírají dohody a odplouvá do dálek.",
-        "sousedni": ["pristav", "observator", "sklenena_zahrada", "paserska_zatoka"],
+        "sousedni": [
+            "pristav", "observator", "sklenena_zahrada", "paserska_zatoka",
+            "ricni_nabrezi",
+        ],
         "uroven": 3,
         "nebezpeci": "střední",
     },
@@ -136,7 +155,11 @@ LOKACE = {
         "kratky": "Katakomby",
         "ikona": "💀",
         "popis": "Starobylé podzemní hrobky pod starým městem, zřídlo temné energie a zapomenutých relikvií.",
-        "sousedni": ["trh", "lazne", "svatyne_krvaveho_mesice", "podzemni_arena", "chram_cistoty", "tajna_svatyne_stinu", "vezeni_inkvizice"],
+        "sousedni": [
+            "trh", "lazne", "svatyne_krvaveho_mesice", "podzemni_arena",
+            "chram_cistoty", "tajna_svatyne_stinu", "vezeni_inkvizice",
+            "stare_katakomby",
+        ],
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
@@ -163,7 +186,11 @@ LOKACE = {
         "kratky": "Čtvrť",
         "ikona": "💋",
         "popis": "Srdce nočních rozkoší města, plné nevěstinců, mecenášů a obchodu s otrokyněmi.",
-        "sousedni": ["trh", "palac_bohatych", "pristav", "podzemni_arena", "tajna_svatyne_stinu"],
+        "sousedni": [
+            "trh", "palac_bohatych", "pristav", "podzemni_arena",
+            "tajna_svatyne_stinu", "cerna_ctvrt", "dymova_ctvrt",
+            "lucernova_ctvrt",
+        ],
         "uroven": 1,
         "nebezpeci": "nízké",
     },
@@ -172,7 +199,7 @@ LOKACE = {
         "kratky": "Aréna",
         "ikona": "⚔",
         "popis": "Krvavá aréna vytesaná do skal pod městem, kde bojují otroci i šampioni o zlato.",
-        "sousedni": ["cervena_ctvrt", "katakomby"],
+        "sousedni": ["cervena_ctvrt", "katakomby", "stare_katakomby"],
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
@@ -181,7 +208,10 @@ LOKACE = {
         "kratky": "Terasy",
         "ikona": "🏛",
         "popis": "Vyvýšené zahrady a promenáda aristokracie nad městem s výhledem na celé dominium.",
-        "sousedni": ["palac_bohatych", "sklenena_zahrada", "observator", "zahradni_altan"],
+        "sousedni": [
+            "palac_bohatych", "sklenena_zahrada", "observator",
+            "zahradni_altan", "lucernova_ctvrt",
+        ],
         "uroven": 2,
         "nebezpeci": "nízké",
     },
@@ -235,7 +265,7 @@ LOKACE = {
         "kratky": "Zátoka",
         "ikona": "🏴‍☠️",
         "popis": "Skryté skalnaté pobřeží, kde kotví korsárské lodě plné kontrabandu a cizokrajných otrokyň.",
-        "sousedni": ["pristav", "molo_mesicniho_pristavu"],
+        "sousedni": ["pristav", "molo_mesicniho_pristavu", "ricni_nabrezi"],
         "uroven": 2,
         "nebezpeci": "střední",
     },
@@ -244,11 +274,130 @@ LOKACE = {
         "kratky": "Lomy",
         "ikona": "⛏️",
         "popis": "Drsný povrchový lom a šachty na úpatí hor, kde trestanci těží stavební kámen a železnou rudu.",
-        "sousedni": ["hranice", "les", "ctvrt_remeselniku"],
+        "sousedni": [
+            "hranice", "les", "ctvrt_remeselniku", "kovarensky_okrsek",
+        ],
         "uroven": 3,
         "nebezpeci": "vysoké",
     },
+    "cerna_ctvrt": {
+        "nazev": "Černá čtvrť",
+        "kratky": "Černá",
+        "ikona": "🌑",
+        "popis": "Úzké průchody za Červenou čtvrtí, kde se pašeráci a stínoví agenti dělí o vliv.",
+        "sousedni": [
+            "cervena_ctvrt", "tajna_svatyne_stinu", "pulnocni_trh",
+            "dymova_ctvrt",
+        ],
+        "uroven": 2,
+        "nebezpeci": "vysoké",
+    },
+    "ricni_nabrezi": {
+        "nazev": "Říční nábřeží",
+        "kratky": "Nábřeží",
+        "ikona": "🚣",
+        "popis": "Rušné molo podél řeky, kde se náklady překládají dřív, než je spočítají celníci.",
+        "sousedni": [
+            "pristav", "molo_mesicniho_pristavu", "paserska_zatoka",
+            "lucernova_ctvrt",
+        ],
+        "uroven": 2,
+        "nebezpeci": "střední",
+    },
+    "univerzitni_okrsek": {
+        "nazev": "Univerzitní okrsek",
+        "kratky": "Univerzita",
+        "ikona": "🎓",
+        "popis": "Kampus učenců, knihkupců a studentů, kteří hledají zakázané vědění i stipendia.",
+        "sousedni": ["akademie", "akademicke_namesti"],
+        "uroven": 2,
+        "nebezpeci": "nízké",
+    },
+    "dymova_ctvrt": {
+        "nazev": "Dýmová čtvrť",
+        "kratky": "Dýmová",
+        "ikona": "🌫️",
+        "popis": "Komíny dílen zakrývají pohyb zboží i lidí v jedné z nejrušnějších průmyslových čtvrtí.",
+        "sousedni": [
+            "pristav", "cervena_ctvrt", "cerna_ctvrt", "cechovni_ulicky",
+            "kovarensky_okrsek",
+        ],
+        "uroven": 2,
+        "nebezpeci": "střední",
+    },
+    "cechovni_ulicky": {
+        "nazev": "Cechovní uličky",
+        "kratky": "Cechy",
+        "ikona": "🔨",
+        "popis": "Křivolaké uličky za dílnami, kde cechy uzavírají smlouvy a řeší spory bez městské rady.",
+        "sousedni": ["trh", "ctvrt_remeselniku", "dymova_ctvrt", "pulnocni_trh"],
+        "uroven": 2,
+        "nebezpeci": "nízké",
+    },
+    "pulnocni_trh": {
+        "nazev": "Půlnoční trh",
+        "kratky": "Půlnoc",
+        "ikona": "🌙",
+        "popis": "Noční tržiště otevřené po setmění; ceny zde určují vzácnost a diskrétnost.",
+        "sousedni": ["trh", "cerna_ctvrt", "cechovni_ulicky", "akademicke_namesti"],
+        "uroven": 2,
+        "nebezpeci": "vysoké",
+    },
+    "stare_katakomby": {
+        "nazev": "Staré katakomby",
+        "kratky": "Staré krypty",
+        "ikona": "🪦",
+        "popis": "Zasypané hrobky pod severním městem ukrývají relikvie, staré mapy a nestálé chodby.",
+        "sousedni": ["katakomby", "podzemni_arena", "severni_hradby"],
+        "uroven": 3,
+        "nebezpeci": "velmi vysoké",
+    },
+    "kovarensky_okrsek": {
+        "nazev": "Kovárenský okrsek",
+        "kratky": "Kovárny",
+        "ikona": "⚒️",
+        "popis": "Hutě a kovárny dodávají vybavení městským hlídkám i těm, kteří chtějí zůstat neviditelní.",
+        "sousedni": ["ctvrt_remeselniku", "dymova_ctvrt", "severni_hradby"],
+        "uroven": 2,
+        "nebezpeci": "střední",
+    },
+    "lucernova_ctvrt": {
+        "nazev": "Lucernová čtvrť",
+        "kratky": "Lucerny",
+        "ikona": "🏮",
+        "popis": "Večer se tu rozsvítí stovky luceren a každá barva označuje jiný podnik nebo spolek.",
+        "sousedni": ["cervena_ctvrt", "ricni_nabrezi", "palac_bohatych"],
+        "uroven": 1,
+        "nebezpeci": "nízké",
+    },
+    "severni_hradby": {
+        "nazev": "Severní hradby",
+        "kratky": "Hradby",
+        "ikona": "🧱",
+        "popis": "Staré hradby střeží severní vstup do města; opuštěné strážnice skrývají výbavu i hlídky.",
+        "sousedni": ["hranice", "stare_katakomby", "kovarensky_okrsek"],
+        "uroven": 3,
+        "nebezpeci": "vysoké",
+    },
+    "akademicke_namesti": {
+        "nazev": "Akademické náměstí",
+        "kratky": "Náměstí",
+        "ikona": "📚",
+        "popis": "Otevřené náměstí propojuje univerzitní koleje s veřejnou knihovnou a archivem.",
+        "sousedni": ["trh", "akademie", "univerzitni_okrsek", "pulnocni_trh"],
+        "uroven": 2,
+        "nebezpeci": "nízké",
+    },
 }
+
+for lokace_id, informace in LOKACE.items():
+    for soused_id in informace["sousedni"]:
+        if soused_id not in LOKACE:
+            raise ValueError(
+                f"Neznámá sousední lokace {soused_id!r} u {lokace_id!r}."
+            )
+        if lokace_id not in LOKACE[soused_id]["sousedni"]:
+            LOKACE[soused_id]["sousedni"].append(lokace_id)
 
 POVESTI_LOKACI = {
     "pevnost": "V nejstarším nádvoří je kámen hladký od kroků stráží; pod ním prý vede chodba do dávno zazděného skladu.",
@@ -277,11 +426,98 @@ POVESTI_LOKACI = {
     "zricenina_astralni_veze": "Ruiny reagují na kroky návštěvníků slabým světlem; Selene pozná podle barvy, zda člověk přišel hledat moc, nebo odpovědi.",
     "paserska_zatoka": "Vrak na severním útesu mění polohu podle přílivu, ačkoli se jeho kýl nikdy nedotkne vody.",
     "krvavy_lom": "Ve stěně lomu se objevují tenké modré žíly. Krag je zakazuje těžit, protože po úderu kladiva prý odpovídají ozvěnou.",
+    "cerna_ctvrt": "Kdo sleduje stejné lucerny dvakrát, skončí na jiném rohu; místní tvrdí, že uličky si pamatují tváře.",
+    "ricni_nabrezi": "Pod starým molem je přivázán člun bez vesel. Každé ráno se objeví o několik kroků dál proti proudu.",
+    "univerzitni_okrsek": "Ve studentských pokojích se kopírují poznámky z přednášky, kterou vedení tvrdí, že nikdy nevypsalo.",
+    "dymova_ctvrt": "Z jednoho komína stoupá kouř i po zavření dílny; dělníci říkají, že noční směna pracuje pro někoho jiného.",
+    "cechovni_ulicky": "Na dveřích cechovní síně se každou noc objeví nový znak a do rána ho někdo přetře.",
+    "pulnocni_trh": "Zvon odbije půlnoc o minutu dřív, jen když se na trhu objeví zboží bez původu.",
+    "stare_katakomby": "Některé chodby končí zdí, která je na starých mapách zakreslena jako průchod.",
+    "kovarensky_okrsek": "V kovárně u severní brány se občas objeví hotová čepel, kterou si žádný kovář nepamatuje.",
+    "lucernova_ctvrt": "Lucerny mění barvu podle toho, kdo prochází pod nimi; místní z toho čtou náladu celé čtvrti.",
+    "severni_hradby": "Na ochozu zůstává každou noc čerstvá stopa směrem ven, ale nikdy žádná zpět.",
+    "akademicke_namesti": "Veřejná tabule sama doplňuje chybějící řádky mapy, když se nad ní zastaví kartograf.",
 }
 
 VYCHOZI_ODHALENE = [
     "pevnost", "trh", "les", "hostinec", "lazne", "haj_soumraku", "akademie"
 ]
+
+NOVE_MESTSKE_LOKACE = (
+    "cerna_ctvrt", "ricni_nabrezi", "univerzitni_okrsek",
+    "dymova_ctvrt", "cechovni_ulicky", "pulnocni_trh",
+    "stare_katakomby", "kovarensky_okrsek", "lucernova_ctvrt",
+    "severni_hradby", "akademicke_namesti",
+)
+
+AKCE_MESTSKYCH_CTVRTI = {
+    "cerna_ctvrt": {
+        "pruzkum": "Prohledat pašerácké průchody",
+        "kontakt": "Vyjednat ochranu se stínovými agenty",
+        "frakce": "syndikat_stinu",
+        "odmena": "zlato",
+    },
+    "ricni_nabrezi": {
+        "pruzkum": "Zajistit ztracený říční náklad",
+        "kontakt": "Domluvit přednostní vykládku",
+        "frakce": "obchodnici",
+        "odmena": "drevo",
+    },
+    "univerzitni_okrsek": {
+        "pruzkum": "Prostudovat zapomenutou přednášku",
+        "kontakt": "Získat přízeň univerzitních učenců",
+        "frakce": "obchodnici",
+        "odmena": "vyzkum",
+    },
+    "dymova_ctvrt": {
+        "pruzkum": "Prohledat opuštěné dílny",
+        "kontakt": "Uzavřít dohodu s místním podsvětím",
+        "frakce": "podsveti",
+        "odmena": "zelezo",
+    },
+    "cechovni_ulicky": {
+        "pruzkum": "Prověřit cechovní vývěsky",
+        "kontakt": "Vyjednat slevu u řemeslných cechů",
+        "frakce": "obchodnici",
+        "odmena": "zlato",
+    },
+    "pulnocni_trh": {
+        "pruzkum": "Vysledovat tajného prodavače map",
+        "kontakt": "Vyměnit zprávy se Syndikátem",
+        "frakce": "syndikat_stinu",
+        "odmena": "vyzkum",
+    },
+    "stare_katakomby": {
+        "pruzkum": "Prozkoumat nezapečetěnou kryptu",
+        "kontakt": "Uklidnit strážce starých hrobek",
+        "frakce": "kult_krve",
+        "odmena": "krystaly",
+    },
+    "kovarensky_okrsek": {
+        "pruzkum": "Zachránit tavbu před sabotáží",
+        "kontakt": "Objednat vybavení pro své lidi",
+        "frakce": "podsveti",
+        "odmena": "zelezo",
+    },
+    "lucernova_ctvrt": {
+        "pruzkum": "Najít zprávu ukrytou v lucerně",
+        "kontakt": "Podpořit místní společenský spolek",
+        "frakce": "cech_kurtizan",
+        "odmena": "zlato",
+    },
+    "severni_hradby": {
+        "pruzkum": "Prohledat opuštěnou strážnici",
+        "kontakt": "Získat informace od pohraniční hlídky",
+        "frakce": "policie",
+        "odmena": "kamen",
+    },
+    "akademicke_namesti": {
+        "pruzkum": "Přečíst veřejně vystavené teze",
+        "kontakt": "Podpořit městskou knihovnu",
+        "frakce": "obchodnici",
+        "odmena": "vyzkum",
+    },
+}
 
 NPC = {
     "mira": {
@@ -493,6 +729,33 @@ NPC = {
             "Hledáš pevný stavební kámen a železo pro svou pevnost? Moji otroci vykopou cokoliv, když dobře zaplatíš.",
         ],
     },
+    "oren_mistr_cechu": {
+        "jmeno": "Oren, mistr cechovních uliček",
+        "popis": "Řemeslnický vyjednavač, který zná cenu každé práce i každého slibu.",
+        "lokace": "cechovni_ulicky",
+        "vek": 46,
+        "dialogy": [
+            "Cech není budova. Je to dohoda mezi lidmi, kteří se rozhodli držet slovo.",
+        ],
+    },
+    "livia_archivarka": {
+        "jmeno": "Livia, archivářka akademického náměstí",
+        "popis": "Správkyně veřejné knihovny, která zpřístupňuje zapomenuté záznamy trpělivým badatelům.",
+        "lokace": "akademicke_namesti",
+        "vek": 34,
+        "dialogy": [
+            "Mapa není území, ale dobrá mapa ti pomůže neztratit se v obojím.",
+        ],
+    },
+    "maren_prevoznik": {
+        "jmeno": "Maren, převozník z říčního nábřeží",
+        "popis": "Zkušený lodník, který převáží legální náklady i zprávy, jež nesnesou svědky.",
+        "lokace": "ricni_nabrezi",
+        "vek": 39,
+        "dialogy": [
+            "Řeka si všechno odnese. Jen málokdy vrátí totéž, co jí člověk svěřil.",
+        ],
+    },
 }
 
 
@@ -553,26 +816,52 @@ class SvetSystem:
 
         je_zde = (lok_id == self.aktualni_lokace)
 
-        je_mafie = False
-        if hasattr(hra, "mafie") and hasattr(hra.mafie, "uzemi"):
-            for u in getattr(hra.mafie, "uzemi", []):
-                if getattr(u, "obsazeno", False) and (
-                    u.nazev.lower() in info["nazev"].lower() or lok_id in u.nazev.lower()
-                ):
-                    je_mafie = True
-                    break
+        je_mafie = any(
+            getattr(uzemi, "obsazeno", False)
+            and LOKACE_PODLE_UZEMI.get(uzemi.nazev) == lok_id
+            for uzemi in getattr(getattr(hra, "mafie", None), "uzemi", [])
+        )
+        quest = getattr(getattr(hra, "questy", None), "aktivni_quest", None)
+        quest_lokace = quest.get("lokace") if isinstance(quest, dict) else None
+        if quest_lokace is None and isinstance(quest, dict):
+            quest_lokace = LOKACE_PODLE_UZEMI.get(quest.get("pozadovane_uzemi"))
+        je_quest = quest_lokace == lok_id
+        je_npc = any(
+            npc.get("lokace") == lok_id for npc in NPC.values()
+        )
 
-        je_quest = False
-        if hasattr(hra, "questy") and hra.questy and getattr(hra.questy, "aktivni_quest", None):
-            q_lok = hra.questy.aktivni_quest.get("lokace")
-            if q_lok == lok_id:
-                je_quest = True
+        porazeni_bossu = set(
+            getattr(getattr(hra, "kampan", None), "boss_porazeni", [])
+        )
+        je_boss = False
+        if hasattr(hra, "kampan"):
+            from game.souboje import BOSSOVE
+            je_boss = any(
+                boss_id not in porazeni_bossu
+                and boss["lokace"] == lok_id
+                for boss_id, boss in BOSSOVE.items()
+            )
+        mafie_bossove = {
+            "zelezny_baron_vargan": "dymova_ctvrt",
+            "vevoda_beze_jmena": "pulnocni_trh",
+        }
+        je_boss = je_boss or any(
+            boss_id not in getattr(
+                getattr(hra, "mafie", None), "bossove_porazeni", []
+            )
+            and boss_lokace == lok_id
+            for boss_id, boss_lokace in mafie_bossove.items()
+        )
 
         tag = ""
         if je_quest:
             tag += "🎯"
         if je_mafie:
             tag += "🛡️"
+        if je_npc:
+            tag += "👤"
+        if je_boss:
+            tag += "👹"
 
         text = f"{ikona} {kratky}{tag}"
         if je_zde:
@@ -581,10 +870,14 @@ class SvetSystem:
             return f" {CYAN}[{text:^{sirka}}]{NC} "
 
     def vykresli_ascii_mapu(self, hra):
-        """Vykreslí přehlednou barevnou síťovou mapu království o 26 lokacích."""
-        u = lambda lid: self._format_uzel(lid, hra)
+        """Vykreslí objevené cesty, nové čtvrti a významné značky mapy."""
+        for uzemi in getattr(getattr(hra, "mafie", None), "uzemi", []):
+            lokace_id = LOKACE_PODLE_UZEMI.get(uzemi.nazev)
+            if getattr(uzemi, "obsazeno", False) and lokace_id:
+                self.odhal_lokaci(lokace_id)
+        u = lambda lid, sirka=11: self._format_uzel(lid, hra, sirka)
 
-        print(f"{GOLD}╔══════════════════════════════════ ASCII MAPA KRÁLOVSTVÍ ══════════════════════════════════╗{NC}")
+        print(f"{GOLD}╔══════════════════════════════════ SVĚTOVÁ MAPA — {len(LOKACE)} LOKACÍ ══════════════════════════════════╗{NC}")
         print(f"║                                                                                           ║")
         print(f"║ {u('pevnost')} ══ {u('les')} ══ {u('krvavy_lom')} ══ {u('hranice')} ══ {u('zricenina_astralni_veze')} ║")
         print(f"║        ║              ║                               ║              ║                    ║")
@@ -603,7 +896,17 @@ class SvetSystem:
         print(f"║ {u('tajna_svatyne_stinu')}                                                                        ║")
         print(f"║                                                                                           ║")
         print(f"{GOLD}╚═══════════════════════════════════════════════════════════════════════════════════════════╝{NC}")
-        print(f"{DIM}Legenda: {GREEN}▶[ ... ]◀{NC}{DIM} Jsi zde | {CYAN}[🛡️]{NC}{DIM} Území tvé mafie | {CYAN}[🎯]{NC}{DIM} Aktivní quest | {GRAY}[?Neodhaleno?]{NC}\n")
+        print(f"\n{CYAN}{BOLD}🏙️ PROPOJENÉ MĚSTSKÉ ČTVRTI{NC}")
+        for lok_id in NOVE_MESTSKE_LOKACE:
+            sousedi = "  ↔  ".join(
+                u(soused, 8) for soused in LOKACE[lok_id]["sousedni"]
+            )
+            print(f"  {u(lok_id, 10)}  ⇄  {sousedi}")
+        print(
+            f"\n{DIM}Legenda: {GREEN}▶[... ]◀{NC}{DIM} poloha | "
+            f"🎯 aktivní úkol | 🛡️ tvoje území | 👤 NPC | 👹 neporažený boss | "
+            f"{GRAY}[?Neodhaleno?]{NC}\n"
+        )
 
     def _generuj_cestovni_udalost(self, cil, hra):
         """Spustí náhodnou událost při cestě mezi dvěma lokacemi."""
@@ -993,8 +1296,9 @@ class SvetSystem:
             mafie_stav = "Neutrální"
             if hasattr(hra, "mafie") and hasattr(hra.mafie, "uzemi"):
                 for u in getattr(hra.mafie, "uzemi", []):
-                    if getattr(u, "obsazeno", False) and (
-                        u.nazev.lower() in lokace["nazev"].lower() or self.aktualni_lokace in u.nazev.lower()
+                    if (
+                        getattr(u, "obsazeno", False)
+                        and LOKACE_PODLE_UZEMI.get(u.nazev) == self.aktualni_lokace
                     ):
                         mafie_stav = f"Tvé teritorium ({u.kontrola}%)"
                         break
@@ -1739,6 +2043,11 @@ class SvetSystem:
         elif lok_id == "hostinec":
             print("  1) 🍻 Koupit rundu pro celý sál (25 🪙 -> +6 reputace města)")
             print("  2) 🎲 Hazardní hra v kostky se štamgasty")
+        elif lok_id in AKCE_MESTSKYCH_CTVRTI:
+            akce_ctvrti = AKCE_MESTSKYCH_CTVRTI[lok_id]
+            print(f"  1) 🔎 {akce_ctvrti['pruzkum']} (místní odměna)")
+            print(f"  2) 🤝 {akce_ctvrti['kontakt']} (25 🪙, reputace frakce)")
+            print("  3) 🗺️ Zmapovat sousední tajnou stezku")
 
         vytiskni_volbu('0', 'Zpět')
         volba = input("\n> ").strip()
@@ -1764,7 +2073,10 @@ class SvetSystem:
 
         elif lok_id == "trh":
             if volba == "1":
-                zamcene = [k for k in LOKACE if k not in self.odhalene_lokace]
+                zamcene = [
+                    soused for soused in info["sousedni"]
+                    if soused not in self.odhalene_lokace
+                ]
                 if zamcene:
                     nova = random.choice(zamcene)
                     self.odhal_lokaci(nova)
@@ -2232,6 +2544,72 @@ class SvetSystem:
                         100, getattr(hra.mafie, "vliv_ve_meste", 0) + 3
                     )
                     hra.frakce.frakce["syndikat_stinu"].zmenit(2)
+
+        elif lok_id in AKCE_MESTSKYCH_CTVRTI:
+            akce_ctvrti = AKCE_MESTSKYCH_CTVRTI[lok_id]
+            if volba == "1":
+                odmena = akce_ctvrti["odmena"]
+                if odmena == "vyzkum":
+                    body = random.randint(2, 4)
+                    hra.vyzkum.pridej_body(body)
+                    tisk_ok(f"{akce_ctvrti['pruzkum']} — získáváš {body} výzkumné body.")
+                elif odmena == "zlato":
+                    zlato = random.randint(35, 65)
+                    hra.hrac.gold += zlato
+                    tisk_ok(f"{akce_ctvrti['pruzkum']} — získáváš {zlato} 🪙.")
+                else:
+                    mnozstvi = random.randint(12, 22)
+                    atributy = {
+                        "drevo": "dřeva",
+                        "zelezo": "železa",
+                        "kamen": "kamene",
+                        "krystaly": "krystalů",
+                    }
+                    setattr(
+                        hra.pevnost, odmena,
+                        getattr(hra.pevnost, odmena) + mnozstvi,
+                    )
+                    tisk_ok(
+                        f"{akce_ctvrti['pruzkum']} — získáváš "
+                        f"{mnozstvi} {atributy[odmena]} pro pevnost."
+                    )
+            elif volba == "2":
+                if hra.hrac.gold < 25:
+                    tisk_chyba("Na místní dohodu potřebuješ 25 🪙.")
+                else:
+                    hra.hrac.gold -= 25
+                    frakce = hra.frakce.frakce.get(akce_ctvrti["frakce"])
+                    if frakce:
+                        frakce.zmenit(4)
+                    hra.hrac.reputace_mesta = min(
+                        100, hra.hrac.reputace_mesta + 2
+                    )
+                    if any(
+                        u.nazev in LOKACE_PODLE_UZEMI
+                        and LOKACE_PODLE_UZEMI[u.nazev] == lok_id
+                        and u.obsazeno
+                        for u in hra.mafie.uzemi
+                    ):
+                        hra.mafie.vliv_ve_meste = min(
+                            100, hra.mafie.vliv_ve_meste + 2
+                        )
+                    tisk_ok(
+                        f"{akce_ctvrti['kontakt']} — reputace města +2."
+                    )
+            elif volba == "3":
+                neodhalene = [
+                    soused for soused in info["sousedni"]
+                    if soused not in self.odhalene_lokace
+                ]
+                if neodhalene:
+                    nova_lokace = random.choice(neodhalene)
+                    self.odhal_lokaci(nova_lokace)
+                    tisk_ok(
+                        f"Odhalil jsi novou stezku: "
+                        f"{LOKACE[nova_lokace]['nazev']}."
+                    )
+                else:
+                    tisk_info("Všechny stezky z této čtvrti už znáš.")
 
         else:
             # Obecná akce pro ostatní lokace

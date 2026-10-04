@@ -1,5 +1,5 @@
 # game/mafie.py
-from models.mafie import BOSSOVE_MAFIE, Mafie, Uzemi
+from models.mafie import BOSSOVE_MAFIE, LOKACE_PODLE_UZEMI, Mafie, Uzemi
 from utils.vypis import (
     clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu, terminalni_obrazek,
 )
@@ -104,6 +104,10 @@ def koupit_uzemi(hrac, mafie: Mafie, nazev: str, hra=None):
             frakce = hra.frakce.frakce.get(frakce_id)
             if frakce:
                 frakce.zmenit(zmena)
+    if hra is not None and hasattr(hra, "svet"):
+        lokace_id = LOKACE_PODLE_UZEMI.get(nazev)
+        if lokace_id:
+            hra.svet.odhal_lokaci(lokace_id)
     tisk_ok(f"Koupeno území {uzemi.nazev}. Výchozí kontrola: 50%.")
     return True
 
