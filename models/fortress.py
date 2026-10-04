@@ -29,7 +29,7 @@ PEVNOSTNI_BUDOVY = {
         "cena_drevo": 60,
         "cena_kamen": 50,
         "cena_zelezo": 10,
-        "popis": "Uchovává zakázané spisy. Přidává +15% ke všem získaným zkušenostem (XP) a urychluje výzkum.",
+        "popis": "Uchovává zakázané spisy. Přidává zkušenosti a vyrábí 3 výzkumné body denně za úroveň.",
     },
     "zahrada": {
         "nazev": "Zahrada rozkoše a klidu",
@@ -138,7 +138,7 @@ PEVNOSTNI_BUDOVY = {
         "cena_drevo": 40,
         "cena_kamen": 50,
         "cena_zelezo": 20,
-        "popis": "Automatizuje syntézu lektvarů a drog. Přináší denní zisk +45 🪙 a +3 temnou energii za úroveň.",
+        "popis": "Automatizuje syntézu lektvarů. Přináší +45 🪙, +3 temné energie a +1 výzkumný bod denně za úroveň.",
     },
 }
 
@@ -261,6 +261,13 @@ class FortressDevelopment:
             temno_zisk += lab_lvl * 3
             zpravy.append(f"🧪 Alchymistická laboratoř vygenerovala +{lab_lvl * 45} 🪙 a +{lab_lvl * 3} temné energie!")
 
+        body_vyzkumu = 0
+        if hasattr(hra, "vyzkum"):
+            body_vyzkumu = hra.vyzkum.produkce_bodu_za_den(hra)
+            if body_vyzkumu:
+                hra.vyzkum.pridej_body(body_vyzkumu)
+                zpravy.append(f"🔬 Laboratoře vytvořily +{body_vyzkumu} výzkumných bodů.")
+
         # Efekty najatého personálu
         if getattr(self, "personal", {}).get("spravce_nevestince", False):
             bonus_nev = 75
@@ -366,6 +373,7 @@ class FortressDevelopment:
             "jidlo": jidlo_zisk,
             "krystaly": krystaly_zisk,
             "dane": zisk_dani,
+            "vyzkum": body_vyzkumu,
             "zpravy": zpravy,
         }
 

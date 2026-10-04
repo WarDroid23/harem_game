@@ -141,6 +141,8 @@ def menu_nastaveni(hra):
             f"{'zapnutý' if nastaveni.vyvojarsky_rezim else 'vypnutý'}"
         )
         print(f"7) Styl hlavního menu: {nastaveni.styl_menu_text}")
+        print(f"8) Galerie barevných témat: {getattr(nastaveni, 'tema_text', 'Temné dominium')}")
+        print(f"9) Výzdoba města: {getattr(nastaveni, 'dekorace_mesta_text', 'Křivolaké tržiště')}")
         print("0) Zpět")
         try:
             volba = input("> ").strip().lower()
@@ -237,6 +239,61 @@ def menu_nastaveni(hra):
                 if 0 <= index < len(STYLY_MENU):
                     nastaveni.styl_menu = STYLY_MENU[index]
                     tisk_ok(f"Styl menu změněn: {nastaveni.styl_menu_text}.")
+                else:
+                    tisk_chyba("Špatná volba.")
+            except ValueError:
+                tisk_chyba("Zadej číslo.")
+            input("Enter...")
+        elif volba == "8":
+            print("\n--- Galerie barevných témat ---\n")
+            seznam = list(THEMES.items())
+            for i, (tid, info) in enumerate(seznam, 1):
+                aktivni = " ← aktivní" if tid == getattr(nastaveni, "tema", "") else ""
+                vzorek = ""
+                if nastaveni.barvy:
+                    vzorek = "".join(
+                        f"{info['barvy'][barva]}██"
+                        for barva in ("RED", "GREEN", "BLUE", "MAGENTA", "GOLD")
+                    ) + "\033[0m "
+                print(f"{i}) {vzorek}{info['nazev']}{aktivni}")
+                print(f"   {info['popis']}")
+            print("0) Zpět")
+            vyber = input("> ").strip()
+            if vyber == "0":
+                continue
+            try:
+                idx = int(vyber) - 1
+                if 0 <= idx < len(seznam):
+                    tid = seznam[idx][0]
+                    nastaveni.tema = tid
+                    nastaveni.barvy = True
+                    aplikuj_nastaveni(nastaveni)
+                    nazev = apply_theme(tid)
+                    tisk_ok(f"Téma nastaveno: {nazev}")
+                    terminalni_obrazek("menu")
+                else:
+                    tisk_chyba("Špatná volba.")
+            except ValueError:
+                tisk_chyba("Zadej číslo.")
+            input("Enter...")
+        elif volba == "9":
+            from game.settings import MESTSKA_DEKORACE
+            print("\n--- Výzdoba města ---\n")
+            seznam = list(MESTSKA_DEKORACE.items())
+            for i, (kluc, info) in enumerate(seznam, 1):
+                aktivni = " ← aktivní" if kluc == getattr(nastaveni, "dekorace_mesta", "trh") else ""
+                print(f"{i}) {info['nazev']}{aktivni}")
+                print(f"   {info['popis']}")
+            print("0) Zpět")
+            vyber = input("> ").strip()
+            if vyber == "0":
+                continue
+            try:
+                idx = int(vyber) - 1
+                if 0 <= idx < len(seznam):
+                    kluc = seznam[idx][0]
+                    nastaveni.dekorace_mesta = kluc
+                    tisk_ok(f"Výzdoba města nastavena na: {MESTSKA_DEKORACE[kluc]['nazev']}")
                 else:
                     tisk_chyba("Špatná volba.")
             except ValueError:
@@ -356,9 +413,11 @@ def _obsluz_volbu_hlavniho_menu(
         for dovednost in hra.hrac.skilly:
             hra.hrac.skilly[dovednost] += 10
         hra.hrac.skill_body += 10
+        hra.vyzkum.pridej_body(10)
         tisk_ok(
             f"Cheat aktivován: +10 ke každé dovednosti "
-            f"({len(hra.hrac.skilly)} dovedností) a bojové zdatnosti."
+            f"({len(hra.hrac.skilly)} dovedností), bojové zdatnosti "
+            "a výzkumných bodů."
         )
         _pockej_na_enter()
     elif volba == "cheat_budovy":

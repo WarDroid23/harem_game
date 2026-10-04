@@ -53,12 +53,12 @@ _COLOR_MAP = {
 THEMES = {
     "temne_dominium": {
         "nazev": "Temné dominium",
-        "popis": "Klasická temná fialovo-zlatá paleta.",
+        "popis": "Královská temnota s jasným zlatem, ametystem a chladným tyrkysem.",
         "barvy": {
-            "RED": "\033[0;31m", "GREEN": "\033[0;32m", "YELLOW": "\033[0;33m",
-            "BLUE": "\033[0;34m", "MAGENTA": "\033[0;35m", "CYAN": "\033[0;36m",
-            "GOLD": "\033[0;33m", "ORANGE": "\033[38;5;208m", "VIOLET": "\033[38;5;129m",
-            "WHITE": "\033[0;37m", "GRAY": "\033[0;90m",
+            "RED": "\033[38;5;196m", "GREEN": "\033[38;5;82m", "YELLOW": "\033[38;5;221m",
+            "BLUE": "\033[38;5;75m", "MAGENTA": "\033[38;5;177m", "CYAN": "\033[38;5;87m",
+            "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;208m", "VIOLET": "\033[38;5;141m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;245m",
         },
     },
     "krvavy_tron": {
@@ -179,6 +179,66 @@ THEMES = {
             "BLUE": "\033[38;5;39m", "MAGENTA": "\033[38;5;198m", "CYAN": "\033[38;5;51m",
             "GOLD": "\033[38;5;220m", "ORANGE": "\033[38;5;208m", "VIOLET": "\033[38;5;165m",
             "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;244m",
+        },
+    },
+    "rubinova_arcana": {
+        "nazev": "Rubinová arcana",
+        "popis": "Vínové červeň, jantar a bohaté královské purpurové tóny.",
+        "barvy": {
+            "RED": "\033[38;5;124m", "GREEN": "\033[38;5;94m", "YELLOW": "\033[38;5;214m",
+            "BLUE": "\033[38;5;53m", "MAGENTA": "\033[38;5;126m", "CYAN": "\033[38;5;130m",
+            "GOLD": "\033[38;5;208m", "ORANGE": "\033[38;5;166m", "VIOLET": "\033[38;5;90m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;240m",
+        },
+    },
+    "safirova_noc": {
+        "nazev": "Safírová noc",
+        "popis": "Těžké modré a tyrkysové tóny až po noční královské černomodro.",
+        "barvy": {
+            "RED": "\033[38;5;131m", "GREEN": "\033[38;5;75m", "YELLOW": "\033[38;5;153m",
+            "BLUE": "\033[38;5;21m", "MAGENTA": "\033[38;5;129m", "CYAN": "\033[38;5;45m",
+            "GOLD": "\033[38;5;117m", "ORANGE": "\033[38;5;87m", "VIOLET": "\033[38;5;57m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;238m",
+        },
+    },
+    "zlaty_renesance": {
+        "nazev": "Zlatý renesance",
+        "popis": "Přepychové zlato, mahagon a teplé měděné akcenty.",
+        "barvy": {
+            "RED": "\033[38;5;130m", "GREEN": "\033[38;5;100m", "YELLOW": "\033[38;5;220m",
+            "BLUE": "\033[38;5;94m", "MAGENTA": "\033[38;5;178m", "CYAN": "\033[38;5;179m",
+            "GOLD": "\033[38;5;226m", "ORANGE": "\033[38;5;172m", "VIOLET": "\033[38;5;138m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;244m",
+        },
+    },
+    "emeraldni_louka": {
+        "nazev": "Emeraldní louka",
+        "popis": "Jadeitová zeleň a svěží zlato, jako výhřev v trávě a krvi.",
+        "barvy": {
+            "RED": "\033[38;5;167m", "GREEN": "\033[38;5;28m", "YELLOW": "\033[38;5;148m",
+            "BLUE": "\033[38;5;35m", "MAGENTA": "\033[38;5;113m", "CYAN": "\033[38;5;84m",
+            "GOLD": "\033[38;5;186m", "ORANGE": "\033[38;5;154m", "VIOLET": "\033[38;5;101m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;245m",
+        },
+    },
+    "purpurova_inkvizice": {
+        "nazev": "Purpurová inkvizice",
+        "popis": "Náboženská purpura, stínová červeň a nepředstavitelně hluboká modř.",
+        "barvy": {
+            "RED": "\033[38;5;162m", "GREEN": "\033[38;5;54m", "YELLOW": "\033[38;5;136m",
+            "BLUE": "\033[38;5;60m", "MAGENTA": "\033[38;5;129m", "CYAN": "\033[38;5;93m",
+            "GOLD": "\033[38;5;173m", "ORANGE": "\033[38;5;132m", "VIOLET": "\033[38;5;98m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;241m",
+        },
+    },
+    "satinova_pavouci": {
+        "nazev": "Satínová pavoučí",
+        "popis": "Měkké černé a broskvové odstíny pro luxusní stínový styl.",
+        "barvy": {
+            "RED": "\033[38;5;216m", "GREEN": "\033[38;5;96m", "YELLOW": "\033[38;5;223m",
+            "BLUE": "\033[38;5;59m", "MAGENTA": "\033[38;5;181m", "CYAN": "\033[38;5;138m",
+            "GOLD": "\033[38;5;216m", "ORANGE": "\033[38;5;180m", "VIOLET": "\033[38;5;104m",
+            "WHITE": "\033[38;5;255m", "GRAY": "\033[38;5;239m",
         },
     },
 }

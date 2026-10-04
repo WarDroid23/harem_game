@@ -954,6 +954,17 @@ class SvetSystem:
             vztahy_npc=data.get("vztahy_npc", {}) if isinstance(data.get("vztahy_npc", {}), dict) else {},
         )
 
+    def dekorace_mesta_atmosfera(self, hra):
+        nastaveni = getattr(hra, "nastaveni", None)
+        if nastaveni is None:
+            return ""
+        dekorace = getattr(nastaveni, "dekorace_mesta", None)
+        if not isinstance(dekorace, str):
+            return ""
+        from game.settings import MESTSKA_DEKORACE
+        dekor = MESTSKA_DEKORACE.get(dekorace, {})
+        return dekor.get("atmosfera", "")
+
     def menu(self, hra):
         while True:
             clear()
@@ -972,6 +983,9 @@ class SvetSystem:
             print(f"{GOLD}{BOLD}║{NC}{BOLD}{WHITE}{nazev_line}{' '*pad}{GOLD}{BOLD}║{NC}")
             print(f"{GOLD}{BOLD}╠{'═'*W}╣{NC}")
             popis = lokace['popis']
+            atmos = self.dekorace_mesta_atmosfera(hra)
+            if atmos:
+                popis = f"{popis} {atmos}"
             print(f"{GOLD}{BOLD}║{NC}  {DIM}{popis[:W-4]}{NC}{' '*max(0,W-4-len(popis[:W-4]))}{GOLD}{BOLD}  ║{NC}")
             neb = lokace.get('nebezpeci', 'střední')
             neb_line = f"Nebezpečí: {neb}"

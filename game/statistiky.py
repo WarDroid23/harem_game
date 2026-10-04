@@ -115,6 +115,11 @@ def zobraz_statistiky(hra):
     print()
 
     print(f"{CYAN}Výzkum:{NC}")
+    produkce_vyzkumu = hra.vyzkum.produkce_bodu_za_den(hra)
+    print(
+        f"  Výzkumné body: {hra.vyzkum.body} "
+        f"(produkce +{produkce_vyzkumu}/den)"
+    )
     if hra.vyzkum.ziskane:
         for id_v in hra.vyzkum.ziskane:
             print(f"  ✔ {id_v}")

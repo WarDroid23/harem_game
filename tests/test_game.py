@@ -126,6 +126,7 @@ class HraTesty(unittest.TestCase):
             hra.harem.pridat(otrok)
 
         vyzkum = VyzkumSystem()
+        vyzkum.body = 10
         self.assertEqual(vyzkum.cena_vyzkumu(hra.hrac, "temna_magie", hra), 270)
         zlato_pred = hra.hrac.gold
         with redirect_stdout(io.StringIO()):
@@ -184,6 +185,106 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(hra.hrac.sex_energy, 5)
         self.assertEqual(hra.hrac.dark_energy, 12)
         self.assertFalse(meditace(hra))
+
+    def test_vyzkum_ma_vetve_predpoklady_slevy_a_ulozitelne_bonusy(self):
+        hra = Hra()
+        hra.hrac.gold = 5000
+        vyzkum = hra.vyzkum
+        vyzkum.body = 500
+
+        dostupne, duvod = vyzkum.muzes_vyzkoumat(hra.hrac, "pokrocile_muceni", hra)
+        self.assertFalse(dostupne)
+        self.assertIn("Psychologie zlomení", duvod)
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vyzkum.zobraz_vyzkum(hra.hrac, hra)
+        self.assertIn("Technologický strom dominia", vystup.getvalue())
+        self.assertIn("🔒 Uzamčeno", vystup.getvalue())
+        self.assertIn("Hospodářství", vystup.getvalue())
+        self.assertIn("Válečnictví", vystup.getvalue())
+
+        gold_pred = hra.hrac.gold
+        temno_pred = hra.hrac.max_temno()
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "temna_magie", hra))
+            self.assertFalse(vyzkum.vyzkoumat(hra.hrac, "temna_magie", hra))
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "psychologie_zlomeni", hra))
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "pokrocile_muceni", hra))
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "obchodni_sit", hra))
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "investicni_kruh", hra))
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "utajeni", hra))
+            self.assertTrue(vyzkum.vyzkoumat(hra.hrac, "tajne_archivy", hra))
+
+        self.assertEqual(hra.hrac.max_temno(), temno_pred + 20)
+        self.assertEqual(hra.hrac.skilly["temnota"], 10)
+        self.assertEqual(hra.hrac.vliv_inkvizice, 5)
+        self.assertEqual(vyzkum.bonus_denniho_prijmu(), 40)
+        self.assertEqual(vyzkum.sleva_vyzkumu(hra.hrac, hra), 5)
+        self.assertEqual(vyzkum.cena_vyzkumu(hra.hrac, "dvojiti_agent", hra), 760)
+        self.assertEqual(vyzkum.body, 500 - 10 - 15 - 25 - 10 - 15 - 8 - 12)
+        self.assertEqual(gold_pred - hra.hrac.gold, 300 + 400 + 700 + 500 + 650 + 250 + 500 - 50)
+
+        ulozena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(ulozena.vyzkum.bonus_denniho_prijmu(), 40)
+        self.assertEqual(ulozena.vyzkum.sleva_vyzkumu(ulozena.hrac, ulozena), 5)
+        self.assertEqual(ulozena.vyzkum.body, vyzkum.body)
+
+    def test_laboratore_vyrabeji_vyzkumne_body_a_zobrazuji_produkci(self):
+        hra = Hra()
+        hra.pevnost.budovy["archiv"] = 2
+        hra.pevnost.budovy["alchymisticka_laborator"] = 1
+        self.assertEqual(hra.vyzkum.produkce_bodu_za_den(hra), 7)
+
+        with redirect_stdout(io.StringIO()):
+            vysledek = hra.pevnost.denni_produkce(hra)
+        self.assertEqual(hra.vyzkum.body, 7)
+        self.assertEqual(vysledek["vyzkum"], 7)
+        self.assertTrue(any("7 výzkumných bodů" in zprava for zprava in vysledek["zpravy"]))
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            hra.vyzkum.zobraz_vyzkum(hra.hrac, hra)
+        self.assertIn("Výzkumné body: 7", vystup.getvalue())
+        self.assertIn("Produkce: +7 výzkumných bodů za den", vystup.getvalue())
+
+    def test_vyzkum_vyzaduje_body_i_zlato_a_save_migruje_body(self):
+        hra = Hra()
+        hra.hrac.gold = 1000
+        dostupne, duvod = hra.vyzkum.muzes_vyzkoumat(hra.hrac, "utajeni", hra)
+        self.assertFalse(dostupne)
+        self.assertIn("výzkumných bodů", duvod)
+
+        hra.vyzkum.body = 8
+        hra.hrac.gold = 0
+        dostupne, duvod = hra.vyzkum.muzes_vyzkoumat(hra.hrac, "utajeni", hra)
+        self.assertFalse(dostupne)
+        self.assertIn("zlata", duvod)
+
+        hra.hrac.gold = 1000
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(hra.vyzkum.vyzkoumat(hra.hrac, "utajeni", hra))
+        self.assertEqual(hra.vyzkum.body, 0)
+        self.assertEqual(Hra.from_dict({"vyzkum": {"ziskane": []}}).vyzkum.body, 0)
+        self.assertEqual(
+            Hra.from_dict({"vyzkum": {"ziskane": [], "body": "bad"}}).vyzkum.body,
+            0,
+        )
+
+    def test_vyzkum_valecne_bonusy_se_projevi_v_souboji(self):
+        from game.souboje import Souboj
+
+        hra = Hra()
+        hra.hrac.gold = 2000
+        hra.vyzkum.body = 25
+        souboj = Souboj(hra.hrac, hra.mafie, hra)
+        utok_pred = souboj.hracuv_utok()
+        obrana_pred = souboj.hracova_obrana()
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(hra.vyzkum.vyzkoumat(hra.hrac, "vojenska_taktika", hra))
+            self.assertTrue(hra.vyzkum.vyzkoumat(hra.hrac, "disciplinovana_legie", hra))
+        self.assertEqual(souboj.hracuv_utok() - utok_pred, 12)
+        self.assertEqual(souboj.hracova_obrana() - obrana_pred, 4)
 
     def test_migrace_stareho_save_ma_bezpecne_defaulty(self):
         stare_data = {
@@ -607,6 +708,7 @@ class HraTesty(unittest.TestCase):
         )
         dovednosti_pred = dict(hra.hrac.skilly)
         skill_body_pred = hra.hrac.skill_body
+        vyzkum_body_pred = hra.vyzkum.body
         with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
             _obsluz_volbu_hlavniho_menu(
                 hra, normalizuj_volbu("#"), _obnov_hru_runtime(hra)
@@ -687,6 +789,7 @@ class HraTesty(unittest.TestCase):
             for klic, hodnota in dovednosti_pred.items()
         ))
         self.assertEqual(hra.hrac.skill_body, skill_body_pred + 10)
+        self.assertEqual(hra.vyzkum.body, vyzkum_body_pred + 10)
 
         from models.fortress import PEVNOSTNI_BUDOVY
         hra.pevnost.budovy["pila"] = 3

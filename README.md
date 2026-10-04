@@ -108,8 +108,8 @@ Testovací volba `T` a cheaty `$`, `&`, `#` a `*` jsou skryté a neaktivní, dok
 zpětně kompatibilní `10`) přidá testovací otrokyni a `$` přidá 10 000 zlata a
 doplní energie; `&` přidá 1 000 kusů každé alchymistické suroviny a zásob
 pevnosti (jídlo, dřevo, kámen, železo a krystaly); `#` zvýší všechny dovednosti
-postavy včetně bojové zdatnosti o 10; `*` zvýší všechny budovy i hlavní citadelu
-o jednu úroveň. Režim je
+postavy včetně bojové zdatnosti o 10 a přidá 10 výzkumných bodů; `*` zvýší
+všechny budovy i hlavní citadelu o jednu úroveň. Režim je
 uložený v save a je standardně vypnutý.
 Náhodné události při odpočinku se vybírají podle místa, roční doby, stavu harému
 a hrozeb ve světě; jejich historii najdeš v kalendáři (`32`).
@@ -463,16 +463,22 @@ Při lovu nebo nákupu otrokyně se vygeneruje jeden z těchto archetypů:
 
 ## 🔬 Výzkum a technologický strom (Menu 6)
 
-Investuj body výzkumu do stromů dovedností:
+Technologie stojí zlato i výzkumné body. Každá větev začíná samostatnou
+základní technologií; další uzly vyžadují předchozí výzkum ve stejné větvi.
+Strom zobrazuje dostupné, dokončené i uzamčené technologie, jejich cenu a
+aktuální zásobu bodů.
 
-| Větev | Příklady odemčených technologií |
-|-------|--------------------------------|
-| **Temná magie** | Silnější rituály, vampirismus |
-| **Alchymie** | Nové recepty, vyšší účinnost |
-| **Válečnictví** | Nové bojové schopnosti, zbraně |
-| **Harém** | Nové interakce, harémové bonusy |
-| **Mafie** | Větší teritoria, nové syndikáty |
-| **Ekonomika** | Vyšší příjem z nájmu a nevěstince |
+| Větev | Technologie a bonusy |
+|-------|----------------------|
+| **Magie** | Temná energie a silnější temné útoky |
+| **Hospodářství** | Okamžité zlato a rostoucí denní příjem |
+| **Infiltrace** | Snížení vlivu Inkvizice a sleva na další výzkum |
+| **Válečnictví** | Trvalé bonusy k útoku a obraně v soubojích |
+
+Výzkumné body každý den vyrábí **Temný archiv & Knihovna** (+3 body za úroveň)
+a **Alchymistická laboratoř** (+1 bod za úroveň). Vylepši tyto budovy v menu
+16. Výzkumná síť badatelky a technologie infiltrace navíc zlevňují zlatou část
+ceny. Zásoba bodů, dokončené technologie i bonusy se ukládají do save.
 
 ---
 
