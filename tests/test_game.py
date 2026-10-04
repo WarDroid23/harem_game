@@ -586,6 +586,32 @@ class HraTesty(unittest.TestCase):
         prijem = hra.mafie.vypocet_prijmu()
         self.assertEqual(prijem, 80 * 50 // 100)
 
+    def test_nova_uzemi_a_nelegalni_podniky_zvysuji_prijem_a_ukladaji_se(self):
+        from game.mafie import DOSTUPNA_UZEMI, koupit_uzemi, spravovat_podniky_uzemi
+
+        hra = Hra()
+        hra.hrac.gold = 5000
+        nove_lokace = {"Černá čtvrť", "Říční nábřeží", "Univerzitní okrsek"}
+        self.assertTrue(nove_lokace.issubset({u[0] for u in DOSTUPNA_UZEMI}))
+        self.assertTrue(koupit_uzemi(hra.hrac, hra.mafie, "Černá čtvrť"))
+
+        for _ in range(3):
+            with patch("builtins.input", side_effect=["1", "5"]), redirect_stdout(
+                io.StringIO()
+            ):
+                spravovat_podniky_uzemi(hra.hrac, hra.mafie)
+
+        podniky = hra.mafie.uzemi[0].podniky
+        self.assertEqual(
+            set(podniky),
+            {"paseracky_sklad", "padelatelska_dilna", "tajna_arena"},
+        )
+        self.assertEqual(hra.mafie.vypocet_prijmu(), 130 * 50 // 100 + 75 + 60 + 85)
+
+        nactena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(nactena.mafie.vypocet_prijmu(), hra.mafie.vypocet_prijmu())
+        self.assertEqual(set(nactena.mafie.uzemi[0].podniky), set(podniky))
+
     def test_valka_uzemi_s_vitezstvim(self):
         from game.mafie import valka_uzemi, koupit_uzemi
         hra = Hra()
@@ -747,7 +773,7 @@ class HraTesty(unittest.TestCase):
         self.assertIn("#) 📈 Cheat:", vystup.getvalue())
         self.assertIn("*) 🏗️ Cheat:", vystup.getvalue())
         self.assertIn(
-            ":) 💚 Cheat: loajalita a romance všech otrokyň na maximum",
+            ":) 💚 Cheat: loajalita, důvěra a romance všech otrokyň na maximum",
             vystup.getvalue(),
         )
 
@@ -761,7 +787,7 @@ class HraTesty(unittest.TestCase):
                 _obnov_hru_runtime(hra_cheat)
             )
         self.assertTrue(all(
-            o.loajalita == 100 and o.romance_body == 100
+            o.loajalita == 100 and o.duvera == 100 and o.romance_body == 100
             for o in hra_cheat.harem.otrokyne
         ))
 

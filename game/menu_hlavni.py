@@ -230,7 +230,7 @@ def vykresli_hlavni_menu(hra):
         print(f"  {CYAN}&) 🧪 Cheat: +1 000 od všech surovin a zásob pevnosti{NC}")
         print(f"  {MAGENTA}#) 📈 Cheat: +10 ke každé dovednosti a +10 výzkumných bodů{NC}")
         print(f"  {YELLOW}*) 🏗️ Cheat: vylepšit všechny budovy{NC}")
-        print(f"  :) 💚 Cheat: loajalita a romance všech otrokyň na maximum{NC}")
+        print(f"  :) 💚 Cheat: loajalita, důvěra a romance všech otrokyň na maximum{NC}")
     if getattr(hra.hrac, "bonus_za_questy", 0):
         print(f"  {GREEN}✨ Quest bonus získaný celkem: {hra.hrac.bonus_za_questy} zl.{NC}")
     if getattr(hra.hrac, "bonus_za_souboje", 0):

@@ -109,8 +109,8 @@ zpětně kompatibilní `10`) přidá testovací otrokyni a `$` přidá 10 000 zl
 doplní energie; `&` přidá 1 000 kusů každé alchymistické suroviny a zásob
 pevnosti (jídlo, dřevo, kámen, železo a krystaly); `#` zvýší všechny dovednosti
 postavy včetně bojové zdatnosti o 10 a přidá 10 výzkumných bodů; `*` zvýší
-všechny budovy i hlavní citadelu o jednu úroveň a `:` nastaví loajalitu i body
-romance všech otrokyň na 100. Režim je
+všechny budovy i hlavní citadelu o jednu úroveň a `:` nastaví loajalitu, důvěru
+i body romance všech otrokyň na 100. Režim je
 uložený v save a je standardně vypnutý.
 Náhodné události při odpočinku se vybírají podle místa, roční doby, stavu harému
 a hrozeb ve světě; jejich historii najdeš v kalendáři (`32`).
@@ -386,8 +386,12 @@ Buduj podsvětní říši kontrolováním území a vedením syndikátních vál
 |------|-------|
 | Koupit území | Připoj novou čtvrť pod svou kontrolu |
 | Vylepšit kontrolu | Zvyš % kontroly = vyšší příjem |
-| Nelegální podniky | Doupata, nelegální nevěstince, herny |
+| Nelegální podniky | Doupata, nevěstince, herny, pašerácké sklady, padělatelské dílny a tajné arény |
 | Vydírání hodnostářů | Pasivní příjem + oslabení soupeře |
+
+Dostupné čtvrti zahrnují také Černou čtvrť, Říční nábřeží a Univerzitní okrsek.
+Podniky lze pořizovat v každém vlastněném území; jejich denní výnos se přičítá
+k pasivnímu příjmu mafie.
 
 ### Syndikátní války
 

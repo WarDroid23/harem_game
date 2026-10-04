@@ -9,7 +9,41 @@ DOSTUPNA_UZEMI = (
     ("Čtvrť bohatých", 150, 0, 10),
     ("Doky", 90, 0, 4),
     ("Staré město", 120, 0, 7),
+    ("Černá čtvrť", 130, 0, 9),
+    ("Říční nábřeží", 110, 0, 6),
+    ("Univerzitní okrsek", 140, 0, 8),
 )
+
+KATALOG_PODNIKU = {
+    "tajne_doupe": {
+        "nazev": "Tajné drogové doupě", "cena": 200, "prijem": 45,
+        "popis": "Zvyšuje odbyt drog a přináší stálý černý zisk.",
+    },
+    "tajny_nevestinec": {
+        "nazev": "Podsvětní nevěstinec", "cena": 300, "prijem": 65,
+        "popis": "Diskrétní podnik pro bohatou klientelu podsvětí.",
+    },
+    "nelegalni_herna": {
+        "nazev": "Podzemní herna & Kostky", "cena": 250, "prijem": 50,
+        "popis": "Láká hazardní hráče a pašeráky z celého města.",
+    },
+    "vypalne_cech": {
+        "nazev": "Síť výpalného od cechů", "cena": 150, "prijem": 35,
+        "popis": "Pravidelné poplatky za ochranu od místních obchodníků.",
+    },
+    "paseracky_sklad": {
+        "nazev": "Pašerácký sklad", "cena": 350, "prijem": 75,
+        "popis": "Ukryje kontraband a vynáší z každé tajné dodávky.",
+    },
+    "padelatelska_dilna": {
+        "nazev": "Padělatelská dílna", "cena": 300, "prijem": 60,
+        "popis": "Vyrábí falešné listiny a přináší příjem z jejich prodeje.",
+    },
+    "tajna_arena": {
+        "nazev": "Tajná zápasnická aréna", "cena": 450, "prijem": 85,
+        "popis": "Pořádá nelegální zápasy pro bohaté sázkaře.",
+    },
+}
 
 
 def dostupna_uzemi(mafie: Mafie):
@@ -369,13 +403,6 @@ def spravovat_podniky_uzemi(hrac, mafie):
     u = mafie.uzemi[idx]
     if not hasattr(u, "podniky"):
         u.podniky = {}
-
-    KATALOG_PODNIKU = {
-        "tajne_doupe": {"nazev": "Tajné drogové doupě", "cena": 200, "prijem": 45, "popis": "Zvyšuje odbyt drog a přináší stálý černý zisk."},
-        "tajny_nevestinec": {"nazev": "Podsvětní nevěstinec", "cena": 300, "prijem": 65, "popis": "Diskrétní podnik pro bohatou klientelu podsvětí."},
-        "nelegalni_herna": {"nazev": "Podzemní herna & Kostky", "cena": 250, "prijem": 50, "popis": "Láká hazardní hráče a pašeráky z celého města."},
-        "vypalne_cech": {"nazev": "Síť výpalného od cechů", "cena": 150, "prijem": 35, "popis": "Pravidelné 'poplatky za ochranu' od místních obchodníků."}
-    }
 
     clear()
     print(f"{CYAN}Správa podniků v území: {BOLD}{u.nazev}{NC}\n")

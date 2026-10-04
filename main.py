@@ -436,9 +436,10 @@ def _obsluz_volbu_hlavniho_menu(
     elif volba == "cheat_loajalita":
         for otrok in hra.harem.otrokyne:
             otrok.zvysit_stat("loajalita", 100)
+            otrok.zvysit_stat("duvera", 100)
             otrok.romance_body = 100
         tisk_ok(
-            f"Cheat aktivován: loajalita a body romance všech "
+            f"Cheat aktivován: loajalita, důvěra a body romance všech "
             f"{len(hra.harem.otrokyne)} otrokyň nastaveny na maximum."
         )
         _pockej_na_enter()
