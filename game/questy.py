@@ -219,6 +219,58 @@ QUESTY = [
         "frakce_dopad": {"podsveti": 6, "cirkev": -5},
         "riziko": 0.35,
         "doba_trvani": 2
+    },
+    {
+        "nazev": "Ztracená zásilka z Dýmové čtvrti",
+        "popis": "Vypátrej ztracenou zásilku dřív, než ji objeví městská stráž.",
+        "typ": "boj",
+        "lokace": "pristav",
+        "pozadovane_uzemi": "Dýmová čtvrť",
+        "narocnost": 7,
+        "odmena_zlato": 420,
+        "odmena_vyzkum": 4,
+        "frakce_dopad": {"podsveti": 4, "policie": -2},
+        "riziko": 0.25,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Dlužní kniha Půlnočního trhu",
+        "popis": "Získej zpět knihu účtů, která může změnit poměr sil v podsvětí.",
+        "typ": "diplomacie",
+        "lokace": "trh",
+        "pozadovane_uzemi": "Půlnoční trh",
+        "narocnost": 6,
+        "odmena_zlato": 360,
+        "odmena_vyzkum": 5,
+        "frakce_dopad": {"syndikat_stinu": 5, "obchodnici": -2},
+        "riziko": 0.2,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Tajemství akademického sklepení",
+        "popis": "Zajisti staré výzkumné záznamy ukryté pod Akademickým náměstím.",
+        "typ": "pruzkum",
+        "lokace": "observator",
+        "pozadovane_uzemi": "Akademické náměstí",
+        "narocnost": 8,
+        "odmena_zlato": 520,
+        "odmena_vyzkum": 8,
+        "frakce_dopad": {"obchodnici": 3, "cirkev": -3},
+        "riziko": 0.3,
+        "doba_trvani": 2
+    },
+    {
+        "nazev": "Zapečetěná brána katakomb",
+        "popis": "Prověř staré katakomby a zajisti, aby se jejich relikvie nedostaly ke kultu.",
+        "typ": "lov",
+        "lokace": "katakomby",
+        "pozadovane_uzemi": "Staré katakomby",
+        "narocnost": 9,
+        "odmena_zlato": 650,
+        "odmena_vyzkum": 7,
+        "frakce_dopad": {"kult_krve": -5, "cirkev": 2},
+        "riziko": 0.35,
+        "doba_trvani": 2
     }
 ]
 
@@ -238,15 +290,30 @@ class QuestSystem:
                 q for q in QUESTY
                 if not q.get("lokace") or q["lokace"] in hra.svet.odhalene_lokace
             ]
+        if hra is not None and hasattr(hra, "mafie"):
+            vlastni_uzemi = {u.nazev for u in hra.mafie.uzemi}
+            dostupne = [
+                q for q in dostupne
+                if not q.get("pozadovane_uzemi")
+                or q["pozadovane_uzemi"] in vlastni_uzemi
+            ]
         vhodne = [q for q in dostupne if q["narocnost"] <= hrac.level + 1]
         if not vhodne:
-            vhodne = dostupne or QUESTY
+            if not dostupne:
+                tisk_info("Zatím není dostupný žádný quest. Prozkoumej svět nebo ovládni další čtvrť.")
+                return
+            vhodne = dostupne
         quest = random.choice(vhodne)
         self.aktivni_quest = quest
         self.dny_zbyva = quest["doba_trvani"]
         print(f"{GOLD}Nový quest: {quest['nazev']}{NC}")
         print(f"Popis: {quest['popis']}")
-        print(f"Odměna: {quest['odmena_zlato']} zlaťáků, riziko: {int(quest['riziko']*100)}%")
+        odmena_vyzkum = max(0, int(quest.get("odmena_vyzkum", 0)))
+        bonus = f", +{odmena_vyzkum} výzkumných bodů" if odmena_vyzkum else ""
+        print(
+            f"Odměna: {quest['odmena_zlato']} zlaťáků{bonus}, "
+            f"riziko: {int(quest['riziko']*100)}%"
+        )
 
     def proved_quest(self, hrac, harem, mafie, hra=None):
         if self.aktivni_quest is None:
@@ -255,6 +322,13 @@ class QuestSystem:
 
         quest = self.aktivni_quest
         lokace = quest.get("lokace")
+        pozadovane_uzemi = quest.get("pozadovane_uzemi")
+        if pozadovane_uzemi and hra is not None:
+            if pozadovane_uzemi not in {
+                u.nazev for u in getattr(hra.mafie, "uzemi", [])
+            }:
+                tisk_chyba(f"Nejdřív musíš ovládat území: {pozadovane_uzemi}.")
+                return
         if lokace and hra is not None and hra.svet.aktualni_lokace != lokace:
             tisk_chyba("Quest musíš plnit v lokaci: " + lokace)
             return
@@ -297,6 +371,10 @@ class QuestSystem:
             if isinstance(energie, dict):
                 hrac.sex_energy = min(100, hrac.sex_energy + max(0, int(energie.get("sex", 0))))
                 hrac.dark_energy = min(100, hrac.dark_energy + max(0, int(energie.get("temna", 0))))
+            vyzkumne_body = max(0, int(quest.get("odmena_vyzkum", 0)))
+            if vyzkumne_body and hra is not None and hasattr(hra, "vyzkum"):
+                hra.vyzkum.pridej_body(vyzkumne_body)
+                tisk_info(f"Výzkumné body: +{vyzkumne_body} 🔬")
             if quest.get("npc_id") and hra is not None and hasattr(hra, "svet"):
                 hra.svet.zmen_vztah(quest["npc_id"], 8)
             self._uprav_frakce(hra, quest.get("frakce_dopad", {}))
@@ -357,7 +435,12 @@ class QuestSystem:
             print(f"Aktivní quest: {q['nazev']}")
             print(f"Popis: {q['popis']}")
             print(f"Zbývá dní: {self.dny_zbyva}")
-            print(f"Odměna: {q['odmena_zlato']} zlaťáků, riziko: {int(q['riziko']*100)}%\n")
+            odmena_vyzkum = max(0, int(q.get("odmena_vyzkum", 0)))
+            bonus = f", +{odmena_vyzkum} výzkumných bodů" if odmena_vyzkum else ""
+            print(
+                f"Odměna: {q['odmena_zlato']} zlaťáků{bonus}, "
+                f"riziko: {int(q['riziko']*100)}%\n"
+            )
         else:
             print("Nemáš žádný aktivní quest.\n")
         print(f"Dokončeno questů: {self.dokonceno}")

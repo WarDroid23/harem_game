@@ -1,6 +1,8 @@
 # models/mafie.py
 from dataclasses import dataclass, field, asdict, fields
 
+BOSSOVE_MAFIE = {"zelezny_baron_vargan", "vevoda_beze_jmena"}
+
 @dataclass
 class Uzemi:
     nazev: str
@@ -31,6 +33,7 @@ class Mafie:
     informatori: int = 0
     korupce: int = 0
     vliv_ve_meste: int = 0
+    bossove_porazeni: list = field(default_factory=list)
 
     def vypocet_prijmu(self):
         zaklad = sum(u.prijem * u.kontrola // 100 for u in self.uzemi if u.obsazeno)
@@ -50,7 +53,8 @@ class Mafie:
             "prijem_celkem": self.prijem_celkem,
             "informatori": self.informatori,
             "korupce": self.korupce,
-            "vliv_ve_meste": self.vliv_ve_meste
+            "vliv_ve_meste": self.vliv_ve_meste,
+            "bossove_porazeni": list(self.bossove_porazeni),
         }
 
     @classmethod
@@ -63,4 +67,10 @@ class Mafie:
         m.informatori = data.get("informatori", 0)
         m.korupce = data.get("korupce", 0)
         m.vliv_ve_meste = data.get("vliv_ve_meste", 0)
+        porazeni = data.get("bossove_porazeni", [])
+        if isinstance(porazeni, list):
+            m.bossove_porazeni = list(dict.fromkeys(
+                boss for boss in porazeni
+                if isinstance(boss, str) and boss in BOSSOVE_MAFIE
+            ))
         return m

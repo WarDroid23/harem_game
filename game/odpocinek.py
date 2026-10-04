@@ -124,7 +124,7 @@ def odpocinek(hra, rezim=None):
     prijem_harem = hra.harem.pasivni_prijem()
     prijem_mafie = hra.mafie.vypocet_prijmu()
     prijem_nevestinec = 0
-    prijem_vyzkum = hra.vyzkum.bonus_denniho_prijmu()
+    prijem_vyzkum = hra.vyzkum.bonus_denniho_prijmu(hra)
     try:
         from game.nevestinec import vypocti_denni_prijem
         prijem_nevestinec = vypocti_denni_prijem(hra)

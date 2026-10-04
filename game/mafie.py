@@ -1,6 +1,8 @@
 # game/mafie.py
-from models.mafie import Mafie, Uzemi
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
+from models.mafie import BOSSOVE_MAFIE, Mafie, Uzemi
+from utils.vypis import (
+    clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu, terminalni_obrazek,
+)
 from config import GOLD, CYAN, MAGENTA, GREEN, RED, YELLOW, WHITE, BOLD, DIM, NC
 
 DOSTUPNA_UZEMI = (
@@ -12,6 +14,14 @@ DOSTUPNA_UZEMI = (
     ("Černá čtvrť", 130, 0, 9),
     ("Říční nábřeží", 110, 0, 6),
     ("Univerzitní okrsek", 140, 0, 8),
+    ("Dýmová čtvrť", 160, 0, 11),
+    ("Cechovní uličky", 125, 0, 7),
+    ("Půlnoční trh", 145, 0, 10),
+    ("Staré katakomby", 100, 0, 14),
+    ("Kovárenský okrsek", 135, 0, 9),
+    ("Lucernová čtvrť", 115, 0, 6),
+    ("Severní hradby", 170, 0, 13),
+    ("Akademické náměstí", 155, 0, 8),
 )
 
 KATALOG_PODNIKU = {
@@ -43,6 +53,18 @@ KATALOG_PODNIKU = {
         "nazev": "Tajná zápasnická aréna", "cena": 450, "prijem": 85,
         "popis": "Pořádá nelegální zápasy pro bohaté sázkaře.",
     },
+    "informacni_burza": {
+        "nazev": "Podsvětní informační burza", "cena": 400, "prijem": 55,
+        "popis": "Prodává ověřené zprávy a odhaluje plány soupeřících frakcí.",
+    },
+    "cerna_slvarna": {
+        "nazev": "Černá slévárna", "cena": 500, "prijem": 90,
+        "popis": "Dodává zbraně a vybavení pro obranu ovládaných čtvrtí.",
+    },
+    "falesny_archiv": {
+        "nazev": "Tajný archiv listin", "cena": 375, "prijem": 70,
+        "popis": "Vyrábí průkazy a dokumenty pro bezpečný pohyb po městě.",
+    },
 }
 
 
@@ -55,7 +77,7 @@ def dostupna_uzemi(mafie: Mafie):
     ]
 
 
-def koupit_uzemi(hrac, mafie: Mafie, nazev: str):
+def koupit_uzemi(hrac, mafie: Mafie, nazev: str, hra=None):
     uzemi = next((u for u in dostupna_uzemi(mafie) if u.nazev == nazev), None)
     cena = 500 + len(mafie.uzemi) * 200
     if uzemi is None or hrac.gold < cena:
@@ -64,6 +86,24 @@ def koupit_uzemi(hrac, mafie: Mafie, nazev: str):
     uzemi.obsazeno = True
     uzemi.kontrola = 50
     mafie.uzemi.append(uzemi)
+    if hra is not None and hasattr(hra, "frakce"):
+        dopady = {
+            "Černá čtvrť": {"syndikat_stinu": 3, "policie": -2},
+            "Říční nábřeží": {"obchodnici": 2, "syndikat_stinu": 1},
+            "Univerzitní okrsek": {"obchodnici": 2, "cirkev": -1},
+            "Dýmová čtvrť": {"podsveti": 3, "policie": -2},
+            "Cechovní uličky": {"obchodnici": 4, "policie": -1},
+            "Půlnoční trh": {"syndikat_stinu": 3, "obchodnici": -2},
+            "Staré katakomby": {"kult_krve": 3, "cirkev": -2},
+            "Kovárenský okrsek": {"podsveti": 3, "obchodnici": 1},
+            "Lucernová čtvrť": {"cech_kurtizan": 3, "policie": -1},
+            "Severní hradby": {"policie": -2, "podsveti": 2},
+            "Akademické náměstí": {"obchodnici": 2, "syndikat_stinu": 1},
+        }
+        for frakce_id, zmena in dopady.get(nazev, {}).items():
+            frakce = hra.frakce.frakce.get(frakce_id)
+            if frakce:
+                frakce.zmenit(zmena)
     tisk_ok(f"Koupeno území {uzemi.nazev}. Výchozí kontrola: 50%.")
     return True
 
@@ -95,6 +135,45 @@ def najmout_informatora(hrac, mafie: Mafie, cena=100):
     return True
 
 
+def vykresli_mapu_uzemi(mafie: Mafie):
+    print(f"{CYAN}{BOLD}╔══ SÍŤ PODSVĚTÍ ═══════════════════════════════════════╗{NC}")
+    if not mafie.uzemi:
+        print(f"{CYAN}║{NC}  Zatím nemáš pod kontrolou žádná území.              {CYAN}║{NC}")
+    for index, uzemi in enumerate(mafie.uzemi, 1):
+        kontrola = max(0, min(100, int(getattr(uzemi, "kontrola", 0))))
+        plne = kontrola // 10
+        ukazatel_kontroly = f"{GREEN}{'█' * plne}{DIM}{'░' * (10 - plne)}{NC}"
+        prijem = (
+            uzemi.prijem * kontrola // 100
+            if getattr(uzemi, "obsazeno", False) else 0
+        )
+        ikona = "🏴" if getattr(uzemi, "obsazeno", False) else "◇"
+        nazev = uzemi.nazev[:24]
+        print(
+            f"{CYAN}║{NC}  {ikona} {index}. {BOLD}{nazev:<24}{NC} "
+            f"[{ukazatel_kontroly}] {kontrola:>3}%  "
+            f"{GOLD}+{prijem} zl/den{NC}"
+        )
+        podniky = getattr(uzemi, "podniky", {})
+        for poradi, podnik in enumerate(podniky.values()):
+            spojka = "└─" if poradi == len(podniky) - 1 else "├─"
+            nazev_podniku = str(podnik.get("nazev", "Podnik"))[:34]
+            prijem_podniku = max(0, int(podnik.get("prijem", 0)))
+            print(
+                f"{CYAN}║{NC}     {DIM}{spojka} {nazev_podniku} "
+                f"{GOLD}+{prijem_podniku} zl/den{NC}"
+            )
+    print(f"{CYAN}{BOLD}╚═══════════════════════════════════════════════════════╝{NC}")
+    vlastni = {u.nazev for u in mafie.uzemi}
+    dostupne = [nazev for nazev, *_ in DOSTUPNA_UZEMI if nazev not in vlastni]
+    print(
+        f"{DIM}Městská síť: {len(DOSTUPNA_UZEMI)} čtvrtí | "
+        f"ovládáš {len(vlastni)} | k převzetí zbývá {len(dostupne)}{NC}"
+    )
+    if dostupne:
+        print(f"{DIM}Volné čtvrti: {' · '.join(dostupne)}{NC}")
+
+
 def _rozbal_args(arg0, arg1=None):
     if arg1 is not None:
         return arg0, arg1, None
@@ -113,6 +192,10 @@ def valka_uzemi(hrac, mafie, hra=None):
         tisk_chyba("Bez vlastních území nemá smysl vést válku syndikátů.")
         return
 
+    id_bosse = {
+        "5": "zelezny_baron_vargan",
+        "6": "vevoda_beze_jmena",
+    }
     clear()
     print(f"{MAGENTA}--- Válka o území a podsvětní syndikáty ---{NC}\n")
     print("Vyber soupeřící syndikát k útoku:")
@@ -120,6 +203,10 @@ def valka_uzemi(hrac, mafie, hra=None):
     vytiskni_volbu('2', 'Syndikát Nočních stínů (střední cíl, boj o vliv a kontrolu)')
     vytiskni_volbu('3', 'Krvavý kult podsvětí (těžký cíl, vysoká kořist a temné rituály)')
     vytiskni_volbu('4', 'Inkviziční represivní garda (extrémní riziko, oslabení církve)')
+    stav_vargan = "poražen" if id_bosse["5"] in mafie.bossove_porazeni else "boss"
+    stav_vevoda = "poražen" if id_bosse["6"] in mafie.bossove_porazeni else "boss"
+    vytiskni_volbu('5', f'Železný baron Vargan ({stav_vargan}, výzkumná kořist)')
+    vytiskni_volbu('6', f'Vévoda beze jména ({stav_vevoda}, elitní špehové)')
     vytiskni_volbu('0', 'Zpět')
 
     try:
@@ -132,9 +219,16 @@ def valka_uzemi(hrac, mafie, hra=None):
         "2": {"nazev": "Syndikát Nočních stínů", "zaklad_obrana": 50, "obtiznost": "střední", "risk_vojaci": 2},
         "3": {"nazev": "Krvavý kult podsvětí", "zaklad_obrana": 80, "obtiznost": "těžká", "risk_vojaci": 3},
         "4": {"nazev": "Inkviziční represivní garda", "zaklad_obrana": 120, "obtiznost": "extrémní", "risk_vojaci": 4},
+        "5": {"nazev": "Železný baron Vargan", "zaklad_obrana": 145, "obtiznost": "boss", "risk_vojaci": 4},
+        "6": {"nazev": "Vévoda beze jména", "zaklad_obrana": 165, "obtiznost": "boss", "risk_vojaci": 5},
     }
 
     if vyber not in cile:
+        return
+
+    boss_id = id_bosse.get(vyber)
+    if boss_id in mafie.bossove_porazeni:
+        tisk_info("Tento boss už byl poražen; jednorázová kořist byla vyzvednuta.")
         return
 
     cil = cile[vyber]
@@ -186,6 +280,15 @@ def valka_uzemi(hrac, mafie, hra=None):
 
         tisk_ok(f"✔ VÍTĚZSTVÍ nad {cil['nazev']}! Kořist: +{zisk_zlata} 🪙, vliv ve městě stoupl na {mafie.vliv_ve_meste}%.")
 
+        if boss_id:
+            mafie.bossove_porazeni.append(boss_id)
+        if hra is not None and boss_id:
+            body = 8 if vyber == "5" else 12
+            hra.vyzkum.pridej_body(body)
+            frakce_id = "podsveti" if vyber == "5" else "syndikat_stinu"
+            hra.frakce.frakce[frakce_id].zmenit(5)
+            tisk_ok(f"Kořist bosse: +{body} výzkumných bodů.")
+
         # Speciální odměna u Krvavého kultu nebo drtivého vítězství
         if vyber == "3" and rozdil >= 15 and hra is not None:
             if random.random() < 0.65:
@@ -232,6 +335,7 @@ def spravovat_mafii(arg0, arg1=None):
     while True:
         clear()
         print(f"{MAGENTA}--- Mafie / Sex impérium ---{NC}")
+        terminalni_obrazek("mafie")
         print(f"Zlato: {hrac.gold} 🪙")
         print(
             f"Vojáci: {mafie.vojaci} | Kapitáni: {getattr(mafie, 'kapitanove', 0)} | "
@@ -240,16 +344,7 @@ def spravovat_mafii(arg0, arg1=None):
         print(f"Celkový pasivní příjem: {mafie.vypocet_prijmu()} zlaťáků/den")
         print(f"Korupce: {mafie.korupce} | Vliv ve městě: {getattr(mafie, 'vliv_ve_meste', 0)}%\n")
 
-        if not mafie.uzemi:
-            print("Zatím nemáš žádná území.")
-        else:
-            for i, u in enumerate(mafie.uzemi, 1):
-                stav = "obsazeno" if getattr(u, "obsazeno", False) else "volné"
-                prijem_aktualni = u.prijem * u.kontrola // 100 if getattr(u, "obsazeno", False) else 0
-                print(
-                    f"{i}) {u.nazev} – základ {u.prijem} (nyní {prijem_aktualni} zl), "
-                    f"kontrola {u.kontrola}%, stav: {stav}"
-                )
+        vykresli_mapu_uzemi(mafie)
 
         print(f"\n{GREEN}1) Koupit nové území")
         print(f"{CYAN}2) Vylepšit kontrolu nad územím")
@@ -279,7 +374,7 @@ def spravovat_mafii(arg0, arg1=None):
                 try:
                     idx = int(input("Vyber území: ")) - 1
                     if 0 <= idx < len(dostupna):
-                        if koupit_uzemi(hrac, mafie, dostupna[idx].nazev):
+                        if koupit_uzemi(hrac, mafie, dostupna[idx].nazev, hra):
                             if hra:
                                 from game.kronika import zaznamenej
                                 zaznamenej(hra, f"Koupeno nové území {dostupna[idx].nazev}")

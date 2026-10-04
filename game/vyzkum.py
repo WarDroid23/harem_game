@@ -35,7 +35,8 @@ def _vycvik_legie(hrac):
 
 
 def _technologie(vetev, uroven, nazev, popis, cena, efekt, vyzaduje=(),
-                 body=10, denni_prijem=0, sleva_vyzkumu=0):
+                 body=10, denni_prijem=0, sleva_vyzkumu=0,
+                 bonus_bodu_za_uzemi=0, bonus_prijmu_za_uzemi=0):
     return {
         "vetev": vetev,
         "uroven": uroven,
@@ -47,6 +48,8 @@ def _technologie(vetev, uroven, nazev, popis, cena, efekt, vyzaduje=(),
         "vyzaduje": list(vyzaduje),
         "denni_prijem": denni_prijem,
         "sleva_vyzkumu": sleva_vyzkumu,
+        "bonus_bodu_za_uzemi": bonus_bodu_za_uzemi,
+        "bonus_prijmu_za_uzemi": bonus_prijmu_za_uzemi,
     }
 
 
@@ -89,6 +92,12 @@ VYZKUM = {
         "Uzavře výnosné smlouvy: dalších +40 zlata za každý den.",
         900, None, ("investicni_kruh",), body=25, denni_prijem=40,
     ),
+    "ucty_podsveti": _technologie(
+        "🪙 Hospodářství", 3, "Účetní knihy podsvětí",
+        "Každé ovládané městské území přidá +10 zlata k dennímu výnosu.",
+        1250, None, ("monopolni_smlouvy",), body=35,
+        bonus_prijmu_za_uzemi=10,
+    ),
     "utajeni": _technologie(
         "🕯️ Infiltrace", 0, "Utajení",
         "Zmate vyšetřovatele a okamžitě sníží vliv Inkvizice o 10.",
@@ -103,6 +112,12 @@ VYZKUM = {
         "🕯️ Infiltrace", 2, "Síť dvojitých agentů",
         "Rozšíří tajné zdroje a sníží zlatou cenu dalších výzkumů o dalších 5 %.",
         800, None, ("tajne_archivy",), body=18, sleva_vyzkumu=5,
+    ),
+    "sit_informatoru": _technologie(
+        "🕯️ Infiltrace", 3, "Síť informátorů",
+        "Každé ovládané městské území přidá +1 výzkumný bod za den.",
+        1100, None, ("dvojiti_agent",), body=30,
+        bonus_bodu_za_uzemi=1,
     ),
     "vojenska_taktika": _technologie(
         "⚔️ Válečnictví", 0, "Vojenská taktika",
@@ -135,10 +150,17 @@ class VyzkumSystem:
         budovy = getattr(pevnost, "budovy", {})
         if not isinstance(budovy, dict):
             return 0
-        return (
+        zaklad = (
             max(0, int(budovy.get("archiv", 0))) * 3
             + max(0, int(budovy.get("alchymisticka_laborator", 0)))
         )
+        bonus_za_uzemi = sum(
+            VYZKUM[id_v]["bonus_bodu_za_uzemi"]
+            for id_v in self.ziskane
+            if id_v in VYZKUM
+        )
+        pocet_uzemi = len(getattr(getattr(hra, "mafie", None), "uzemi", []))
+        return zaklad + bonus_za_uzemi * pocet_uzemi
 
     def pridej_body(self, pocet):
         pocet = max(0, int(pocet))
@@ -168,12 +190,19 @@ class VyzkumSystem:
             return 0
         return VYZKUM[id_vyzkumu]["body"]
 
-    def bonus_denniho_prijmu(self):
-        return sum(
+    def bonus_denniho_prijmu(self, hra=None):
+        bonus = sum(
             VYZKUM[id_v]["denni_prijem"]
             for id_v in self.ziskane
             if id_v in VYZKUM
         )
+        bonus_za_uzemi = sum(
+            VYZKUM[id_v]["bonus_prijmu_za_uzemi"]
+            for id_v in self.ziskane
+            if id_v in VYZKUM
+        )
+        pocet_uzemi = len(getattr(getattr(hra, "mafie", None), "uzemi", []))
+        return bonus + bonus_za_uzemi * pocet_uzemi
 
     def muzes_vyzkoumat(self, hrac, id_vyzkumu, hra=None):
         if id_vyzkumu not in VYZKUM:
@@ -229,7 +258,7 @@ class VyzkumSystem:
         )
         if hra is not None:
             produkce = self.produkce_bodu_za_den(hra)
-            print(f"Produkce: +{produkce} výzkumných bodů za den (archiv + alchymistická laboratoř)")
+            print(f"Produkce: +{produkce} výzkumných bodů za den (archiv, laboratoř a případné bonusy čtvrtí)")
         sleva = self.sleva_vyzkumu(hrac, hra)
         if sleva:
             print(f"🔬 Sleva na výzkum: {sleva} %")

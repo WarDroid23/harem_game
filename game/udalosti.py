@@ -96,6 +96,34 @@ def spust_nahodnou_udalost(hra):
             "podminka": lambda h: h.svet.aktualni_lokace == "pevnost",
             "vaha": lambda h: 1 + (h.hrac.dark_energy < h.hrac.max_temno() // 2),
         },
+        {
+            "nazev": "Tip z městské informační burzy",
+            "popis": "Mafiánské kontakty zachytily zprávu o cenných výzkumných záznamech.",
+            "efekt": tip_z_informacni_burzy,
+            "podminka": lambda h: any(
+                u.nazev == "Cechovní uličky" for u in h.mafie.uzemi
+            ) or any(
+                "informacni_burza" in getattr(u, "podniky", {})
+                for u in h.mafie.uzemi
+            ),
+            "vaha": lambda h: 2,
+        },
+        {
+            "nazev": "Zátah na nelegální podnik",
+            "popis": "Městská garda odhalila stopu vedoucí k jednomu z tvých podniků.",
+            "efekt": zatah_na_podnik,
+            "podminka": lambda h: any(
+                getattr(u, "podniky", {}) for u in h.mafie.uzemi
+            ),
+            "vaha": lambda h: 1 + h.hrac.vliv_inkvizice // 30,
+        },
+        {
+            "nazev": "Výnosná černá tržba",
+            "popis": "Síť čtvrtí uzavřela obchod s kupci, kteří se vyhýbají oficiálním cestám.",
+            "efekt": cerna_trzba,
+            "podminka": lambda h: bool(h.mafie.uzemi),
+            "vaha": lambda h: max(1, len(h.mafie.uzemi)),
+        },
     ]
 
     dostupne = [
@@ -270,6 +298,41 @@ def praskly_krystal(hra):
     hra.frakce.frakce["kult_krve"].zmenit(3)
     _zapis_kroniku(hra, f"Prasklý krystal uvolnil {zisk} temné energie.")
     tisk_info(f"Získal jsi {zisk} temné energie, ale výboj tě zranil o 3 HP.")
+
+
+def tip_z_informacni_burzy(hra):
+    body = random.randint(2, 4)
+    hra.vyzkum.pridej_body(body)
+    hra.frakce.frakce["syndikat_stinu"].zmenit(2)
+    _zapis_kroniku(hra, f"Informátor přinesl {body} výzkumné body.")
+    tisk_ok(f"Síť informátorů přinesla +{body} výzkumné body.")
+
+
+def zatah_na_podnik(hra):
+    uzemi = random.choice([
+        u for u in hra.mafie.uzemi if getattr(u, "podniky", {})
+    ])
+    ztrata_kontroly = min(max(0, uzemi.kontrola), random.randint(3, 8))
+    uzemi.kontrola -= ztrata_kontroly
+    hra.hrac.vliv_inkvizice = min(100, hra.hrac.vliv_inkvizice + 2)
+    _zapis_kroniku(
+        hra, f"Zátah poškodil podniky ve čtvrti {uzemi.nazev} (kontrola −{ztrata_kontroly} %)."
+    )
+    tisk_chyba(
+        f"Garda udeřila v {uzemi.nazev}. Kontrola území −{ztrata_kontroly} %, "
+        f"vliv Inkvizice +2."
+    )
+
+
+def cerna_trzba(hra):
+    pocet_podniku = sum(
+        len(getattr(u, "podniky", {})) for u in hra.mafie.uzemi
+    )
+    zisk = 35 + len(hra.mafie.uzemi) * 10 + pocet_podniku * 15
+    hra.hrac.gold += zisk
+    hra.frakce.frakce["obchodnici"].zmenit(1)
+    _zapis_kroniku(hra, f"Černá tržba přinesla {zisk} zlaťáků.")
+    tisk_ok(f"Černá tržba z městské sítě: +{zisk} 🪙.")
 
 
 def _zapis_kroniku(hra, text):

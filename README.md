@@ -389,9 +389,13 @@ Buduj podsvětní říši kontrolováním území a vedením syndikátních vál
 | Nelegální podniky | Doupata, nevěstince, herny, pašerácké sklady, padělatelské dílny a tajné arény |
 | Vydírání hodnostářů | Pasivní příjem + oslabení soupeře |
 
-Dostupné čtvrti zahrnují také Černou čtvrť, Říční nábřeží a Univerzitní okrsek.
-Podniky lze pořizovat v každém vlastněném území; jejich denní výnos se přičítá
-k pasivnímu příjmu mafie.
+Dostupná síť nyní zahrnuje 16 čtvrtí, včetně Dýmové čtvrti, Cechovních uliček,
+Půlnočního trhu, Starých katakomb, Kovárenského okrsku, Lucernové čtvrti,
+Severních hradeb a Akademického náměstí. Převzetí čtvrti mění reputaci
+odpovídajících frakcí. Podniky lze pořizovat v každém vlastněném území; vedle
+stávajících provozů přibyly informační burza, černá slévárna a tajný archiv.
+Jejich výnos se přičítá k pasivnímu příjmu mafie. Přehled mafie zobrazuje
+panorama podsvětí, síť území s ukazatelem kontroly a seznam dosud volných čtvrtí.
 
 ### Syndikátní války
 
@@ -403,6 +407,14 @@ Napadni jiné organizace a přeber jejich území:
 | Syndikát Nočních stínů | Střední | Vliv, informátoři |
 | Krvavý kult podsvětí | Těžká | Rituální předměty |
 | Inkviziční garda | Extrémní | Oslabení Inkvizice |
+| Železný baron Vargan | Boss | Výzkumné body a vliv v Podsvětí |
+| Vévoda beze jména | Boss | Výzkumné body a vliv u Syndikátu stínů |
+
+Vítězství nad bossy navíc přináší výzkumné body. Některé nové čtvrti odemykají
+vlastní úkoly a události. Technologie **Síť informátorů** zvyšuje denní
+produkci výzkumu podle počtu ovládaných území, zatímco **Účetní knihy podsvětí**
+zvyšují jejich denní výnos. Nový obsah používá stávající save data, migrace
+není potřeba; poražení bossové se ukládají a odměnu lze získat jen jednou.
 
 ### Strategie útoku
 

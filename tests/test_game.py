@@ -612,6 +612,87 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(nactena.mafie.vypocet_prijmu(), hra.mafie.vypocet_prijmu())
         self.assertEqual(set(nactena.mafie.uzemi[0].podniky), set(podniky))
 
+    def test_expanzni_ctvrti_reaguji_frakce_a_zobrazi_se_v_siti(self):
+        from game.mafie import (
+            DOSTUPNA_UZEMI, KATALOG_PODNIKU, koupit_uzemi,
+            vykresli_mapu_uzemi,
+        )
+
+        hra = Hra()
+        hra.hrac.gold = 5000
+        nove_ctvrti = {
+            "Dýmová čtvrť", "Cechovní uličky", "Půlnoční trh",
+            "Staré katakomby", "Kovárenský okrsek", "Lucernová čtvrť",
+            "Severní hradby", "Akademické náměstí",
+        }
+        dostupne = {uzemi[0] for uzemi in DOSTUPNA_UZEMI}
+        self.assertTrue(nove_ctvrti.issubset(dostupne))
+        self.assertTrue({
+            "informacni_burza", "cerna_slvarna", "falesny_archiv",
+        }.issubset(KATALOG_PODNIKU))
+        reputace_pred = hra.frakce.frakce["obchodnici"].reputace
+        self.assertTrue(koupit_uzemi(hra.hrac, hra.mafie, "Akademické náměstí", hra))
+        self.assertEqual(
+            hra.frakce.frakce["obchodnici"].reputace, reputace_pred + 2
+        )
+
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vykresli_mapu_uzemi(hra.mafie)
+        self.assertIn("Městská síť: 16 čtvrtí", vystup.getvalue())
+        self.assertIn("Akademické náměstí", vystup.getvalue())
+
+    def test_nove_technologie_posiluji_vyzkum_a_prijem_uzemi(self):
+        from game.vyzkum import VYZKUM
+        from models.mafie import Uzemi
+
+        hra = Hra()
+        hra.mafie.uzemi.append(Uzemi("Přístav", 100, 50, 5))
+        hra.vyzkum.ziskane.update({
+            "dvojiti_agent", "monopolni_smlouvy",
+            "sit_informatoru", "ucty_podsveti",
+        })
+        self.assertIn("sit_informatoru", VYZKUM)
+        self.assertIn("ucty_podsveti", VYZKUM)
+        self.assertEqual(hra.vyzkum.produkce_bodu_za_den(hra), 1)
+        self.assertEqual(hra.vyzkum.bonus_denniho_prijmu(hra), 50)
+
+    def test_vitezstvi_nad_bossem_prinasi_vyzkum(self):
+        from game.mafie import koupit_uzemi, valka_uzemi
+        from models.mafie import Mafie
+
+        hra = Hra()
+        hra.hrac.gold = 5000
+        koupit_uzemi(hra.hrac, hra.mafie, "Přístav")
+        hra.mafie.vojaci = 100
+        body_pred = hra.vyzkum.body
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["5", "1"]), patch(
+            "random.randint", return_value=1
+        ), redirect_stdout(vystup):
+            valka_uzemi(hra.hrac, hra.mafie, hra)
+
+        self.assertEqual(hra.vyzkum.body, body_pred + 8)
+        self.assertIn("Železný baron Vargan", vystup.getvalue())
+        self.assertIn("zelezny_baron_vargan", hra.mafie.bossove_porazeni)
+        self.assertEqual(
+            Mafie.from_dict({"uzemi": []}).bossove_porazeni, []
+        )
+
+        nactena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(
+            nactena.mafie.bossove_porazeni,
+            ["zelezny_baron_vargan"],
+        )
+        zlato_po_vitezstvi = nactena.hrac.gold
+        body_po_vitezstvi = nactena.vyzkum.body
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value="5"), redirect_stdout(vystup):
+            valka_uzemi(nactena.hrac, nactena.mafie, nactena)
+        self.assertEqual(nactena.hrac.gold, zlato_po_vitezstvi)
+        self.assertEqual(nactena.vyzkum.body, body_po_vitezstvi)
+        self.assertIn("už byl poražen", vystup.getvalue())
+
     def test_valka_uzemi_s_vitezstvim(self):
         from game.mafie import valka_uzemi, koupit_uzemi
         hra = Hra()
@@ -630,6 +711,27 @@ class HraTesty(unittest.TestCase):
         hra = Hra()
         with patch("builtins.input", return_value="0"):
             spravovat_mafii(hra)
+
+    def test_graficka_sit_mafie_zobrazuje_kontrolu_a_podniky(self):
+        from game.mafie import koupit_uzemi, spravovat_mafii
+
+        hra = Hra()
+        hra.hrac.gold = 2000
+        koupit_uzemi(hra.hrac, hra.mafie, "Přístav")
+        hra.mafie.uzemi[0].podniky["tajne_doupe"] = {
+            "nazev": "Tajné drogové doupě",
+            "prijem": 45,
+        }
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value="0"), redirect_stdout(vystup):
+            spravovat_mafii(hra)
+
+        text = vystup.getvalue()
+        self.assertIn("SÍŤ PODSVĚTÍ", text)
+        self.assertIn("Přístav", text)
+        self.assertIn("50%", text)
+        self.assertIn("Tajné drogové doupě", text)
+        self.assertIn("+45 zl/den", text)
 
     def test_cerny_trh_okovy_a_ametyst(self):
         from game.obchod import cerny_trh
@@ -665,6 +767,89 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Infiltrace šlechtického plesu", nazvy)
         self.assertIn("Lov vzpurné rebelky", nazvy)
         self.assertIn("Obsazení městské zbrojnice", nazvy)
+        self.assertIn("Ztracená zásilka z Dýmové čtvrti", nazvy)
+        self.assertIn("Dlužní kniha Půlnočního trhu", nazvy)
+        self.assertIn("Tajemství akademického sklepení", nazvy)
+        self.assertIn("Zapečetěná brána katakomb", nazvy)
+
+    def test_uzemni_quest_vyzaduje_ctvrt_a_odmenuje_vyzkumem(self):
+        from game.questy import QuestSystem, QUESTY
+        from models.mafie import Uzemi
+
+        hra = Hra()
+        quest = next(
+            q for q in QUESTY
+            if q["nazev"] == "Ztracená zásilka z Dýmové čtvrti"
+        )
+        hra.questy = QuestSystem()
+        hra.questy.aktivni_quest = quest
+        hra.questy.dny_zbyva = 1
+        hra.svet.aktualni_lokace = "pristav"
+        body_pred = hra.vyzkum.body
+        with redirect_stdout(io.StringIO()):
+            hra.questy.proved_quest(hra.hrac, hra.harem, hra.mafie, hra)
+        self.assertEqual(hra.questy.aktivni_quest, quest)
+        self.assertEqual(hra.questy.dny_zbyva, 1)
+
+        hra.mafie.uzemi.append(Uzemi("Dýmová čtvrť", 160, 50, obsazeno=True))
+        with patch("game.questy.random.random", return_value=1), redirect_stdout(
+            io.StringIO()
+        ):
+            hra.questy.proved_quest(hra.hrac, hra.harem, hra.mafie, hra)
+        self.assertIsNone(hra.questy.aktivni_quest)
+        self.assertEqual(hra.vyzkum.body, body_pred + 4)
+
+    def test_generovani_questu_neodemyka_nevlastnena_uzemi(self):
+        from game.questy import QUESTY, QuestSystem
+
+        hra = Hra()
+        hra.hrac.level = 20
+        hra.svet.odhalene_lokace.append("pristav")
+        system = QuestSystem()
+        zachycene = {}
+
+        def vyber_questu(questy):
+            zachycene["nazvy"] = [q["nazev"] for q in questy]
+            return questy[0]
+
+        with patch("game.questy.random.choice", side_effect=vyber_questu), redirect_stdout(
+            io.StringIO()
+        ):
+            system.generuj_quest(hra.hrac, hra)
+
+        uzemni_questy = {
+            q["nazev"] for q in QUESTY if q.get("pozadovane_uzemi")
+        }
+        self.assertTrue(uzemni_questy.isdisjoint(zachycene["nazvy"]))
+
+    def test_informacni_burza_odemyka_udalost_s_vyzkumnou_odmenou(self):
+        from game.udalosti import spust_nahodnou_udalost
+        from models.mafie import Uzemi
+
+        hra = Hra()
+        hra.mafie.uzemi.append(Uzemi(
+            "Přístav", 100, 50, obsazeno=True,
+            podniky={"informacni_burza": {"nazev": "Burza"}},
+        ))
+        vybrane = {}
+
+        def vyber_udalost(udalosti, weights, k):
+            vybrane["nazvy"] = [udalost["nazev"] for udalost in udalosti]
+            return [next(
+                udalost for udalost in udalosti
+                if udalost["nazev"] == "Tip z městské informační burzy"
+            )]
+
+        body_pred = hra.vyzkum.body
+        with patch("game.udalosti.random.random", return_value=0), patch(
+            "game.udalosti.random.choices", side_effect=vyber_udalost
+        ), patch("game.udalosti.random.randint", return_value=3), redirect_stdout(
+            io.StringIO()
+        ):
+            spust_nahodnou_udalost(hra)
+
+        self.assertIn("Zátah na nelegální podnik", vybrane["nazvy"])
+        self.assertEqual(hra.vyzkum.body, body_pred + 3)
 
     def test_hlavni_menu_zkratky_a_zobrazeni_testovaci_volby(self):
         from game.menu_hlavni import (

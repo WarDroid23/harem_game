@@ -191,6 +191,17 @@ def generuj_pevnost() -> str:
     return "\n".join(hrad(vyska=4, sire=random.randint(2, 4)))
 
 
+def generuj_mafie() -> str:
+    return "\n".join([
+        f"{GRAY}       ╱|     ╱|       ╱|{NC}",
+        f"{GRAY}   ____| |____| |_______| |____{NC}",
+        f"{CYAN}  |  ▪  ▪  |  ▪  ▪  |  ▪  ▪  |{NC}",
+        f"{GRAY}  |  STÍNY PODSVĚTÍ  |  ZLATO |{NC}",
+        f"{GOLD}  ╧════════╧═════════╧════════╧{NC}",
+        f"{MAGENTA}       ╲  SÍŤ DOMINIA  ╱{NC}",
+    ])
+
+
 def generuj_noc() -> str:
     return "\n".join(mesic_a_noci())
 
@@ -227,6 +238,7 @@ def generuj_scenu(scena: str, **kwargs) -> str:
         "alchymie": lambda: "\n".join([f"{GREEN}       (  (  )  ){NC}", f"{CYAN}        \\  ||  /{NC}", f"{VIOLET}         ╲ || ╱{NC}", f"{GOLD}        ELIXÍR{NC}"]),
         "noc": generuj_noc,
         "pevnost": generuj_pevnost,
+        "mafie": generuj_mafie,
         "inkvizice": lambda: "\n".join([f"{RED}      ╱ ═══ ╲{NC}", f"{YELLOW}     │  ✠  │{NC}", f"{RED}     │INKVIZICE│{NC}", f"{GRAY}      ╲_____╱{NC}"]),
         "loajalita": lambda: generuj_loajalitu(kwargs.get("loajalita", 50)),
         "partnerka": lambda: "\n".join([f"{CYAN}       .·´ ♥ `·.{NC}", f"{MAGENTA}      ╱ partner ╲{NC}", f"{GOLD}     │   spolu   │{NC}", f"{CYAN}      ╲_________╱{NC}"]),
