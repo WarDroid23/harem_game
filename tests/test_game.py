@@ -666,6 +666,7 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(normalizuj_volbu("&"), "cheat_suroviny")
         self.assertEqual(normalizuj_volbu("#"), "cheat_dovednosti")
         self.assertEqual(normalizuj_volbu("*"), "cheat_budovy")
+        self.assertEqual(normalizuj_volbu(":"), "cheat_loajalita")
         self.assertEqual(normalizuj_volbu("neznama"), "neznama")
 
         vystup = io.StringIO()
@@ -676,6 +677,7 @@ class HraTesty(unittest.TestCase):
         self.assertNotIn("&) 🧪 Cheat:", vystup.getvalue())
         self.assertNotIn("#) 📈 Cheat:", vystup.getvalue())
         self.assertNotIn("*) 🏗️ Cheat:", vystup.getvalue())
+        self.assertNotIn(":) 💚 Cheat:", vystup.getvalue())
         self.assertIn("10)", vystup.getvalue())
         self.assertIn("🎯 Lov otrokyň", vystup.getvalue())
         self.assertIn("31)", vystup.getvalue())
@@ -688,6 +690,16 @@ class HraTesty(unittest.TestCase):
             )
         self.assertEqual(hra.hrac.gold, zlato_pred)
         self.assertEqual(hra.harem.pocet(), 0)
+
+        hra_bez_developer = Hra()
+        otrok = Otrokyně("Nízká loajalita", loajalita=20)
+        hra_bez_developer.harem.pridat(otrok)
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra_bez_developer, normalizuj_volbu(":"),
+                _obnov_hru_runtime(hra_bez_developer)
+            )
+        self.assertEqual(otrok.loajalita, 20)
 
         suroviny_pred = dict(hra.alchymie.suroviny)
         zasoby_pevnosti_pred = {
@@ -734,6 +746,24 @@ class HraTesty(unittest.TestCase):
         self.assertIn("&) 🧪 Cheat:", vystup.getvalue())
         self.assertIn("#) 📈 Cheat:", vystup.getvalue())
         self.assertIn("*) 🏗️ Cheat:", vystup.getvalue())
+        self.assertIn(
+            ":) 💚 Cheat: loajalita a romance všech otrokyň na maximum",
+            vystup.getvalue(),
+        )
+
+        hra_cheat = Hra()
+        hra_cheat.nastaveni.vyvojarsky_rezim = True
+        hra_cheat.harem.pridat(Otrokyně("První", loajalita=20))
+        hra_cheat.harem.pridat(Otrokyně("Druhá", loajalita=75))
+        with patch("builtins.input", return_value=""), redirect_stdout(io.StringIO()):
+            _obsluz_volbu_hlavniho_menu(
+                hra_cheat, normalizuj_volbu(":"),
+                _obnov_hru_runtime(hra_cheat)
+            )
+        self.assertTrue(all(
+            o.loajalita == 100 and o.romance_body == 100
+            for o in hra_cheat.harem.otrokyne
+        ))
 
         for volba in ("t",):
             hra = Hra()

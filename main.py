@@ -377,7 +377,7 @@ def _obsluz_volbu_hlavniho_menu(
 
     if volba in (
         "test", "cheat", "cheat_suroviny", "cheat_dovednosti",
-        "cheat_budovy",
+        "cheat_budovy", "cheat_loajalita",
     ) and not hra.nastaveni.vyvojarsky_rezim:
         tisk_chyba(
             "Vývojářské volby jsou vypnuté. Zapni Vývojářský režim v nastavení hry."
@@ -431,6 +431,15 @@ def _obsluz_volbu_hlavniho_menu(
         tisk_ok(
             f"Cheat aktivován: všechny {len(PEVNOSTNI_BUDOVY)} budovy "
             f"i hlavní citadela byly vylepšeny o 1 úroveň."
+        )
+        _pockej_na_enter()
+    elif volba == "cheat_loajalita":
+        for otrok in hra.harem.otrokyne:
+            otrok.zvysit_stat("loajalita", 100)
+            otrok.romance_body = 100
+        tisk_ok(
+            f"Cheat aktivován: loajalita a body romance všech "
+            f"{len(hra.harem.otrokyne)} otrokyň nastaveny na maximum."
         )
         _pockej_na_enter()
     elif volba == "1":

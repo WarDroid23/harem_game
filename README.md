@@ -103,13 +103,14 @@ starších terminálech zobrazit odlišně; číselné volby zůstávají plně 
 Hlavní menu navíc ukazuje aktivní cíle a konkrétní doporučený krok včetně
 potřebné lokace, volby menu nebo podmínky pro postup kampaní. Stejná priorita
 doporučení se používá také v průvodci.
-Testovací volba `T` a cheaty `$`, `&`, `#` a `*` jsou skryté a neaktivní, dokud v nastavení hry
+Testovací volba `T` a cheaty `$`, `&`, `#`, `*` a `:` jsou skryté a neaktivní, dokud v nastavení hry
 (`26` → `3` → `6`) nezapneš **Vývojářský režim**. V tomto režimu `T` (nebo
 zpětně kompatibilní `10`) přidá testovací otrokyni a `$` přidá 10 000 zlata a
 doplní energie; `&` přidá 1 000 kusů každé alchymistické suroviny a zásob
 pevnosti (jídlo, dřevo, kámen, železo a krystaly); `#` zvýší všechny dovednosti
 postavy včetně bojové zdatnosti o 10 a přidá 10 výzkumných bodů; `*` zvýší
-všechny budovy i hlavní citadelu o jednu úroveň. Režim je
+všechny budovy i hlavní citadelu o jednu úroveň a `:` nastaví loajalitu i body
+romance všech otrokyň na 100. Režim je
 uložený v save a je standardně vypnutý.
 Náhodné události při odpočinku se vybírají podle místa, roční doby, stavu harému
 a hrozeb ve světě; jejich historii najdeš v kalendáři (`32`).
