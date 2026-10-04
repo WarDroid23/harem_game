@@ -4,7 +4,7 @@
 
 | Volba | Co dělá |
 |-------|--------|
-| **8 Mapa světa & Cestování** | **Rozšířená mapa (26 lokací)**: síťová ASCII mapa, unikátní lokační akce (A), hluboké příběhové dialogy s NPC, záchrana otrokyň a 3 noví bossové |
+| **8 Mapa světa & Cestování** | **Rozšířená mapa (40 lokací)**: síťová ASCII mapa, unikátní lokační akce, příběhové dialogy s NPC, záchrana otrokyň a bossové |
 | **16 Správa budov** | **Budovatelská strategie dominia**: suroviny (dřevo, kámen, železo, zásoby, krystaly), sektory staveb, dohlížitelky, daňová politika, tržnice a karavany |
 | **8 / 24 Souboje & Aréna**| **Taktický soubojový systém**: bojové partnerky z harému s unikátními skilly, gladiátorský žebříček (Arena Ladder), temný vampirismus, obranné bonusy z pevnosti |
 | **21 Nevěstinec** | **Komplexní impérium rozkoše**: specializace pokojů, VIP mecenáši, špionáž & kompro, Noc neřesti, wellness & výcvik kurtizán |
@@ -133,13 +133,17 @@
 
 ## 🗺️ Rozšířená mapa světa, nová místa, NPC a příběhové akce (Volba 8)
 
-1. **Nová místa a síťová ASCII mapa (26 lokací)**:
-   - Celý svět byl sjednocen do rozsáhlé **26-lokacní síťové ASCII mapy**, která udržuje dokonale stabilní zarovnání sloupců při pohybu hráče (`▶[ ... ]◀`, indikátory mafie `[🛡️]`, aktivních questů `[🎯]` i neodhalených oblastí `[?Neodhaleno?]`).
+1. **Nová místa a síťová ASCII mapa (40 lokací)**:
+   - Celý svět byl sjednocen do rozsáhlé **40-lokační síťové ASCII mapy** se značkami aktuální polohy (`▶[ ... ]◀`), ovládaných území (`🛡️`), aktivních úkolů (`🎯`), NPC, bossů, místních zdrojů i neodhalených oblastí (`[?Neodhaleno?]`).
    - **Nové klíčové lokace**:
      - **⛓️ Inkviziční žalář & kobky kacířů (`vezeni_inkvizice`)**: Temné mučírny a cely pod chrámem, kde v řetězech trpí obviněné čarodějky a nepřátelé víry.
      - **🏛️ Zapomenutá astrální citadela (`zricenina_astralni_veze`)**: Vznešené ruiny z dob před pádem starého impéria, pulzující zbytky astrální magie.
      - **🏴‍☠️ Zátoka vraků & Pašerácká zátoka (`paserska_zatoka`)**: Skryté skalní pobřeží, kde kotví korsárské lodě plné kontrabandu a cizokrajných otrokyň.
      - **⛏️ Krvavé kamenolomy & Doly otroků (`krvavy_lom`)**: Povrchové lomy a hlubinné šachty na úpatí hor, kde trestanci těží kámen a železnou rudu pro dominium.
+     - **🛶 Kanálové průplavy (`kanalove_pruplavy`)**: Vodní spojnice skladů a nábřeží se zdrojem Nočního stínu.
+     - **🪴 Městské botanické zahrady (`botanicke_zahrady`)**: Zahradní čtvrť s místním Kořenem mandragory.
+     - **🪙 Kupecké ulice (`kupecke_ulice`)**: Kryté obchodní pasáže s místním Krystalem síly.
+   - Tyto tři lokality mají jedinečný sběr surovin pro alchymii, obnovený každý herní den; hlavní menu ukazuje postup jejich objevování.
 
 2. **Nové postavy (NPC) s příběhovými dialogy a úkoly**:
    - **Vespera (`vespera`)** *(Inkviziční žalář)*: Hrdá mladá čarodějka s fialovýma očima v řetězech. Hráč ji může osvobodit (úplatkem nebo temnou silou) a získat ji do harému jako mocnou čarodějku!

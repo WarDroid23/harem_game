@@ -1,7 +1,8 @@
 # game/mafie.py
 from models.mafie import BOSSOVE_MAFIE, LOKACE_PODLE_UZEMI, Mafie, Uzemi
 from utils.vypis import (
-    clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu, terminalni_obrazek,
+    clear, nacti_volbu, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu,
+    terminalni_obrazek,
 )
 from config import GOLD, CYAN, MAGENTA, GREEN, RED, YELLOW, WHITE, BOLD, DIM, NC
 
@@ -362,7 +363,7 @@ def spravovat_mafii(arg0, arg1=None):
         print(f"{NC}0) Zpět")
 
         try:
-            volba = input("> ").strip()
+            volba = nacti_volbu({str(cislo) for cislo in range(10)})
         except EOFError:
             return
         if volba == "0":

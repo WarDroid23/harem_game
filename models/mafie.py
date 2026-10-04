@@ -1,5 +1,6 @@
 # models/mafie.py
 from dataclasses import dataclass, field, asdict, fields
+from typing import Any, Dict, List
 
 BOSSOVE_MAFIE = {"zelezny_baron_vargan", "vevoda_beze_jmena"}
 LOKACE_PODLE_UZEMI = {
@@ -30,7 +31,7 @@ class Uzemi:
     obsazeno: bool = False
     opevneni: int = 0
     posadka: int = 0
-    podniky: dict = field(default_factory=dict)
+    podniky: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
     def to_dict(self):
         return asdict(self)
@@ -44,14 +45,14 @@ class Uzemi:
 
 @dataclass
 class Mafie:
-    uzemi: list = field(default_factory=list)
+    uzemi: List[Uzemi] = field(default_factory=list)
     vojaci: int = 0
     kapitanove: int = 0
     prijem_celkem: int = 0
     informatori: int = 0
     korupce: int = 0
     vliv_ve_meste: int = 0
-    bossove_porazeni: list = field(default_factory=list)
+    bossove_porazeni: List[str] = field(default_factory=list)
 
     def vypocet_prijmu(self):
         zaklad = sum(u.prijem * u.kontrola // 100 for u in self.uzemi if u.obsazeno)

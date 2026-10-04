@@ -1,5 +1,6 @@
 # models/otrokyne.py
 from dataclasses import dataclass, asdict, field, fields
+from typing import Any, Dict, List, Optional
 import random
 from data.charaktery import CHARAKTERY, normalizuj_charakter
 from data.degradace import ziskat_fazi, aplikuj_bonusy, Faze, normalizuj_fazi
@@ -34,14 +35,14 @@ class Otrokyně:
     podezreni_manipulace: int = 0
     na_najmu: bool = False
     v_nevestinci: bool = False
-    klient: str = None
-    typ_najmu: str = None
+    klient: Optional[str] = None
+    typ_najmu: Optional[str] = None
     dny_na_najmu: int = 0
     najem_zbyva_dni: int = 0
     najem_prijem_celkem: int = 0
     charakter: str = "subka"
     zavislost: int = 0
-    typ_zavislosti: str = None
+    typ_zavislosti: Optional[str] = None
     abstinenco_priznaky: bool = False
     predavkovani: bool = False
     faze_zkazenosti: int = 0
@@ -49,24 +50,24 @@ class Otrokyně:
     role: str = "členka harému"
     osud_id: str = ""
     osud_krok: int = 0
-    osud_volby: list = field(default_factory=list)
+    osud_volby: List[Dict[str, Any]] = field(default_factory=list)
     osud_dokonceno: bool = False
     romance_body: int = 0
     romance_stav: str = "otevřená možnost"
-    romance_volby: list = field(default_factory=list)
+    romance_volby: List[Dict[str, Any]] = field(default_factory=list)
     souhlas_romance: bool = False
-    historie_voleb: list = field(default_factory=list)
+    historie_voleb: List[Dict[str, Any]] = field(default_factory=list)
     partnerka: bool = False
     partner_od_den: int = 0
     lecba_zavislosti: int = 0
-    vybaveni: list = field(default_factory=list)
+    vybaveni: List[str] = field(default_factory=list)
     osud_zaver: str = ""
     osobni_pribeh_krok: int = 0
     osobni_pribeh_dokonceno: bool = False
-    osobni_pribeh_volby: list = field(default_factory=list)
+    osobni_pribeh_volby: List[Dict[str, Any]] = field(default_factory=list)
     osobni_pribeh_zaver: str = ""
-    historie_statistik: list = field(default_factory=list)
-    manzelstvi: dict = field(default_factory=dict)
+    historie_statistik: List[Dict[str, Any]] = field(default_factory=list)
+    manzelstvi: Dict[str, Any] = field(default_factory=dict)
     je_manzelkou: bool = False
     den_zasnubin: int = 0
     den_svatby: int = 0

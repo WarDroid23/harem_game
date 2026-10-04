@@ -3,7 +3,7 @@ import random
 from models.otrokyne import Otrokyně
 from data.jmena import vyber_nove_jmeno
 from data.charaktery import nazev_charakteru, vyber_charakter
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, nacti_volbu, tisk_ok, tisk_chyba, tisk_info
 from config import RED, GREEN, CYAN, MAGENTA, GOLD, NC
 from game.alchymie import SUROVINY
 
@@ -113,18 +113,17 @@ def lov_otrokyn(hra):
         print(f"{i}) {oblast['emodži']} {oblast['nazev']} - {oblast['popis']}")
         print(f"   Šance: {int(oblast['sance']*100)}% | Kvalita: {oblast['kvalita'][0]}-{oblast['kvalita'][1]} | Energie: {oblast['cena_energie']} | Zvláštní událost: {int(oblast['specialni_sance']*100)}%\n")
 
-    volba = input("> ").strip()
     try:
-        idx = int(volba) - 1
-        if idx < 0 or idx >= len(LOV_OBLASTI):
-            tisk_chyba("Špatná volba.")
-            input("Enter...")
-            return None
-    except ValueError:
-        tisk_chyba("Zadej číslo.")
-        input("Enter...")
+        volba = nacti_volbu(
+            {"0", *(str(index) for index in range(1, len(LOV_OBLASTI) + 1))},
+            chybova_zprava="Neplatná volba. Zadej číslo oblasti nebo 0 pro návrat.",
+        )
+    except EOFError:
+        return None
+    if volba == "0":
         return None
 
+    idx = int(volba) - 1
     oblast = LOV_OBLASTI[idx]
     if hrac.sex_energy < oblast["cena_energie"]:
         tisk_chyba(f"Nedostatek energie. Potřebuješ {oblast['cena_energie']}.")

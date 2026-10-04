@@ -1,6 +1,8 @@
 # game/vyvoj.py
 from models.hrac import Hrac
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
+from utils.vypis import (
+    clear, nacti_volbu, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu,
+)
 from data.zbrane import ZBRANE
 from models.inventory import Zbran
 from config import GREEN, CYAN, GOLD, MAGENTA, NC
@@ -28,47 +30,68 @@ def zobraz_vyvoj(hrac: Hrac):
     vytiskni_volbu('2', 'Trénink výdrže (zvyšuje maximum energie)')
     vytiskni_volbu('3', 'Koupit zbraň')
     vytiskni_volbu('0', 'Zpět')
-    volba = input("> ").strip()
+    try:
+        volba = nacti_volbu(
+            {"0", "1", "2", "3"},
+            chybova_zprava="Neplatná volba. Zadej 0, 1, 2 nebo 3.",
+        )
+    except EOFError:
+        return
     if volba == "1":
         print("Dostupné dovednosti:")
         skills = list(hrac.skilly.keys())
         for i, skill in enumerate(skills, 1):
             print(f"{i}) {skill}")
+        if not skills:
+            tisk_info("Nejsou dostupné žádné dovednosti k tréninku.")
+            return
         try:
-            idx = int(input("Vyber dovednost: ")) - 1
-            if 0 <= idx < len(skills):
-                if hrac.gold >= CENA_TRENINK:
-                    hrac.gold -= CENA_TRENINK
-                    skill_name = skills[idx]
-                    hrac.skilly[skill_name] += 1
-                    tisk_ok(f"Dovednost {skill_name} zvýšena na {hrac.skilly[skill_name]}.")
-                    if skill_name == "vytrvalost":
-                        _aplikuj_vytrvalost(hrac)
-                else:
-                    tisk_chyba("Nedostatek zlata.")
+            vyber = nacti_volbu(
+                {"0", *(str(index) for index in range(1, len(skills) + 1))},
+                prompt="Vyber dovednost (0 = zpět): ",
+                chybova_zprava="Neplatné číslo dovednosti.",
+            )
+        except EOFError:
+            return
+        if vyber != "0":
+            skill_name = skills[int(vyber) - 1]
+            if hrac.gold >= CENA_TRENINK:
+                hrac.gold -= CENA_TRENINK
+                hrac.skilly[skill_name] += 1
+                tisk_ok(f"Dovednost {skill_name} zvýšena na {hrac.skilly[skill_name]}.")
+                if skill_name == "vytrvalost":
+                    _aplikuj_vytrvalost(hrac)
             else:
-                tisk_chyba("Špatná volba.")
-        except ValueError:
-            tisk_chyba("Špatná volba.")
+                tisk_chyba("Nedostatek zlata.")
     elif volba == "2":
-        _trenink_vytrvalosti(hrac)
+        try:
+            _trenink_vytrvalosti(hrac)
+        except EOFError:
+            return
     elif volba == "3":
         print("Dostupné zbraně:")
         for i, z in enumerate(ZBRANE, 1):
             print(f"{i}) {z['nazev']} (typ: {z['typ']}, cena: {z['cena']}, poškození: {z['poskozeni']})")
+        if not ZBRANE:
+            tisk_info("Momentálně nejsou dostupné žádné zbraně.")
+            return
         try:
-            idx = int(input("Vyber zbraň: ")) - 1
-            if 0 <= idx < len(ZBRANE):
-                z_data = ZBRANE[idx]
-                if hrac.gold >= z_data["cena"]:
-                    hrac.gold -= z_data["cena"]
-                    nova_zbran = Zbran(**z_data)
-                    hrac.inventar.pridej_zbran(nova_zbran)
-                    tisk_ok(f"Koupena zbraň {nova_zbran.nazev}.")
-                else:
-                    tisk_chyba("Nedostatek zlata.")
-        except ValueError:
-            tisk_chyba("Špatná volba.")
+            vyber = nacti_volbu(
+                {"0", *(str(index) for index in range(1, len(ZBRANE) + 1))},
+                prompt="Vyber zbraň (0 = zpět): ",
+                chybova_zprava="Neplatné číslo zbraně.",
+            )
+        except EOFError:
+            return
+        if vyber != "0":
+            z_data = ZBRANE[int(vyber) - 1]
+            if hrac.gold >= z_data["cena"]:
+                hrac.gold -= z_data["cena"]
+                nova_zbran = Zbran(**z_data)
+                hrac.inventar.pridej_zbran(nova_zbran)
+                tisk_ok(f"Koupena zbraň {nova_zbran.nazev}.")
+            else:
+                tisk_chyba("Nedostatek zlata.")
     try:
         input("Enter...")
     except EOFError:
@@ -91,7 +114,10 @@ def _trenink_vytrvalosti(hrac):
     print(f"Cena: {CENA_TRENINK} zl. → +{SEX_ZA_VYTRVALOST} max sex, +{TEMNO_ZA_VYTRVALOST} max temno")
     vytiskni_volbu('1', 'Trénovat výdrž')
     vytiskni_volbu('0', 'Zpět')
-    volba = input("> ").strip()
+    volba = nacti_volbu(
+        {"0", "1"},
+        chybova_zprava="Neplatná volba. Zadej 0 nebo 1.",
+    )
     if volba != "1":
         return
     if hrac.gold < CENA_TRENINK:

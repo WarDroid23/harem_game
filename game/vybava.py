@@ -1,5 +1,7 @@
 from models.equipment import EQUIPMENT
-from utils.vypis import hlavicka, clear, tisk_chyba, tisk_ok, vytiskni_volbu
+from utils.vypis import (
+    hlavicka, clear, nacti_volbu, tisk_chyba, tisk_ok, vytiskni_volbu,
+)
 
 
 def kup_vybavu(hra, vybaveni_id):
@@ -39,16 +41,68 @@ def menu_vybavy(hra):
             print(f"{ident}) {data['nazev']} — {data['cena']} zlata "
                   f"(výpravy +{data['expedicni_bonus']}, boj +{data['bojovy_bonus']})")
         vytiskni_volbu('K', 'koupit | T) přiřadit poslední kus člence týmu | 0) Zpět')
-        volba = input("> ").strip().lower()
+        try:
+            volba = nacti_volbu(
+                {"0", "k", "t"},
+                chybova_zprava="Neplatná volba. Zadej K, T nebo 0.",
+            )
+        except EOFError:
+            return
         if volba == "0":
             return
         if volba == "k":
-            ident = input("ID výbavy: ").strip().lower()
-            tisk_ok("Výbava zakoupena.") if kup_vybavu(hra, ident) else tisk_chyba("Nedostatek zlata nebo neznámá výbava.")
+            try:
+                ident = nacti_volbu(
+                    {"0", *EQUIPMENT},
+                    prompt="ID výbavy (0 = zpět): ",
+                    chybova_zprava="Neznámá výbava.",
+                )
+            except EOFError:
+                return
+            if ident == "0":
+                continue
+            if kup_vybavu(hra, ident):
+                tisk_ok("Výbava zakoupena.")
+            else:
+                tisk_chyba("Nedostatek zlata.")
         elif volba == "t":
-            ident = input("ID výbavy: ").strip().lower()
-            jmeno = input("Jméno člena týmu: ").strip()
-            tisk_ok("Výbava přiřazena.") if prirad_tymu(hra, ident, jmeno) else tisk_chyba("Výbavu nelze přiřadit.")
+            try:
+                ident = nacti_volbu(
+                    {"0", *EQUIPMENT},
+                    prompt="ID výbavy (0 = zpět): ",
+                    chybova_zprava="Neznámá výbava.",
+                )
+            except EOFError:
+                return
+            if ident == "0":
+                continue
+            jmena = {}
+            for otrok in hra.harem.otrokyne:
+                jmena.setdefault(otrok.jmeno.lower(), otrok.jmeno)
+            if not jmena:
+                tisk_chyba("V týmu není nikdo, komu by šlo výbavu přiřadit.")
+                try:
+                    input("Enter...")
+                except EOFError:
+                    return
+                continue
+            try:
+                jmeno = nacti_volbu(
+                    {"0", *jmena},
+                    prompt="Jméno člena týmu (0 = zpět): ",
+                    chybova_zprava="Člen týmu nebyl nalezen.",
+                )
+            except EOFError:
+                return
+            if jmeno == "0":
+                continue
+            if prirad_tymu(hra, ident, jmena[jmeno]):
+                tisk_ok("Výbava přiřazena.")
+            else:
+                tisk_chyba("Výbavu nelze přiřadit.")
         else:
             tisk_chyba("Neplatná volba.")
-        input("Enter...")
+        try:
+            input("Enter...")
+        except EOFError:
+            return

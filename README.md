@@ -69,7 +69,7 @@ Po spuštění hry vstoupíš do hlavního herního menu. Zadáváš čísla neb
 | `5` | **Diplomacie** | Vztahy s frakcemi (Inkvizice, Syndikát, Podsvětí) |
 | `6` | **Výzkum** | Technologický strom dominia |
 | `7` | **Domestikace** | Hloubkové zlomení vůle a psychologické podmínění |
-| `8` | **Mapa světa** | Cestování po 37 lokacích, NPC, questy |
+| `8` | **Mapa světa** | Cestování po 40 lokacích, NPC, questy |
 | `9` | **Kampaň** | Hlavní příběhová linie s kapitolami |
 | `22` | **Deník úkolů** | Aktivní běžné a NPC úkoly, dostupné úkoly a postup kampaně |
 | `11` | **Lov otrokyň** | Získání nových žen (trh, únos, duel) |
@@ -309,10 +309,10 @@ Postupuj žebříčkem a porážej stále silnější protivníky. Na vrcholu č
 
 ---
 
-## 🗺️ Mapa světa — 37 lokací (Menu 8)
+## 🗺️ Mapa světa — 40 lokací (Menu 8)
 
 Cestuj po světě, prozkoumávej lokace a plň lokační úkoly.
-Mapa nově obsahuje také 11 propojených městských čtvrtí, včetně čtvrtí
+Mapa nově obsahuje také 14 propojených městských čtvrtí, včetně čtvrtí
 spravovaných mafií. Ovládnutí čtvrti ji odhalí na mapě; starší uložené hry
 odhalí vlastněná území při příštím otevření mapy. Prozkoumávej sousední stezky
 nebo je hledej pomocí lokačních akcí.
@@ -329,13 +329,20 @@ nebo je hledej pomocí lokačních akcí.
 
 ### Lokační akce
 
-Každá z 37 lokací má vlastní pověst a nabídku tematických akcí. Nové čtvrti
+Každá ze 40 lokací má vlastní pověst a nabídku tematických akcí. Nové čtvrti
 nabízejí lokální zdroje, výzkumné body, reputaci frakcí a další cesty.
-Mapa označuje aktuální polohu, aktivní úkol, ovládaná území, NPC a neporažené
-bossy. Podle místa
+Průzkumná odměna i placený kontakt v každé čtvrti lze získat jednou za herní
+den; stav se ukládá a po přechodu na další den se obnoví.
+Mapa označuje aktuální polohu, aktivní úkol včetně NPC questů, ovládaná území,
+NPC a neporažené bossy. Podle místa
 můžeš získat suroviny pro pevnost či alchymii, zkušenosti, energii, reputaci,
 vztahy s NPC, vliv frakcí nebo odhalit dosud skrytou cestu. Některé akce mají
 cenu či riziko; před potvrzením zkontroluj požadované zlato a suroviny.
+Rozšíření Městské čtvrti 2.0 přidává Kanálové průplavy, Městské botanické
+zahrady a Kupecké ulice. Každá z nich má zvláštní surovinu dostupnou přes
+místní akci „Sebrat místní zdroj“ jednou za herní den: Noční stín, Kořen
+mandragory nebo Krystal síly. Hlavní menu ukazuje postup objevování čtvrtí
+a nabídne přehled zdroje, pokud se právě nacházíš v příslušné lokaci.
 
 ### Navazující úkoly NPC
 
@@ -344,6 +351,10 @@ získání jejich důvěry odemknout vícedílné úkoly. Každý úkol uchováv
 variantu i v uložené hře a nabízí čestné či temné řešení s odlišnými odměnami.
 Některé odměny jsou mapové nástroje nebo předměty, které ovlivňují další
 průzkum a reputaci frakcí.
+Čtyři nové linky přidávají Maren na Říčním nábřeží, Orena v Cechovních
+uličkách, Livii na Akademickém náměstí a Neru v Dýmové čtvrti. Jejich volby
+mění reputaci frakcí, kontrolu vlastněných území, vliv mafie nebo výzkum;
+každá linka má dvě části a po dokončení se neopakuje.
 
 ---
 
@@ -529,6 +540,7 @@ Drogy mají **okamžitý** nebo **přetrvávající** efekt (trvá až do novéh
 
 - JSON formát, čitelný, s českými znaky
 - Atomický zápis + zálohy `.bak`, `.bak2`, `.bak3`
+- Verze formátu save se migruje při načtení; neznámou novější verzi hra bezpečně odmítne
 - **Autosave** při každém novém dni
 
 ### Náhled slotu
@@ -538,11 +550,14 @@ Před načtením uvidíš: den, zlato, velikost harému, ★ oblíbenkyně, čas
 ### Cesta k uloženým hrám
 
 ```
-%LOCALAPPDATA%\Temp\  (nebo složka hry)
-harem_dark_v18_save_slot1.json
-harem_dark_v18_save_slot1.bak
-harem_dark_v18_autosave.json
+%APPDATA%\HaremDark\
+harem_dark_v18_save.json             (slot 1)
+harem_dark_v18_save.json.bak         (záloha slotu 1)
+harem_dark_v18_save_slot2.json       (slot 2)
+harem_dark_v18_save_autosave.json    (autosave)
 ```
+Starší save v původní složce hry se při načtení stále rozpozná. Původní soubor
+zůstává zachován; další uložení se zapisují do složky uživatelských dat.
 
 ---
 

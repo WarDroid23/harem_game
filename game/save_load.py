@@ -1,10 +1,12 @@
 # game/save_load.py
 import json
+import logging
 import os
 import shutil
 import tempfile
+from copy import deepcopy
 from pathlib import Path
-from config import SAVE_FILE, VERSION
+from config import SAVE_FILE, SAVE_SCHEMA_VERSION, VERSION
 from models.hrac import Hrac
 from models.harem import Harem
 from models.frakce import FrakcniSystem
@@ -25,6 +27,8 @@ from models.achievements import AchievementSystem
 from models.nevestinec import Nevestinec
 
 POCET_SLOTU = 5
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+_LEGACY_SAVE_NAME = "harem_dark_v18_save.json"
 NAZVY_SLOTU = {
     1: "Hlavní save (kompatibilní se starým souborem)",
     2: "Slot 2",
@@ -82,6 +86,7 @@ class Hra:
         }
         return {
             "verze": VERSION,
+            "save_version": SAVE_SCHEMA_VERSION,
             "meta": meta,
             "hrac": self.hrac.to_dict(),
             "harem": self.harem.to_dict(),
@@ -108,6 +113,7 @@ class Hra:
     def from_dict(cls, data):
         if not isinstance(data, dict):
             raise ValueError("Uložená hra musí být JSON objekt.")
+        data = migrate_save(data)
         hra = cls()
         hra.nastaveni = aplikuj_nastaveni(NastaveniHry.from_dict(data.get("nastaveni", {})))
         sekce = {
@@ -166,6 +172,54 @@ class Hra:
         return hra
 
 
+def migrate_save(data):
+    """Upgrade a save dictionary to the current schema without mutating input."""
+    if not isinstance(data, dict):
+        raise ValueError("Uložená hra musí být JSON objekt.")
+    migrated = deepcopy(data)
+    raw_version = migrated.get("save_version", 0)
+    try:
+        if isinstance(raw_version, bool):
+            raise ValueError
+        if isinstance(raw_version, str) and not raw_version.isdigit():
+            raise ValueError
+        if not isinstance(raw_version, (int, str)):
+            raise ValueError
+        version = int(raw_version)
+    except ValueError as chyba:
+        raise ValueError("Neplatná verze uložené hry.") from chyba
+    if version < 0:
+        raise ValueError("Verze uložené hry nesmí být záporná.")
+    if version > SAVE_SCHEMA_VERSION:
+        raise ValueError(
+            f"Uložená hra používá novější formát ({version}); "
+            f"tato verze hry podporuje nejvýše {SAVE_SCHEMA_VERSION}."
+        )
+
+    while version < SAVE_SCHEMA_VERSION:
+        if version == 0:
+            svet = migrated.get("svet")
+            if not isinstance(svet, dict):
+                svet = {}
+                migrated["svet"] = svet
+            svet.setdefault("lokacni_odmeny", {})
+            version = 1
+            migrated["save_version"] = version
+        else:
+            raise ValueError(f"Chybí migrace uložené hry z verze {version}.")
+    return migrated
+
+
+def _legacy_slot_path(slot):
+    cesta = Path(_LEGACY_SAVE_NAME)
+    nazev = (
+        cesta.name if slot == 1
+        else f"{cesta.stem}_slot{slot}{cesta.suffix}"
+    )
+    kandidati = (Path.cwd() / nazev, _PROJECT_ROOT / nazev)
+    return next((kandidat for kandidat in kandidati if kandidat.exists()), None)
+
+
 def cesta_slotu(slot, hlavni_soubor=SAVE_FILE):
     try:
         slot = int(slot)
@@ -204,6 +258,11 @@ def seznam_slotu(hlavni_soubor=SAVE_FILE):
     vysledek = []
     for slot in range(1, POCET_SLOTU + 1):
         cesta = cesta_slotu(slot, hlavni_soubor)
+        if (
+            not cesta.exists()
+            and Path(hlavni_soubor).expanduser() == Path(SAVE_FILE)
+        ):
+            cesta = _legacy_slot_path(slot) or cesta
         existuje = cesta.exists()
         meta = _nacti_meta(cesta) if existuje else None
         vysledek.append({
@@ -221,7 +280,13 @@ def uloz_slot(hra, slot, hlavni_soubor=SAVE_FILE):
 
 
 def nacti_slot(slot, hlavni_soubor=SAVE_FILE):
-    return nacti_hru(cesta_slotu(slot, hlavni_soubor))
+    cesta = cesta_slotu(slot, hlavni_soubor)
+    if (
+        not cesta.exists()
+        and Path(hlavni_soubor).expanduser() == Path(SAVE_FILE)
+    ):
+        cesta = _legacy_slot_path(int(slot)) or cesta
+    return nacti_hru(cesta)
 
 
 def uloz_hru(hra: Hra, soubor=SAVE_FILE):
@@ -250,6 +315,7 @@ def uloz_hru(hra: Hra, soubor=SAVE_FILE):
         print(f"Hra uložena do JSON: {cesta}.")
         return True
     except (OSError, TypeError, ValueError) as chyba:
+        logging.getLogger(__name__).exception("Uložení hry selhalo do %s.", cesta)
         if docasny:
             try:
                 os.unlink(docasny)
@@ -261,15 +327,22 @@ def uloz_hru(hra: Hra, soubor=SAVE_FILE):
 
 def nacti_hru(soubor=SAVE_FILE):
     cesta = Path(soubor).expanduser()
-    if not cesta.exists() and not cesta.with_name(cesta.name + ".bak").exists():
-        print("Žádná uložená hra.")
-        return None
     cesty = [
         cesta,
         cesta.with_name(cesta.name + ".bak"),
         cesta.with_name(cesta.name + ".bak2"),
         cesta.with_name(cesta.name + ".bak3"),
     ]
+    if cesta == Path(SAVE_FILE):
+        legacy = _legacy_slot_path(1)
+        if legacy and legacy not in cesty:
+            cesty.extend(
+                legacy.with_name(legacy.name + suffix)
+                for suffix in ("", ".bak", ".bak2", ".bak3")
+            )
+    if not any(kandidat.exists() for kandidat in cesty):
+        print("Žádná uložená hra.")
+        return None
     posledni_chyba = None
     for index, kandidat in enumerate(cesty):
         if not kandidat.exists():
@@ -282,6 +355,12 @@ def nacti_hru(soubor=SAVE_FILE):
                 print("Hlavní sejv byl poškozen, načtena záložní kopie.")
             return hra
         except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as chyba:
+            logging.getLogger(__name__).warning(
+                "Načtení save souboru %s selhalo: %s",
+                kandidat,
+                chyba,
+                exc_info=True,
+            )
             posledni_chyba = chyba
     print(f"Načtení selhalo: {posledni_chyba}")
     return None

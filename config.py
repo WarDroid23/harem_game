@@ -1,5 +1,25 @@
 # config.py
-SAVE_FILE = "harem_dark_v18_save.json"
+import os
+from pathlib import Path
+
+
+def user_data_dir():
+    """Return the per-user application data directory."""
+    if os.name == "nt":
+        root = Path(
+            os.environ.get("APPDATA")
+            or Path.home() / "AppData" / "Roaming"
+        )
+    else:
+        root = Path(
+            os.environ.get("XDG_DATA_HOME")
+            or Path.home() / ".local" / "share"
+        )
+    return root / "HaremDark"
+
+
+SAVE_FILE = str(user_data_dir() / "harem_dark_v18_save.json")
+SAVE_SCHEMA_VERSION = 1
 VERSION = "22.1-dark"
 
 USE_COLORS = True

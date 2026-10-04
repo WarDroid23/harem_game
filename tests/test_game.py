@@ -163,6 +163,156 @@ class HraTesty(unittest.TestCase):
             self.assertIsNotNone(nactena)
             self.assertEqual(nactena.hrac.gold, 777)
             self.assertEqual(nactena.nastaveni.obtiznost, "normalni")
+            self.assertEqual(nactena.to_dict()["save_version"], 1)
+
+    def test_migrace_legacy_save_a_odmitnuti_nepodporovane_verze(self):
+        from config import SAVE_SCHEMA_VERSION
+        from game.save_load import migrate_save
+
+        stary_save = {
+            "verze": "18.0",
+            "hrac": {"gold": 123},
+            "svet": {"aktualni_lokace": "pevnost"},
+        }
+        migrovany = migrate_save(stary_save)
+        self.assertEqual(migrovany["save_version"], SAVE_SCHEMA_VERSION)
+        self.assertEqual(migrovany["svet"]["lokacni_odmeny"], {})
+        self.assertNotIn("save_version", stary_save)
+        self.assertNotIn("lokacni_odmeny", stary_save["svet"])
+        self.assertEqual(Hra.from_dict(stary_save).hrac.gold, 123)
+
+        with self.assertRaisesRegex(ValueError, "novější formát"):
+            Hra.from_dict({"save_version": SAVE_SCHEMA_VERSION + 1})
+        with self.assertRaisesRegex(ValueError, "Neplatná verze"):
+            Hra.from_dict({"save_version": "unknown"})
+
+    def test_nacteni_obnovi_zalozni_kopii_a_nesmaze_poskozeny_save(self):
+        import json
+
+        hra = Hra()
+        hra.hrac.gold = 321
+        with tempfile.TemporaryDirectory() as slozka:
+            cesta = Path(slozka) / "save.json"
+            zaloha = cesta.with_name(cesta.name + ".bak")
+            cesta.write_text("{poškozený", encoding="utf-8")
+            zaloha.write_text(
+                json.dumps(hra.to_dict(), ensure_ascii=False),
+                encoding="utf-8",
+            )
+            with redirect_stdout(io.StringIO()):
+                nactena = nacti_hru(cesta)
+            self.assertIsNotNone(nactena)
+            self.assertEqual(nactena.hrac.gold, 321)
+            self.assertTrue(cesta.exists())
+
+    def test_nacti_volbu_opakuje_neplatne_vstupy_a_normalizuje(self):
+        from utils.vypis import nacti_volbu
+
+        vystup = io.StringIO()
+        with patch(
+            "builtins.input",
+            side_effect=["", "999999", " ABC ", " 2 "],
+        ), redirect_stdout(vystup):
+            volba = nacti_volbu({"1", "2"})
+        self.assertEqual(volba, "2")
+        self.assertEqual(vystup.getvalue().count("Možnosti: 1, 2"), 3)
+
+    def test_menu_vyzkumu_validuje_vstup_a_ponechava_vyber_cislem(self):
+        from game.vyzkum import VYZKUM, VyzkumSystem
+
+        system = VyzkumSystem()
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["neznamy", "1", "", "q"]), \
+             patch.object(system, "vyzkoumat") as vyzkoumat, \
+             redirect_stdout(vystup):
+            system.menu(Hra())
+
+        self.assertIn("Neznámý výzkum nebo špatné číslo.", vystup.getvalue())
+        vyzkoumat.assert_called_once()
+        self.assertEqual(vyzkoumat.call_args.args[1], list(VYZKUM)[0])
+
+    def test_menu_pevnosti_overuje_volbu_a_ponechava_navrat(self):
+        from game.pevnost import spravovat_pevnost
+
+        vystup = io.StringIO()
+        hra = Hra()
+        with patch("builtins.input", side_effect=["neplatne", "0"]), redirect_stdout(vystup):
+            spravovat_pevnost(hra)
+        self.assertIn("Neplatná volba.", vystup.getvalue())
+        self.assertIn("Možnosti:", vystup.getvalue())
+
+    def test_menu_mafie_overuje_volbu_a_ponechava_navrat(self):
+        from game.mafie import spravovat_mafii
+        from models.mafie import Mafie
+
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["neplatne", "0"]), redirect_stdout(vystup):
+            spravovat_mafii(Hra().hrac, Mafie())
+        self.assertIn("Neplatná volba.", vystup.getvalue())
+        self.assertIn("Možnosti:", vystup.getvalue())
+
+    def test_menu_diplomacie_validuje_akci_i_frakci(self):
+        from game.diplomacie import Diplomacie
+
+        hra = Hra()
+        system = Diplomacie(hra.frakce)
+        vystup = io.StringIO()
+        with patch(
+            "builtins.input",
+            side_effect=["x", "1", "neznama", "obchodnici", "", "0"],
+        ), patch.object(system, "vyjednavat") as vyjednavat, redirect_stdout(vystup):
+            system.menu(hra)
+
+        self.assertIn("Neplatná volba. Zadej 1-4, 0 nebo q.", vystup.getvalue())
+        self.assertIn("Neplatná frakce nebo číslo.", vystup.getvalue())
+        vyjednavat.assert_called_once_with(hra.hrac, "obchodnici", "uplatek", hra)
+
+    def test_menu_vyvoje_opakuje_neplatne_volby_a_zachovava_trenink(self):
+        from game.vyvoj import CENA_TRENINK, zobraz_vyvoj
+
+        hrac = Hra().hrac
+        prvni_dovednost = next(iter(hrac.skilly))
+        uroven_pred = hrac.skilly[prvni_dovednost]
+        zlato_pred = hrac.gold
+        vystup = io.StringIO()
+        with patch(
+            "builtins.input",
+            side_effect=["neplatne", "1", "neplatne", "1", ""],
+        ), redirect_stdout(vystup):
+            zobraz_vyvoj(hrac)
+
+        self.assertIn("Neplatná volba. Zadej 0, 1, 2 nebo 3.", vystup.getvalue())
+        self.assertIn("Neplatné číslo dovednosti.", vystup.getvalue())
+        self.assertEqual(hrac.skilly[prvni_dovednost], uroven_pred + 1)
+        self.assertEqual(hrac.gold, zlato_pred - CENA_TRENINK)
+
+    def test_user_data_path_a_debug_log_jsou_v_adresarich_uzivatele(self):
+        import logging
+        from config import user_data_dir
+        from utils import diagnostika
+
+        with tempfile.TemporaryDirectory() as slozka:
+            with patch.dict("os.environ", {"APPDATA": slozka}):
+                self.assertEqual(user_data_dir(), Path(slozka) / "HaremDark")
+
+            with patch.object(diagnostika, "user_data_dir", return_value=Path(slozka)):
+                logpath = diagnostika.configure_logging()
+                logger = logging.getLogger()
+                try:
+                    logger.warning("testovací diagnostický záznam")
+                    for handler in logger.handlers:
+                        if getattr(handler, "baseFilename", None) == str(logpath):
+                            handler.flush()
+                    self.assertTrue(logpath.exists())
+                    self.assertIn(
+                        "testovací diagnostický záznam",
+                        logpath.read_text(encoding="utf-8"),
+                    )
+                finally:
+                    for handler in list(logger.handlers):
+                        if getattr(handler, "baseFilename", None) == str(logpath):
+                            logger.removeHandler(handler)
+                            handler.close()
 
     def test_souboj_vyhra_a_prida_odmenu(self):
         hra = Hra()
@@ -453,6 +603,102 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(
             hra.hrac.inventar.pocet_predmetu("zdravotni_balicek"), 1
         )
+
+    def test_nove_ctvrti_maji_npc_questy_s_dusledky_a_jednorazovymi_linkami(self):
+        from models.mafie import Uzemi
+
+        hra = Hra()
+        hra.mafie.uzemi = [
+            Uzemi("Dýmová čtvrť", 20, kontrola=98, obsazeno=True)
+        ]
+        for npc_id in (
+            "maren_prevoznik",
+            "oren_mistr_cechu",
+            "livia_archivarka",
+            "nera_dymova",
+        ):
+            hra.svet.vztahy_npc[npc_id] = 100
+        dostupne = dict(hra.npc_questy.dostupne(hra))
+        self.assertTrue(set((
+            "maren_prevoznik",
+            "oren_mistr_cechu",
+            "livia_archivarka",
+            "nera_dymova",
+        )).issubset(dostupne))
+
+        policie_pred = hra.frakce.frakce["policie"].reputace
+        self.assertTrue(hra.npc_questy.prijmi(hra, "nera_dymova"))
+        self.assertEqual(
+            hra.npc_questy.dokoncit(hra, "nera_dymova", temna=True),
+            "temna",
+        )
+        self.assertEqual(hra.mafie.uzemi[0].kontrola, 100)
+        self.assertEqual(
+            hra.frakce.frakce["policie"].reputace, policie_pred - 4
+        )
+
+        self.assertTrue(hra.npc_questy.prijmi(hra, "nera_dymova"))
+        self.assertEqual(
+            hra.npc_questy.dokoncit(hra, "nera_dymova", temna=True),
+            "temna",
+        )
+        self.assertEqual(hra.mafie.vliv_ve_meste, 7)
+        self.assertEqual(hra.mafie.uzemi[0].kontrola, 100)
+        self.assertNotIn(
+            "nera_dymova",
+            dict(hra.npc_questy.dostupne(hra)),
+        )
+        self.assertEqual(hra.npc_questy.dokoncene["nera_dymova"], 2)
+
+        body_pred = hra.vyzkum.body
+        self.assertTrue(hra.npc_questy.prijmi(hra, "livia_archivarka"))
+        self.assertEqual(
+            hra.npc_questy.dokoncit(hra, "livia_archivarka"),
+            "normal",
+        )
+        self.assertEqual(hra.vyzkum.body, body_pred + 3)
+
+    def test_lokacni_odmeny_maji_denni_limit_a_preziji_save_load(self):
+        hra = Hra()
+        hra.hrac.den = 3
+        hra.svet.aktualni_lokace = "univerzitni_okrsek"
+        body_pred = hra.vyzkum.body
+
+        for _ in range(2):
+            with patch("builtins.input", side_effect=["1", ""]), patch(
+                "random.randint", return_value=3
+            ), redirect_stdout(io.StringIO()):
+                hra.svet.menu_lokacni_akce(hra)
+        self.assertEqual(hra.vyzkum.body, body_pred + 3)
+        self.assertFalse(
+            hra.svet.lokacni_odmena_dostupna(
+                "univerzitni_okrsek", "pruzkum", 3
+            )
+        )
+
+        nactena = Hra.from_dict(hra.to_dict())
+        self.assertFalse(
+            nactena.svet.lokacni_odmena_dostupna(
+                "univerzitni_okrsek", "pruzkum", 3
+            )
+        )
+        nactena.hrac.den = 4
+        self.assertTrue(
+            nactena.svet.lokacni_odmena_dostupna(
+                "univerzitni_okrsek", "pruzkum", 4
+            )
+        )
+        with patch("builtins.input", side_effect=["1", ""]), patch(
+            "random.randint", return_value=3
+        ), redirect_stdout(io.StringIO()):
+            nactena.svet.menu_lokacni_akce(nactena)
+        self.assertEqual(nactena.vyzkum.body, body_pred + 6)
+
+        stary_svet = Hra.from_dict({
+            "hrac": Hra().hrac.to_dict(),
+            "svet": {"aktualni_lokace": "pevnost"},
+        }).svet
+        self.assertEqual(stary_svet.lokacni_odmeny, {})
 
     def test_odmeny_questu_respektuji_obtiznost_a_nejsou_druhe_vyplaty(self):
         from game.balance import uprav_odmenu, uprav_xp
@@ -749,6 +995,119 @@ class HraTesty(unittest.TestCase):
         with patch("builtins.input", side_effect=["6", ""]):
             cerny_trh(hra)
         self.assertEqual(hra.hrac.max_temno(), temno_max_pred + 10)
+
+    def test_obchod_validuje_volby_a_cerny_trh_opakuje_neplatny_vstup(self):
+        from game.obchod import cerny_trh, obchod
+
+        hra = Hra()
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["x", "0"]), redirect_stdout(vystup):
+            obchod(hra)
+        self.assertIn("Neplatná volba. Zadej 0, 1, 2, 3 nebo 9.", vystup.getvalue())
+
+        hra.mafie.korupce = 30
+        zlato_pred = hra.hrac.gold
+        with patch("builtins.input", side_effect=["x", "2", "0", ""]), \
+             redirect_stdout(vystup):
+            cerny_trh(hra)
+        self.assertIn("Neplatná volba. Zadej číslo od 0 do 7.", vystup.getvalue())
+        self.assertEqual(hra.hrac.gold, zlato_pred - 120)
+
+    def test_cerny_trh_serum_overuje_vyber_a_umozni_zruseni(self):
+        from game.obchod import cerny_trh
+
+        hra = Hra()
+        hra.mafie.korupce = 30
+        otrok = Otrokyně("Zoe", poslusnost=40)
+        hra.harem.pridat(otrok)
+        zlato_pred = hra.hrac.gold
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["3", "chybne", "0", ""]), \
+             redirect_stdout(vystup):
+            cerny_trh(hra)
+
+        self.assertIn("Neplatné číslo otrokyně.", vystup.getvalue())
+        self.assertEqual(otrok.poslusnost, 40)
+        self.assertEqual(hra.hrac.gold, zlato_pred)
+
+    def test_lov_opakuje_neplatnou_volbu_a_umozni_navrat(self):
+        from game.lov import lov_otrokyn
+
+        hra = Hra()
+        energie_pred = hra.hrac.sex_energy
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["neplatne", "1"]), \
+             patch("game.lov.random.random", side_effect=[1.0, 0.0]), \
+             redirect_stdout(vystup):
+            otrok = lov_otrokyn(hra)
+
+        self.assertIsNotNone(otrok)
+        self.assertEqual(
+            hra.hrac.sex_energy,
+            energie_pred - 10,
+        )
+        self.assertIn(
+            "Neplatná volba. Zadej číslo oblasti nebo 0 pro návrat.",
+            vystup.getvalue(),
+        )
+
+        vystup = io.StringIO()
+        energie_po_lovu = hra.hrac.sex_energy
+        with patch("builtins.input", return_value="0"), redirect_stdout(vystup):
+            self.assertIsNone(lov_otrokyn(hra))
+        self.assertEqual(hra.hrac.sex_energy, energie_po_lovu)
+
+    def test_denni_rozkazy_opakuji_neplatnou_volbu_a_zpet_se_vraci(self):
+        from game.denni_rozkazy import menu_rozkazu
+
+        hra = Hra()
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["x", "1", ""]), redirect_stdout(vystup):
+            menu_rozkazu(hra)
+        self.assertEqual(hra.denni_rezim, "tvrdy")
+        self.assertIn("Neplatná volba. Vyber režim nebo 0 pro návrat.", vystup.getvalue())
+
+        with patch("builtins.input", return_value="0") as vstup, redirect_stdout(io.StringIO()):
+            menu_rozkazu(hra)
+        self.assertEqual(vstup.call_count, 1)
+
+    def test_menu_vybavy_opakuje_chybne_volby_a_zachova_nakup(self):
+        from game.vybava import menu_vybavy
+
+        hra = Hra()
+        zlato_pred = hra.hrac.gold
+        vystup = io.StringIO()
+        with patch(
+            "builtins.input",
+            side_effect=["x", "k", "neznamy", "OCELovy_plat", "", "0"],
+        ), redirect_stdout(vystup):
+            menu_vybavy(hra)
+
+        self.assertIn("Neplatná volba. Zadej K, T nebo 0.", vystup.getvalue())
+        self.assertIn("Neznámá výbava.", vystup.getvalue())
+        self.assertEqual(hra.hrac.gold, zlato_pred - 180)
+        self.assertIn("ocelovy_plat", hra.hrac.inventar.vybaveni["hrac"])
+
+    def test_menu_vybavy_overuje_clena_tymu_pred_prirazenim(self):
+        from game.vybava import menu_vybavy
+
+        hra = Hra()
+        otrok = Otrokyně("Zoe")
+        hra.harem.pridat(otrok)
+        hra.hrac.inventar.pridej_vybaveni("ocelovy_plat")
+        vystup = io.StringIO()
+        with patch(
+            "builtins.input",
+            side_effect=["t", "ocelovy_plat", "neznama", "zoe", "", "0"],
+        ), redirect_stdout(vystup):
+            menu_vybavy(hra)
+
+        self.assertIn("Člen týmu nebyl nalezen.", vystup.getvalue())
+        self.assertIn("ocelovy_plat", otrok.vybaveni)
+        self.assertNotIn(
+            "ocelovy_plat",
+            hra.hrac.inventar.vybaveni.get("hrac", []),
+        )
 
     def test_ai_dialog_fallback_variety(self):
         from game.ai_dialog import generuj_dialog
@@ -1298,8 +1657,20 @@ class HraTesty(unittest.TestCase):
         self.assertIn("katakomby", LOKACE)
         self.assertIn("svatyne_krvaveho_mesice", LOKACE)
         self.assertIn("palac_bohatych", LOKACE)
-        self.assertEqual(len(LOKACE), 37)
-        self.assertEqual(len(NOVE_MESTSKE_LOKACE), 11)
+        self.assertEqual(len(LOKACE), 40)
+        self.assertEqual(len(NOVE_MESTSKE_LOKACE), 14)
+        self.assertEqual(
+            {
+                "kanalove_pruplavy",
+                "botanicke_zahrady",
+                "kupecke_ulice",
+            }.intersection(LOKACE),
+            {
+                "kanalove_pruplavy",
+                "botanicke_zahrady",
+                "kupecke_ulice",
+            },
+        )
         for lokace_id, data in LOKACE.items():
             for soused_id in data["sousedni"]:
                 self.assertIn(lokace_id, LOKACE[soused_id]["sousedni"])
@@ -1308,6 +1679,68 @@ class HraTesty(unittest.TestCase):
         with patch("random.random", return_value=0.99):
             self.assertTrue(hra.svet.cestuj("trh", hra))
         self.assertEqual(hra.svet.aktualni_lokace, "trh")
+        hra.svet.odhal_lokaci("kupecke_ulice")
+        with patch("random.random", return_value=0.99):
+            self.assertTrue(hra.svet.cestuj("kupecke_ulice", hra))
+        self.assertEqual(hra.svet.aktualni_lokace, "kupecke_ulice")
+
+    def test_nove_ctvrti_maji_jedinecne_denni_zdroje(self):
+        from game.alchymie import SUROVINY
+        from game.svet import AKCE_MESTSKYCH_CTVRTI, LOKACE
+
+        nove_zdroje = {
+            "kanalove_pruplavy": "nocni_stin",
+            "botanicke_zahrady": "koren_mandragory",
+            "kupecke_ulice": "krystal_sily",
+        }
+        hra = Hra()
+        for lokace, zdroj_id in nove_zdroje.items():
+            with self.subTest(lokace=lokace):
+                self.assertEqual(
+                    AKCE_MESTSKYCH_CTVRTI[lokace]["zdroj"]["id"], zdroj_id
+                )
+                self.assertTrue(LOKACE[lokace].get("typ_ctvrti"))
+                self.assertIn(zdroj_id, SUROVINY)
+                hra.svet.aktualni_lokace = lokace
+                hra.hrac.den = 5
+                with patch(
+                    "builtins.input", side_effect=["4", ""]
+                ), redirect_stdout(io.StringIO()):
+                    hra.svet.menu_lokacni_akce(hra)
+                self.assertEqual(hra.alchymie.suroviny[zdroj_id], 2)
+
+                with patch(
+                    "builtins.input", side_effect=["4", ""]
+                ), redirect_stdout(io.StringIO()):
+                    hra.svet.menu_lokacni_akce(hra)
+                self.assertEqual(hra.alchymie.suroviny[zdroj_id], 2)
+
+        nactena = Hra.from_dict(hra.to_dict())
+        self.assertFalse(
+            nactena.svet.lokacni_odmena_dostupna(
+                "botanicke_zahrady", "zdroj", 5
+            )
+        )
+        nactena.hrac.den = 6
+        self.assertTrue(
+            nactena.svet.lokacni_odmena_dostupna(
+                "botanicke_zahrady", "zdroj", 6
+            )
+        )
+
+    def test_hlavni_menu_zobrazuje_postup_ctvrti_a_mistni_zdroj(self):
+        from game.menu_hlavni import vykresli_hlavni_menu
+
+        hra = Hra()
+        hra.svet.odhal_lokaci("botanicke_zahrady")
+        hra.svet.aktualni_lokace = "botanicke_zahrady"
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            vykresli_hlavni_menu(hra)
+
+        self.assertIn("MĚSTSKÁ SÍŤ", vystup.getvalue())
+        self.assertIn("1/14 čtvrtí odhaleno", vystup.getvalue())
+        self.assertIn("Kořen mandragory (dnes dostupný)", vystup.getvalue())
 
     def test_uzemi_odhaluje_mapu_a_starai_save_zachova_mestske_cesty(self):
         from game.mafie import koupit_uzemi
@@ -1350,6 +1783,7 @@ class HraTesty(unittest.TestCase):
         hra.hrac.gold = 2000
         koupit_uzemi(hra.hrac, hra.mafie, "Akademické náměstí", hra)
         hra.svet.odhal_lokaci("dymova_ctvrt")
+        hra.svet.odhal_lokaci("kanalove_pruplavy")
         hra.questy.aktivni_quest = {"nazev": "Mapa", "lokace": "akademicke_namesti"}
         vystup = io.StringIO()
         with redirect_stdout(vystup):
@@ -1361,6 +1795,13 @@ class HraTesty(unittest.TestCase):
         self.assertIn("🎯", text)
         self.assertIn("🛡️", text)
         self.assertIn("PROPOJENÉ MĚSTSKÉ ČTVRTI", text)
+        self.assertIn("Kanály", text)
+        self.assertIn("Noční stín", text)
+        self.assertIn("⚗️", text)
+
+        hra.questy.aktivni_quest = None
+        hra.npc_questy.aktivni["nera_dymova"] = {"quest": {"nazev": "Testovací linka"}}
+        self.assertIn("🎯", hra.svet._format_uzel("dymova_ctvrt", hra))
 
     def test_vsechny_lokace_maji_povest_a_unikatni_akce(self):
         from game.svet import LOKACE, NOVE_MESTSKE_LOKACE, POVESTI_LOKACI
@@ -1388,6 +1829,11 @@ class HraTesty(unittest.TestCase):
         akce.update({
             lokace: ("1", "2", "3")
             for lokace in NOVE_MESTSKE_LOKACE
+        })
+        akce.update({
+            "kanalove_pruplavy": ("1", "2", "3", "4"),
+            "botanicke_zahrady": ("1", "2", "3", "4"),
+            "kupecke_ulice": ("1", "2", "3", "4"),
         })
 
         for lokace, volby in akce.items():

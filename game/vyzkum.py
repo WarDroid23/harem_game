@@ -1,6 +1,6 @@
 """Větvený technologický strom dominia."""
 
-from utils.vypis import clear, tisk_ok, tisk_chyba
+from utils.vypis import clear, nacti_volbu, tisk_ok, tisk_chyba
 from config import GOLD, CYAN, GREEN, RED, YELLOW, NC
 
 
@@ -299,32 +299,24 @@ class VyzkumSystem:
         while True:
             self.zobraz_vyzkum(hrac, hra if hasattr(hra, "hrac") else None)
             print("Zadej číslo nebo id technologie (0 = zpět)")
+            platne_volby = {
+                "", "0", "q", *VYZKUM,
+                *(str(index) for index in range(1, len(ids) + 1)),
+            }
             try:
-                volba = input("> ").strip().lower()
+                volba = nacti_volbu(
+                    platne_volby,
+                    chybova_zprava="Neznámý výzkum nebo špatné číslo.",
+                )
             except EOFError:
                 return
             if volba in ("0", "q", ""):
                 return
             if volba.isdigit():
                 idx = int(volba) - 1
-                if 0 <= idx < len(ids):
-                    id_v = ids[idx]
-                else:
-                    tisk_chyba("Špatné číslo.")
-                    try:
-                        input("Enter...")
-                    except EOFError:
-                        return
-                    continue
+                id_v = ids[idx]
             elif volba in VYZKUM:
                 id_v = volba
-            else:
-                tisk_chyba("Neznámý výzkum.")
-                try:
-                    input("Enter...")
-                except EOFError:
-                    return
-                continue
             self.vyzkoumat(hrac, id_v, hra if hasattr(hra, "hrac") else None)
             try:
                 input("Enter...")

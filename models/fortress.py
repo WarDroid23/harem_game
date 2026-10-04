@@ -1,5 +1,6 @@
 # models/fortress.py
 from dataclasses import dataclass, field, asdict
+from typing import Any, Dict, List
 import random
 
 PEVNOSTNI_BUDOVY = {
@@ -151,14 +152,14 @@ class FortressDevelopment:
     kamen: int = 90        # Kámen na zdivo
     zelezo: int = 40       # Železo na výzbroj
     krystaly: int = 15     # Magické krystaly
-    budovy: dict = field(default_factory=lambda: {key: 0 for key in PEVNOSTNI_BUDOVY})
-    rozsireni: list = field(default_factory=list)
-    pracovnici: dict = field(default_factory=dict)  # budova_id -> jmeno_otrokine
+    budovy: Dict[str, int] = field(default_factory=lambda: {key: 0 for key in PEVNOSTNI_BUDOVY})
+    rozsireni: List[str] = field(default_factory=list)
+    pracovnici: Dict[str, str] = field(default_factory=dict)  # budova_id -> jmeno_otrokine
     danova_politika: str = "vyvazena"               # "laskava", "vyvazena", "kruta"
-    karavany_aktivni: list = field(default_factory=list)
+    karavany_aktivni: List[Dict[str, Any]] = field(default_factory=list)
     arena_rank: int = 0                            # 0: Rekrut, 1: Rváč, 2: Gladiátor, 3: Šampion, 4: Bůh arény
     bojova_partnerka: str = ""                     # jméno zvolené otrokyně do soubojů
-    personal: dict = field(default_factory=dict)   # personál dominia: spravce, vyhazovac, alchymista
+    personal: Dict[str, Any] = field(default_factory=dict)   # personál dominia: spravce, vyhazovac, alchymista
 
     def cena_vylepseni(self, budova=None):
         if budova is None:

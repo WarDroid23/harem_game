@@ -1,7 +1,7 @@
 # game/diplomacie.py
 import random
 from models.frakce import FrakcniSystem, Frakce
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info
+from utils.vypis import clear, nacti_volbu, tisk_ok, tisk_chyba, tisk_info
 from config import GOLD, CYAN, MAGENTA, GREEN, RED, YELLOW, NC
 
 
@@ -91,39 +91,37 @@ class Diplomacie:
             print(f"{YELLOW}4) Obchod")
             print(f"{NC}0) Zpět")
             try:
-                volba = input("> ").strip().lower()
+                volba = nacti_volbu(
+                    {"0", "q", "", "1", "2", "3", "4"},
+                    chybova_zprava="Neplatná volba. Zadej 1-4, 0 nebo q.",
+                )
             except EOFError:
                 return
             if volba in ("0", "q", ""):
                 return
             klice = list(self.frakce.frakce.keys())
-            print("Frakce:")
-            for i, k in enumerate(klice, 1):
-                print(f"  {i}) {k} – {self.frakce.frakce[k].nazev}")
-            try:
-                vyber = input("Vyber frakci (číslo nebo id): ").strip().lower()
-            except EOFError:
-                return
-            if vyber.isdigit():
-                idx = int(vyber) - 1
-                if 0 <= idx < len(klice):
-                    cil = klice[idx]
-                else:
-                    tisk_chyba("Špatná volba.")
-                    try:
-                        input("Enter...")
-                    except EOFError:
-                        return
-                    continue
-            elif vyber in self.frakce.frakce:
-                cil = vyber
-            else:
-                tisk_chyba("Neplatná frakce.")
+            if not klice:
+                tisk_info("Momentálně nejsou dostupné žádné frakce.")
                 try:
                     input("Enter...")
                 except EOFError:
                     return
                 continue
+            print("Frakce:")
+            for i, k in enumerate(klice, 1):
+                print(f"  {i}) {k} – {self.frakce.frakce[k].nazev}")
+            try:
+                vyber = nacti_volbu(
+                    {str(i) for i in range(1, len(klice) + 1)} | set(klice),
+                    prompt="Vyber frakci (číslo nebo id): ",
+                    chybova_zprava="Neplatná frakce nebo číslo.",
+                )
+            except EOFError:
+                return
+            if vyber.isdigit():
+                cil = klice[int(vyber) - 1]
+            elif vyber in self.frakce.frakce:
+                cil = vyber
             if volba == "1":
                 self.vyjednavat(hrac, cil, "uplatek", hra_ref)
             elif volba == "2":

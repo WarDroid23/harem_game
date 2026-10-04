@@ -1,5 +1,7 @@
 # game/obchod.py — zjednodušený obchod + černý trh
-from utils.vypis import clear, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu
+from utils.vypis import (
+    clear, nacti_volbu, tisk_ok, tisk_chyba, tisk_info, vytiskni_volbu,
+)
 from config import GOLD, CYAN, MAGENTA, NC
 
 
@@ -12,7 +14,10 @@ def obchod(hra):
     vytiskni_volbu('9', 'Černý trh')
     vytiskni_volbu('0', 'Zpět')
     try:
-        volba = input("> ").strip()
+        volba = nacti_volbu(
+            {"0", "1", "2", "3", "9"},
+            chybova_zprava="Neplatná volba. Zadej 0, 1, 2, 3 nebo 9.",
+        )
     except EOFError:
         return
     if volba == "9":
@@ -72,7 +77,10 @@ def cerny_trh(hra):
     vytiskni_volbu('0', 'Zpět')
 
     try:
-        v = input("> ").strip()
+        v = nacti_volbu(
+            {"0", "1", "2", "3", "4", "5", "6", "7"},
+            chybova_zprava="Neplatná volba. Zadej číslo od 0 do 7.",
+        )
     except EOFError:
         return
 
@@ -115,8 +123,13 @@ def cerny_trh(hra):
                 for i, o in enumerate(aktivni, 1):
                     print(f"{i}) {o.jmeno} (poslušnost: {o.poslusnost}, submisivita: {o.submisivita})")
                 try:
-                    vybrana_idx = int(input("> ")) - 1
-                    if 0 <= vybrana_idx < len(aktivni):
+                    vyber = nacti_volbu(
+                        {"0", *(str(index) for index in range(1, len(aktivni) + 1))},
+                        prompt="Vyber otrokyni (0 = zpět): ",
+                        chybova_zprava="Neplatné číslo otrokyně.",
+                    )
+                    if vyber != "0":
+                        vybrana_idx = int(vyber) - 1
                         hrac.gold -= 160
                         cil = aktivni[vybrana_idx]
                         cil.poslusnost = min(100, cil.poslusnost + 25)
@@ -124,10 +137,8 @@ def cerny_trh(hra):
                         cil.strach = max(0, getattr(cil, "strach", 30) - 10)
                         tisk_ok(f"Sérum aplikováno na {cil.jmeno}. Vůle se podlamuje, poslušnost stoupla na {cil.poslusnost}.")
                         zaznamenej(hra, f"Černý trh: sérum zlomené vůle podáno {cil.jmeno}.")
-                    else:
-                        tisk_chyba("Neplatná volba.")
-                except ValueError:
-                    tisk_chyba("Zadej číslo.")
+                except EOFError:
+                    return
         else:
             tisk_chyba("Nedostatek zlata.")
 

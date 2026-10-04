@@ -29,21 +29,22 @@ from game.settings import NastaveniHry, aplikuj_nastaveni
 from game.automaticky_tah import obsluz_automaticky_tah
 from game.manzelstvi import menu_manzelstvi
 from game.menu_extra import obsluz_extra_volbu
-from game.menu_hlavni import normalizuj_volbu, vykresli_hlavni_menu
+from game.menu_hlavni import (
+    MAPOVANI_CISEL_MENU, ZKRATKY_HLAVNIHO_MENU,
+    normalizuj_volbu, vykresli_hlavni_menu,
+)
 from game.nevestinec import menu_nevestinec
 from utils.vypis import (
-    clear, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
+    clear, nacti_volbu, terminalni_obrazek, tisk_ok, tisk_chyba, tisk_info,
     ukazatel, hlavicka,
 )
+from utils.diagnostika import configure_logging
 from data.jmena import vyber_nove_jmeno
 from data.charaktery import nazev_charakteru, vyber_charakter
 from data.degradace import nazev_faze
 from models.otrokyne import Otrokyně
 
 import logging
-import os
-import traceback
-from datetime import datetime
 
 # Current active game (used for crash-save)
 _CURRENT_GAME = None
@@ -87,7 +88,7 @@ def menu_ulozeni(hra):
     _vykresli_sloty()
     print("0) Zpět")
     try:
-        volba = input("> ").strip()
+        volba = nacti_volbu({"0", "1", "2", "3", "4", "5"})
         if volba == "0":
             return False
         slot = int(volba)
@@ -109,7 +110,7 @@ def menu_nacteni():
     _vykresli_sloty()
     print("0) Zpět")
     try:
-        volba = input("> ").strip()
+        volba = nacti_volbu({"0", "1", "2", "3", "4", "5"})
         if volba == "0":
             return None
         slot = int(volba)
@@ -616,11 +617,17 @@ def _obsluz_volbu_hlavniho_menu(
 
 def hlavni_menu(hra: Hra):
     runtime = _obnov_hru_runtime(hra)
+    platne_volby = (
+        set(MAPOVANI_CISEL_MENU)
+        | set(ZKRATKY_HLAVNIHO_MENU)
+        | {"0", "auto", "test", "cheat", "cheat_suroviny", "cheat_dovednosti",
+           "cheat_budovy", "cheat_loajalita"}
+    )
     while True:
         clear()
         vykresli_hlavni_menu(hra)
         try:
-            volba = input("> ").strip().lower()
+            volba = nacti_volbu(platne_volby)
         except EOFError:
             uloz_hru(hra)
             return
@@ -632,6 +639,13 @@ def hlavni_menu(hra: Hra):
         except EOFError:
             uloz_hru(hra)
             return
+        except Exception:
+            logging.exception("Obsluha volby hlavního menu selhala: %s", volba)
+            tisk_chyba(
+                "Tato akce selhala. Hra pokračuje; podrobnosti jsou v harem_debug.log."
+            )
+            _pockej_na_enter()
+            continue
         if skoncit:
             return
 
@@ -654,6 +668,7 @@ def nova_hra(nastaveni=None):
 
 def start():
     global _CURRENT_GAME
+    configure_logging()
     while True:
         clear()
         print(f"{GOLD}{BOLD}👑 HAREM DARK{NC}")
@@ -664,7 +679,7 @@ def start():
         print(f"{MAGENTA}4) 🎬 Trailer")
         print(f"{RED}0) Konec")
         try:
-            volba = input("> ").strip().lower()
+            volba = nacti_volbu({"0", "1", "2", "3", "4"})
         except EOFError:
             return
         if volba == "1":
@@ -688,30 +703,19 @@ def start():
             menu_trailer()
         elif volba == "0":
             return
-        else:
-            tisk_chyba("Neplatná volba. Zadej 1, 2, 3, 4 nebo 0.")
 
 
 if __name__ == "__main__":
     try:
         start()
     except Exception as e:
-        # Ensure logs directory exists next to this file
-        logdir = os.path.join(os.path.dirname(__file__), "logs")
-        os.makedirs(logdir, exist_ok=True)
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        logpath = os.path.join(logdir, f"crash_{ts}.log")
-        with open(logpath, "w", encoding="utf-8") as fh:
-            fh.write("Unhandled exception:\n")
-            traceback.print_exc(file=fh)
+        logpath = configure_logging()
+        logging.exception("Nezachycená chyba hlavní herní smyčky.")
         try:
             if _CURRENT_GAME and not getattr(_CURRENT_GAME.nastaveni, "ironman", False):
                 uloz_hru(_CURRENT_GAME)
-                print(f"Nečekaný pád: hra byla uložena. Log: {logpath}")
+                print(f"Nečekaný pád: pokus o uložení dokončen. Log: {logpath}")
         except Exception:
-            with open(logpath, "a", encoding="utf-8") as fh:
-                fh.write("\nCrash-save failed:\n")
-                traceback.print_exc(file=fh)
             logging.exception("Automatické uložení po pádu selhalo.")
         print(f"Nečekaná chyba: {e}. Trace uložen do {logpath}.")
         raise

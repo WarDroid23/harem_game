@@ -5,7 +5,10 @@ from dataclasses import dataclass, field
 from config import (
     GREEN, RED, YELLOW, BLUE, MAGENTA, CYAN, GOLD, NC, BOLD, DIM, GRAY, WHITE
 )
-from utils.vypis import clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu, hlavicka
+from utils.vypis import (
+    banner_lokace, clear, terminalni_obrazek, tisk_chyba, tisk_info, tisk_ok,
+    vytiskni_volbu, hlavicka,
+)
 from game.predmety import PREDMETY
 from data.jmena import vyber_nove_jmeno
 from data.charaktery import vyber_charakter
@@ -388,6 +391,36 @@ LOKACE = {
         "uroven": 2,
         "nebezpeci": "nízké",
     },
+    "kanalove_pruplavy": {
+        "nazev": "Kanálové průplavy",
+        "kratky": "Kanály",
+        "ikona": "🛶",
+        "typ_ctvrti": "vodní",
+        "popis": "Úzké vodní cesty propojují sklady, nábřeží a staré město; pod lávkami se dají najít ztracené zásilky.",
+        "sousedni": ["ricni_nabrezi", "katakomby", "pulnocni_trh"],
+        "uroven": 2,
+        "nebezpeci": "střední",
+    },
+    "botanicke_zahrady": {
+        "nazev": "Městské botanické zahrady",
+        "kratky": "Botanika",
+        "ikona": "🪴",
+        "typ_ctvrti": "zahradní",
+        "popis": "Uzavřené zahrady pěstují léčivé i vzácné rostliny pod dohledem městských alchymistů.",
+        "sousedni": ["sklenena_zahrada", "lazne", "akademie"],
+        "uroven": 2,
+        "nebezpeci": "nízké",
+    },
+    "kupecke_ulice": {
+        "nazev": "Kupecké ulice",
+        "kratky": "Kupecké",
+        "ikona": "🪙",
+        "typ_ctvrti": "kupecká",
+        "popis": "Kryté pasáže plné dílen, směnáren a stánků s řemeslným zbožím z celého města.",
+        "sousedni": ["trh", "ctvrt_remeselniku", "cechovni_ulicky"],
+        "uroven": 1,
+        "nebezpeci": "nízké",
+    },
 }
 
 for lokace_id, informace in LOKACE.items():
@@ -437,6 +470,9 @@ POVESTI_LOKACI = {
     "lucernova_ctvrt": "Lucerny mění barvu podle toho, kdo prochází pod nimi; místní z toho čtou náladu celé čtvrti.",
     "severni_hradby": "Na ochozu zůstává každou noc čerstvá stopa směrem ven, ale nikdy žádná zpět.",
     "akademicke_namesti": "Veřejná tabule sama doplňuje chybějící řádky mapy, když se nad ní zastaví kartograf.",
+    "kanalove_pruplavy": "U každé třetí lávky je vyrytá značka převozníků. Nikdo se neshodne, zda ukazuje hloubku, nebo cenu průchodu.",
+    "botanicke_zahrady": "Zahradníci nechávají jednu bránu pootevřenou; za ní roste rostlina, kterou v městských knihách nenajdeš.",
+    "kupecke_ulice": "Každý obchodník tu nabízí drobnou slevu výměnou za zprávu, kterou jinde nesmí vyslovit.",
 }
 
 VYCHOZI_ODHALENE = [
@@ -447,7 +483,8 @@ NOVE_MESTSKE_LOKACE = (
     "cerna_ctvrt", "ricni_nabrezi", "univerzitni_okrsek",
     "dymova_ctvrt", "cechovni_ulicky", "pulnocni_trh",
     "stare_katakomby", "kovarensky_okrsek", "lucernova_ctvrt",
-    "severni_hradby", "akademicke_namesti",
+    "severni_hradby", "akademicke_namesti", "kanalove_pruplavy",
+    "botanicke_zahrady", "kupecke_ulice",
 )
 
 AKCE_MESTSKYCH_CTVRTI = {
@@ -516,6 +553,27 @@ AKCE_MESTSKYCH_CTVRTI = {
         "kontakt": "Podpořit městskou knihovnu",
         "frakce": "obchodnici",
         "odmena": "vyzkum",
+    },
+    "kanalove_pruplavy": {
+        "pruzkum": "Prohledat starou plavební komoru",
+        "kontakt": "Zajistit průjezd říčními kanály",
+        "frakce": "obchodnici",
+        "odmena": "drevo",
+        "zdroj": {"id": "nocni_stin", "nazev": "Noční stín", "mnozstvi": 2},
+    },
+    "botanicke_zahrady": {
+        "pruzkum": "Prozkoumat léčivé záhony",
+        "kontakt": "Domluvit vstup do skleníku",
+        "frakce": "obchodnici",
+        "odmena": "krystaly",
+        "zdroj": {"id": "koren_mandragory", "nazev": "Kořen mandragory", "mnozstvi": 2},
+    },
+    "kupecke_ulice": {
+        "pruzkum": "Prohledat řemeslné sklady",
+        "kontakt": "Vyjednat přístup k cechovním zásobám",
+        "frakce": "obchodnici",
+        "odmena": "zelezo",
+        "zdroj": {"id": "krystal_sily", "nazev": "Krystal síly", "mnozstvi": 2},
     },
 }
 
@@ -756,6 +814,15 @@ NPC = {
             "Řeka si všechno odnese. Jen málokdy vrátí totéž, co jí člověk svěřil.",
         ],
     },
+    "nera_dymova": {
+        "jmeno": "Nera, předákyně noční směny",
+        "popis": "Zná každou dílnu Dýmové čtvrti a hledá dělníky, kteří se nevrátili domů.",
+        "lokace": "dymova_ctvrt",
+        "vek": 36,
+        "dialogy": [
+            "Když se komíny odmlčí, město poslouchá. Dnes v noci slyším něco, co se mi nelíbí.",
+        ],
+    },
 }
 
 
@@ -765,6 +832,7 @@ class SvetSystem:
     odhalene_lokace: list = field(default_factory=lambda: list(VYCHOZI_ODHALENE))
     navstiveno: dict = field(default_factory=dict)
     vztahy_npc: dict = field(default_factory=lambda: {k: 0 for k in NPC})
+    lokacni_odmeny: dict = field(default_factory=dict)
 
     def __post_init__(self):
         if not isinstance(self.aktualni_lokace, str) or self.aktualni_lokace not in LOKACE:
@@ -792,6 +860,18 @@ class SvetSystem:
                 hodnota = 0
             vztahy[npc_id] = max(-100, min(100, hodnota))
         self.vztahy_npc = vztahy
+        puvodni_odmeny = (
+            self.lokacni_odmeny
+            if isinstance(self.lokacni_odmeny, dict) else {}
+        )
+        self.lokacni_odmeny = {}
+        for klic, den in puvodni_odmeny.items():
+            if not isinstance(klic, str):
+                continue
+            try:
+                self.lokacni_odmeny[klic] = max(0, int(den))
+            except (TypeError, ValueError):
+                continue
 
     def odhal_lokaci(self, lokace):
         if lokace in LOKACE and lokace not in self.odhalene_lokace:
@@ -804,6 +884,13 @@ class SvetSystem:
             return False
         self.vztahy_npc[npc_id] = max(-100, min(100, self.vztahy_npc[npc_id] + delta))
         return True
+
+    def lokacni_odmena_dostupna(self, lokace_id, akce_id, den):
+        klic = f"{lokace_id}:{akce_id}"
+        return self.lokacni_odmeny.get(klic) != max(0, int(den))
+
+    def zaznamenej_lokacni_odmenu(self, lokace_id, akce_id, den):
+        self.lokacni_odmeny[f"{lokace_id}:{akce_id}"] = max(0, int(den))
 
     def _format_uzel(self, lok_id, hra, sirka=11):
         """Naformátuje uzel na mapě s pevně zarovnanou šířkou a ikonami statusu."""
@@ -826,8 +913,17 @@ class SvetSystem:
         if quest_lokace is None and isinstance(quest, dict):
             quest_lokace = LOKACE_PODLE_UZEMI.get(quest.get("pozadovane_uzemi"))
         je_quest = quest_lokace == lok_id
+        npc_questy = getattr(getattr(hra, "npc_questy", None), "aktivni", {})
+        if isinstance(npc_questy, dict):
+            je_quest = je_quest or any(
+                npc_id in NPC and NPC[npc_id]["lokace"] == lok_id
+                for npc_id in npc_questy
+            )
         je_npc = any(
             npc.get("lokace") == lok_id for npc in NPC.values()
+        )
+        je_zdroj = bool(
+            AKCE_MESTSKYCH_CTVRTI.get(lok_id, {}).get("zdroj")
         )
 
         porazeni_bossu = set(
@@ -862,6 +958,8 @@ class SvetSystem:
             tag += "👤"
         if je_boss:
             tag += "👹"
+        if je_zdroj:
+            tag += "⚗️"
 
         text = f"{ikona} {kratky}{tag}"
         if je_zde:
@@ -896,15 +994,20 @@ class SvetSystem:
         print(f"║ {u('tajna_svatyne_stinu')}                                                                        ║")
         print(f"║                                                                                           ║")
         print(f"{GOLD}╚═══════════════════════════════════════════════════════════════════════════════════════════╝{NC}")
-        print(f"\n{CYAN}{BOLD}🏙️ PROPOJENÉ MĚSTSKÉ ČTVRTI{NC}")
+        banner_lokace("PROPOJENÉ MĚSTSKÉ ČTVRTI", "Lokace, cesty a místní zdroje")
         for lok_id in NOVE_MESTSKE_LOKACE:
             sousedi = "  ↔  ".join(
                 u(soused, 8) for soused in LOKACE[lok_id]["sousedni"]
             )
-            print(f"  {u(lok_id, 10)}  ⇄  {sousedi}")
+            zdroj = AKCE_MESTSKYCH_CTVRTI.get(lok_id, {}).get("zdroj")
+            zdroj_txt = f"  |  ⚗️ {zdroj['nazev']}" if zdroj else ""
+            typ = LOKACE[lok_id].get("typ_ctvrti")
+            typ_txt = f"  ·  {typ}" if typ else ""
+            print(f"  {u(lok_id, 10)}{typ_txt}  ⇄  {sousedi}{zdroj_txt}")
         print(
             f"\n{DIM}Legenda: {GREEN}▶[... ]◀{NC}{DIM} poloha | "
             f"🎯 aktivní úkol | 🛡️ tvoje území | 👤 NPC | 👹 neporažený boss | "
+            f"⚗️ místní zdroj | "
             f"{GRAY}[?Neodhaleno?]{NC}\n"
         )
 
@@ -1244,6 +1347,7 @@ class SvetSystem:
             "odhalene_lokace": self.odhalene_lokace,
             "navstiveno": self.navstiveno,
             "vztahy_npc": self.vztahy_npc,
+            "lokacni_odmeny": self.lokacni_odmeny,
         }
 
     @classmethod
@@ -1255,6 +1359,7 @@ class SvetSystem:
             odhalene_lokace=data.get("odhalene_lokace", VYCHOZI_ODHALENE),
             navstiveno=data.get("navstiveno", {}) if isinstance(data.get("navstiveno", {}), dict) else {},
             vztahy_npc=data.get("vztahy_npc", {}) if isinstance(data.get("vztahy_npc", {}), dict) else {},
+            lokacni_odmeny=data.get("lokacni_odmeny", {}),
         )
 
     def dekorace_mesta_atmosfera(self, hra):
@@ -1938,8 +2043,11 @@ class SvetSystem:
         info = LOKACE[lok_id]
 
         clear()
-        hlavicka(f"⚡ AKCE LOKACE: {info['nazev'].upper()} ⚡")
-        print(f"\n{DIM}{info['popis']}{NC}")
+        banner_lokace(
+            f"AKCE LOKACE: {info['nazev'].upper()}",
+            f"{info['ikona']} {info['popis']}",
+        )
+        print()
         povest = POVESTI_LOKACI.get(lok_id)
         if povest:
             print(f"{DIM}✦ {povest}{NC}")
@@ -2045,9 +2153,30 @@ class SvetSystem:
             print("  2) 🎲 Hazardní hra v kostky se štamgasty")
         elif lok_id in AKCE_MESTSKYCH_CTVRTI:
             akce_ctvrti = AKCE_MESTSKYCH_CTVRTI[lok_id]
-            print(f"  1) 🔎 {akce_ctvrti['pruzkum']} (místní odměna)")
-            print(f"  2) 🤝 {akce_ctvrti['kontakt']} (25 🪙, reputace frakce)")
+            den = getattr(hra.hrac, "den", 0)
+            pruzkum_hotov = not self.lokacni_odmena_dostupna(lok_id, "pruzkum", den)
+            kontakt_hotov = not self.lokacni_odmena_dostupna(lok_id, "kontakt", den)
+            stav_pruzkumu = " — dnes již vybráno" if pruzkum_hotov else ""
+            stav_kontaktu = " — dnes již vybráno" if kontakt_hotov else ""
+            print(
+                f"  1) 🔎 {akce_ctvrti['pruzkum']} (místní odměna)"
+                f"{stav_pruzkumu}"
+            )
+            print(
+                f"  2) 🤝 {akce_ctvrti['kontakt']} (25 🪙, reputace frakce)"
+                f"{stav_kontaktu}"
+            )
             print("  3) 🗺️ Zmapovat sousední tajnou stezku")
+            zdroj = akce_ctvrti.get("zdroj")
+            if zdroj:
+                zdroj_hotov = not self.lokacni_odmena_dostupna(
+                    lok_id, "zdroj", den
+                )
+                stav_zdroje = " — dnes již získáno" if zdroj_hotov else ""
+                print(
+                    f"  4) ⚗️ Sebrat {zdroj['nazev']} "
+                    f"(místní zdroj){stav_zdroje}"
+                )
 
         vytiskni_volbu('0', 'Zpět')
         volba = input("\n> ").strip()
@@ -2547,34 +2676,41 @@ class SvetSystem:
 
         elif lok_id in AKCE_MESTSKYCH_CTVRTI:
             akce_ctvrti = AKCE_MESTSKYCH_CTVRTI[lok_id]
+            den = getattr(hra.hrac, "den", 0)
             if volba == "1":
-                odmena = akce_ctvrti["odmena"]
-                if odmena == "vyzkum":
-                    body = random.randint(2, 4)
-                    hra.vyzkum.pridej_body(body)
-                    tisk_ok(f"{akce_ctvrti['pruzkum']} — získáváš {body} výzkumné body.")
-                elif odmena == "zlato":
-                    zlato = random.randint(35, 65)
-                    hra.hrac.gold += zlato
-                    tisk_ok(f"{akce_ctvrti['pruzkum']} — získáváš {zlato} 🪙.")
+                if not self.lokacni_odmena_dostupna(lok_id, "pruzkum", den):
+                    tisk_info("Místní průzkumná odměna už byla dnes vybrána.")
                 else:
-                    mnozstvi = random.randint(12, 22)
-                    atributy = {
-                        "drevo": "dřeva",
-                        "zelezo": "železa",
-                        "kamen": "kamene",
-                        "krystaly": "krystalů",
-                    }
-                    setattr(
-                        hra.pevnost, odmena,
-                        getattr(hra.pevnost, odmena) + mnozstvi,
-                    )
-                    tisk_ok(
-                        f"{akce_ctvrti['pruzkum']} — získáváš "
-                        f"{mnozstvi} {atributy[odmena]} pro pevnost."
-                    )
+                    odmena = akce_ctvrti["odmena"]
+                    if odmena == "vyzkum":
+                        body = random.randint(2, 4)
+                        hra.vyzkum.pridej_body(body)
+                        tisk_ok(f"{akce_ctvrti['pruzkum']} — získáváš {body} výzkumné body.")
+                    elif odmena == "zlato":
+                        zlato = random.randint(35, 65)
+                        hra.hrac.gold += zlato
+                        tisk_ok(f"{akce_ctvrti['pruzkum']} — získáváš {zlato} 🪙.")
+                    else:
+                        mnozstvi = random.randint(12, 22)
+                        atributy = {
+                            "drevo": "dřeva",
+                            "zelezo": "železa",
+                            "kamen": "kamene",
+                            "krystaly": "krystalů",
+                        }
+                        setattr(
+                            hra.pevnost, odmena,
+                            getattr(hra.pevnost, odmena) + mnozstvi,
+                        )
+                        tisk_ok(
+                            f"{akce_ctvrti['pruzkum']} — získáváš "
+                            f"{mnozstvi} {atributy[odmena]} pro pevnost."
+                        )
+                    self.zaznamenej_lokacni_odmenu(lok_id, "pruzkum", den)
             elif volba == "2":
-                if hra.hrac.gold < 25:
+                if not self.lokacni_odmena_dostupna(lok_id, "kontakt", den):
+                    tisk_info("Místní dohodu už jsi dnes uzavřel.")
+                elif hra.hrac.gold < 25:
                     tisk_chyba("Na místní dohodu potřebuješ 25 🪙.")
                 else:
                     hra.hrac.gold -= 25
@@ -2596,6 +2732,7 @@ class SvetSystem:
                     tisk_ok(
                         f"{akce_ctvrti['kontakt']} — reputace města +2."
                     )
+                    self.zaznamenej_lokacni_odmenu(lok_id, "kontakt", den)
             elif volba == "3":
                 neodhalene = [
                     soused for soused in info["sousedni"]
@@ -2610,6 +2747,23 @@ class SvetSystem:
                     )
                 else:
                     tisk_info("Všechny stezky z této čtvrti už znáš.")
+            elif volba == "4" and akce_ctvrti.get("zdroj"):
+                zdroj = akce_ctvrti["zdroj"]
+                if not self.lokacni_odmena_dostupna(lok_id, "zdroj", den):
+                    tisk_info("Místní zdroj už byl dnes sesbírán.")
+                elif hra.alchymie.pridat_surovinu(
+                    zdroj["id"], zdroj["mnozstvi"]
+                ):
+                    self.zaznamenej_lokacni_odmenu(lok_id, "zdroj", den)
+                    tisk_ok(
+                        f"Získáváš {zdroj['mnozstvi']}× {zdroj['nazev']} "
+                        "pro alchymii."
+                    )
+                else:
+                    tisk_chyba(
+                        f"Místní zdroj {zdroj['id']} není dostupný "
+                        "v seznamu alchymistických surovin."
+                    )
 
         else:
             # Obecná akce pro ostatní lokace

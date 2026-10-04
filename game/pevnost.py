@@ -1,4 +1,4 @@
-from utils.vypis import hlavicka, clear, tisk_chyba, tisk_ok, vytiskni_volbu
+from utils.vypis import hlavicka, clear, nacti_volbu, tisk_chyba, tisk_ok, vytiskni_volbu
 from models.fortress import PEVNOSTNI_BUDOVY
 
 
@@ -12,7 +12,7 @@ def spravovat_pevnost(hra):
             uroven = pevnost.budovy.get(ident, 0)
             print(f"{ident}) {data['nazev']} úroveň {uroven} — {pevnost.cena_vylepseni(ident)} zlata")
         vytiskni_volbu('U', 'Vylepšit úroveň pevnosti | 0) Zpět')
-        volba = input("> ").strip().lower()
+        volba = nacti_volbu({"0", "u", *PEVNOSTNI_BUDOVY})
         if volba == "0":
             return
         ident = None if volba == "u" else volba

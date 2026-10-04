@@ -5,7 +5,7 @@ import textwrap
 from config import (
     RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, GOLD, BOLD, NC, DIM,
 )
-from utils.vypis import ascii_art, terminalni_obrazek, ukazatel
+from utils.vypis import ascii_art, banner_lokace, terminalni_obrazek, ukazatel
 from game.cile_hry import prehled_cilu
 
 
@@ -77,6 +77,40 @@ def normalizuj_volbu(volba):
     )
 
 
+def vykresli_prehled_ctvrti(hra):
+    """Ukáže postup objevování městských čtvrtí a místní zdroj."""
+    from game.svet import AKCE_MESTSKYCH_CTVRTI, LOKACE, NOVE_MESTSKE_LOKACE
+
+    odhalene = [
+        lok_id for lok_id in NOVE_MESTSKE_LOKACE
+        if lok_id in hra.svet.odhalene_lokace
+    ]
+    banner_lokace(
+        "MĚSTSKÁ SÍŤ",
+        f"{len(odhalene)}/{len(NOVE_MESTSKE_LOKACE)} čtvrtí odhaleno",
+    )
+    if odhalene:
+        print(
+            "  "
+            + "  •  ".join(
+                f"{LOKACE[lok_id]['ikona']} {LOKACE[lok_id]['kratky']}"
+                for lok_id in odhalene
+            )
+        )
+    else:
+        print("  Zatím neznáš žádnou z propojených městských čtvrtí.")
+
+    lok_id = hra.svet.aktualni_lokace
+    zdroj = AKCE_MESTSKYCH_CTVRTI.get(lok_id, {}).get("zdroj")
+    if zdroj:
+        dostupny = hra.svet.lokacni_odmena_dostupna(
+            lok_id, "zdroj", getattr(hra.hrac, "den", 0)
+        )
+        stav = "dnes dostupný" if dostupny else "dnes již sesbírán"
+        print(f"  ⚗️ Místní zdroj: {zdroj['nazev']} ({stav})")
+    print()
+
+
 def vykresli_hlavni_menu(hra):
     ascii_art()
     terminalni_obrazek("menu")
@@ -125,6 +159,8 @@ def vykresli_hlavni_menu(hra):
         print(f"{GOLD}║{NC} {GREEN}➜ {radek}{NC}")
     print(f"{GOLD}{BOLD}╚{'═'*76}╝{NC}")
     print()
+
+    vykresli_prehled_ctvrti(hra)
 
     popisy = {
         cislo: popis

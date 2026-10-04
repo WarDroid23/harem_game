@@ -57,6 +57,19 @@ def tisk_cyan(text):
     print(barva(f"💠 {text}", CYAN))
 
 
+def nacti_volbu(platne: set[str], prompt="> ", chybova_zprava=None):
+    """Read a normalized menu choice until it matches the allowed options."""
+    platne_normalizovane = {str(volba).strip().lower() for volba in platne}
+    while True:
+        volba = input(prompt).strip().lower()
+        if volba in platne_normalizovane:
+            return volba
+        if chybova_zprava:
+            print(chybova_zprava)
+        else:
+            print(f"Neplatná volba. Možnosti: {', '.join(sorted(platne_normalizovane))}")
+
+
 def terminalni_obrazek(scena, hra=None, **kwargs):
     """Vykreslí ASCII ilustraci – dynamicky generovanou."""
     try:
@@ -150,6 +163,24 @@ def _sirka_zobrazeni(text):
             continue
         sirka += 2 if unicodedata.east_asian_width(znak) in ("W", "F") else 1
     return sirka
+
+
+def banner_lokace(titulek, podtitulek="", ikona="🏙️"):
+    """Vykreslí kompaktní banner pro lokaci nebo městskou čtvrť."""
+    nadpis = f"{ikona} {titulek}"
+    sirka = max(44, _sirka_zobrazeni(nadpis) + 4)
+    if podtitulek:
+        sirka = max(sirka, _sirka_zobrazeni(podtitulek) + 4)
+    print(f"{GOLD}╭{'─' * (sirka - 2)}╮{NC}")
+    print(
+        f"{GOLD}│{NC} {BOLD}{WHITE}{nadpis}"
+        f"{' ' * max(0, sirka - _sirka_zobrazeni(nadpis) - 4)}{NC} "
+        f"{GOLD}│{NC}"
+    )
+    if podtitulek:
+        sirka_textu = _sirka_zobrazeni(podtitulek)
+        print(f"{GOLD}│{NC} {DIM}{podtitulek}{' ' * (sirka - sirka_textu - 4)}{NC} {GOLD}│{NC}")
+    print(f"{GOLD}╰{'─' * (sirka - 2)}╯{NC}")
 
 
 def _ma_uvodni_ikonu(text):
