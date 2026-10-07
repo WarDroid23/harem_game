@@ -195,6 +195,116 @@ class MestskaKrizeSystem:
 
 
 @dataclass
+class MestskeFrakceSystem:
+    vztahy: dict = field(default_factory=dict)
+    kronika: list = field(default_factory=list)
+
+    PREDVOLENE = {
+        "policie": 20,
+        "podsveti": 10,
+        "obchodnici": 15,
+        "inkvizice": -10,
+        "syndikat_stinu": 12,
+        "cech_kurtizan": 18,
+        "cechy": 10,
+        "elitni_rod": 8,
+    }
+
+    def __post_init__(self):
+        if not isinstance(self.vztahy, dict):
+            self.vztahy = {}
+        for frakce_id, hodnota in self.PREDVOLENE.items():
+            if frakce_id not in self.vztahy:
+                self.vztahy[frakce_id] = int(hodnota)
+
+    def stav(self, frakce_id):
+        hodnota = self.vztahy.get(frakce_id, 0)
+        if hodnota >= 35:
+            return "přátelský"
+        if hodnota <= -35:
+            return "nepřátelský"
+        return "neutrální"
+
+    def uprav(self, frakce_id, delta, zdroj=""):
+        if frakce_id not in self.vztahy:
+            self.vztahy[frakce_id] = 0
+        self.vztahy[frakce_id] = max(-100, min(100, self.vztahy[frakce_id] + int(delta)))
+        if zdroj:
+            self.kronika.append({
+                "frakce": frakce_id,
+                "delta": int(delta),
+                "zdroj": zdroj,
+                "hodnota": self.vztahy[frakce_id],
+            })
+        self.kronika = self.kronika[-24:]
+        return self.vztahy[frakce_id]
+
+    def menu(self, hra):
+        clear()
+        print("🏛️ Městské frakce a skrytá moc")
+        ids = list(self.vztahy.keys())
+        for idx, frakce_id in enumerate(ids, 1):
+            hodnota = self.vztahy.get(frakce_id, 0)
+            print(f"{idx}) {frakce_id}: {hodnota:+d} ({self.stav(frakce_id)})")
+        print("0) Zpět")
+        try:
+            volba = input("> ").strip()
+        except EOFError:
+            return
+        if not volba or volba == "0":
+            return
+        try:
+            idx = int(volba) - 1
+            if idx < 0 or idx >= len(ids):
+                tisk_chyba("Neplatná volba.")
+                input("Enter...")
+                return
+            frakce_id = ids[idx]
+            print(f"\nFrakce: {frakce_id}")
+            print("1) Uspokojit diplomacií")
+            print("2) Vynutit loajalitu")
+            print("3) Zajistit příměří")
+            print("0) Zpět")
+            akce = input("> ").strip()
+            if akce == "1":
+                self.uprav(frakce_id, 8, "diplomacie")
+                if getattr(hra, "frakce", None) and frakce_id in hra.frakce.frakce:
+                    hra.frakce.frakce[frakce_id].reputace = max(-100, min(100, hra.frakce.frakce[frakce_id].reputace + 8))
+                tisk_ok(f"Diplomatická cesta posílila vztahy s {frakce_id}.")
+            elif akce == "2":
+                self.uprav(frakce_id, -12, "nátlak")
+                if getattr(hra, "frakce", None) and frakce_id in hra.frakce.frakce:
+                    hra.frakce.frakce[frakce_id].reputace = max(-100, min(100, hra.frakce.frakce[frakce_id].reputace - 12))
+                tisk_ok(f"Nátlak zvyšuje tvou kontrolu, ale u {frakce_id} to zvyšuje napětí.")
+            elif akce == "3":
+                self.uprav(frakce_id, 5, "príměří")
+                if getattr(hra, "frakce", None) and frakce_id in hra.frakce.frakce:
+                    hra.frakce.frakce[frakce_id].reputace = max(-100, min(100, hra.frakce.frakce[frakce_id].reputace + 5))
+                tisk_ok(f"Příměří s {frakce_id} bylo dočasně potvrzeno.")
+        except ValueError:
+            tisk_chyba("Neplatná volba.")
+        try:
+            input("Enter...")
+        except EOFError:
+            pass
+
+    def to_dict(self):
+        return {"vztahy": dict(self.vztahy), "kronika": list(self.kronika)}
+
+    @classmethod
+    def from_dict(cls, data):
+        obj = cls()
+        if isinstance(data, dict):
+            vztahy = data.get("vztahy", {})
+            if isinstance(vztahy, dict):
+                obj.vztahy = {str(k): int(v) for k, v in vztahy.items() if isinstance(v, (int, float))}
+            kronika = data.get("kronika", [])
+            if isinstance(kronika, list):
+                obj.kronika = kronika
+        return obj
+
+
+@dataclass
 class RozsireniHarlemuSystem:
     aktivity: dict = field(default_factory=dict)
 

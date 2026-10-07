@@ -35,4 +35,7 @@ def obsluz_extra_volbu(volba, hra):
         from game.rozsireni import menu_specializace_ctvrti
         menu_specializace_ctvrti(hra)
         return True
+    if volba == "36":
+        hra.mestske_frakce.menu(hra)
+        return True
     return False

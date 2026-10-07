@@ -342,13 +342,16 @@ class HraTesty(unittest.TestCase):
         hra = Hra()
         with patch.object(hra.mestska_krize, "menu") as krize_menu, \
              patch.object(hra.rozsireni_haremu, "zobraz_menu") as story_menu, \
-             patch("game.rozsireni.menu_specializace_ctvrti") as specializace:
+             patch("game.rozsireni.menu_specializace_ctvrti") as specializace, \
+             patch.object(hra.mestske_frakce, "menu") as frakce_menu:
             self.assertTrue(obsluz_extra_volbu("33", hra))
             self.assertTrue(obsluz_extra_volbu("34", hra))
             self.assertTrue(obsluz_extra_volbu("35", hra))
-        krize_menu.assert_called_once_with(hra)
-        story_menu.assert_called_once_with(hra)
-        specializace.assert_called_once_with(hra)
+            self.assertTrue(obsluz_extra_volbu("36", hra))
+            krize_menu.assert_called_once_with(hra)
+            story_menu.assert_called_once_with(hra)
+            specializace.assert_called_once_with(hra)
+            frakce_menu.assert_called_once_with(hra)
 
     def test_vyzkum_ma_vetve_predpoklady_slevy_a_ulozitelne_bonusy(self):
         hra = Hra()
