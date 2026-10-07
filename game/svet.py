@@ -851,6 +851,21 @@ class DistrictSpecializationSystem:
             "popis": "Posílí ekonomiku, výnosy a obchodní vliv v městské čtvrti.",
             "bonus": {"gold": 18, "vliv": 5},
         },
+        "vojenska": {
+            "nazev": "Vojenská",
+            "popis": "Výcvik a kontrola v ulicích zvyšují bezpečnost, disciplínu i sílu v boji.",
+            "bonus": {"vliv": 7, "loajalita": 6, "obrana": 3},
+        },
+        "luxusni": {
+            "nazev": "Luxusní",
+            "popis": "Město vyniká bohatstvím, společenským vlivem a láskou k bezprostřednímu požitku.",
+            "bonus": {"gold": 15, "sex_energy": 10, "duvera": 4},
+        },
+        "religiozni": {
+            "nazev": "Náboženská",
+            "popis": "Místo klidu a rituálů přináší větší lásku, oběť i posílení temné energie.",
+            "bonus": {"dark_energy": 10, "loajalita": 7, "duvera": 5},
+        },
     }
 
     def __post_init__(self):
@@ -871,6 +886,13 @@ class DistrictSpecializationSystem:
             "kupecka": "kupecká",
             "kupecká": "kupecká",
             "kupecky": "kupecká",
+            "vojenska": "vojenska",
+            "vojenská": "vojenska",
+            "luxusni": "luxusni",
+            "luxusní": "luxusni",
+            "religiozni": "religiozni",
+            "náboženská": "religiozni",
+            "nabozenska": "religiozni",
         }
         return mapa.get(text, text)
 

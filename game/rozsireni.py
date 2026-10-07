@@ -13,6 +13,8 @@ MESTSKA_KRIZE = [
         "zlatek": 140,
         "vliv": 6,
         "loajalita": 8,
+        "frakce": "obchodnici",
+        "typ": "ekonomicka",
     },
     {
         "nazev": "Povstání v cechovních uličkách",
@@ -20,6 +22,8 @@ MESTSKA_KRIZE = [
         "zlatek": 110,
         "vliv": 8,
         "loajalita": 10,
+        "frakce": "cechy",
+        "typ": "politicka",
     },
     {
         "nazev": "Noční sabotáž v paláci",
@@ -27,6 +31,8 @@ MESTSKA_KRIZE = [
         "zlatek": 160,
         "vliv": 10,
         "loajalita": 6,
+        "frakce": "sylvestrova_elita",
+        "typ": "bezpecnostni",
     },
     {
         "nazev": "Vysoké hladomorné ceny",
@@ -34,6 +40,17 @@ MESTSKA_KRIZE = [
         "zlatek": 100,
         "vliv": 7,
         "loajalita": 9,
+        "frakce": "obchodnici",
+        "typ": "spolecenska",
+    },
+    {
+        "nazev": "Vstup inkvizice do uliček",
+        "popis": "Inkvizice rozšiřuje kontroly a hledá hříšníky v každém domě. Pokud se nezachytíš, město se otočí proti tobě i tvému harému.",
+        "zlatek": 130,
+        "vliv": 9,
+        "loajalita": 7,
+        "frakce": "inkvizice",
+        "typ": "politicka",
     },
 ]
 
@@ -80,21 +97,25 @@ class MestskaKrizeSystem:
 
     def nova_krize(self, hra):
         den = int(getattr(getattr(hra, "hrac", None), "den", 1) or 1)
-        kriz = random.choice(MESTSKA_KRIZE).copy()
-        typy = ["politicka", "ekonomicka", "bezpecnostni", "spolecenska"]
-        kriz["typ"] = random.choice(typy)
+        mesicni_index = (den // 30) % len(MESTSKA_KRIZE)
+        kriz = MESTSKA_KRIZE[mesicni_index].copy()
+        if getattr(hra, "mafie", None) is not None:
+            kriz["frakce"] = kriz.get("frakce", "obchodnici")
+        kriz["typ"] = kriz.get("typ", random.choice(["politicka", "ekonomicka", "bezpecnostni", "spolecenska"]))
         kriz["den"] = den
         kriz["zivot"] = 3
         kriz["reseni"] = {
-            "silny": "tvrzivá intervence", 
+            "silny": "tvrdá intervence",
             "diplomaticky": "měkké urovnání",
         }
+        kriz["mesicni_faze"] = max(1, (den // 30) + 1)
         self.aktivni = kriz
         self.posledni_den = den
         self.historie.append({
             "den": den,
             "nazev": kriz["nazev"],
             "typ": kriz["typ"],
+            "frakce": kriz.get("frakce", "neurceno"),
             "popis": kriz["popis"],
         })
         self.historie = self.historie[-12:]
@@ -188,6 +209,11 @@ class RozsireniHarlemuSystem:
             quest["nazev"] = "Zvěsti a důvěra"
         quest["faze"] = 1
         quest["stav"] = "aktivni"
+        quest["faze_texty"] = [
+            "Nastala první zkouška důvěry.",
+            "Vztah se prohloubil a mění se v pouto.",
+            "Příběh dosáhl vrcholu a odhalil pravou cenu přátelství.",
+        ]
         return quest
 
     def vyrob_quest(self, otrok):
@@ -201,6 +227,7 @@ class RozsireniHarlemuSystem:
                 "nazev": quest["nazev"],
                 "stav": "aktivni",
                 "faze": 1,
+                "faze_text": quest["faze_texty"][0],
             })
             otrok.rozsireni_questy = active
         return quest
@@ -213,8 +240,11 @@ class RozsireniHarlemuSystem:
             if isinstance(item, dict) and item.get("id") == quest["id"]:
                 item["stav"] = "dokonceno"
                 item["faze"] = 2
+                item["faze_text"] = quest["faze_texty"][-1]
         otrok.duvera = min(100, otrok.duvera + quest["bonus_duvera"])
         otrok.loajalita = min(100, otrok.loajalita + quest["bonus_loajalita"])
+        if hasattr(otrok, "strach"):
+            otrok.strach = max(0, otrok.strach - max(2, quest["bonus_duvera"] // 4))
         hra.hrac.gold += quest["bonus_gold"]
         otrok.rozsireni_questy = active
         return True
