@@ -458,6 +458,31 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(bonus_leceni_haremu(hra), 3)
         self.assertEqual(bonus_obrany(hra, veteranka.jmeno), 3)
 
+    def test_nocni_scena_odrazi_osobnost_a_strida_clenky_haremu(self):
+        from game.nocni_eventy import _scena_osobnosti
+
+        hra = Hra()
+        badatelka = Otrokyně("Ada", charakter="badatelka", duvera=40)
+        umelkyne = Otrokyně("Dora", charakter="umelkyne", duvera=40)
+        hra.harem.pridat(badatelka)
+        hra.harem.pridat(umelkyne)
+
+        with patch(
+            "game.nocni_eventy.random.choice",
+            side_effect=[badatelka, "ti ukáže poznámku, kterou celý den rozvíjela, a zeptá se, co si o ní myslíš."],
+        ):
+            zprava = _scena_osobnosti(hra, [badatelka, umelkyne])
+        self.assertIn("Ada ti ukáže poznámku", zprava[0])
+        self.assertEqual(badatelka.duvera, 41)
+        self.assertEqual(badatelka.historie_voleb[-1]["typ"], "noční_scéna")
+
+        with patch(
+            "game.nocni_eventy.random.choice",
+            side_effect=[umelkyne, "si v salonku zkouší novou melodii a pozve ostatní, aby přidaly vlastní nápad."],
+        ):
+            zprava = _scena_osobnosti(hra, [badatelka, umelkyne])
+        self.assertIn("Dora si v salonku", zprava[0])
+
     def test_vyzkum_ma_vetve_predpoklady_slevy_a_ulozitelne_bonusy(self):
         hra = Hra()
         hra.hrac.gold = 5000
@@ -1160,6 +1185,7 @@ class HraTesty(unittest.TestCase):
         vystup = io.StringIO()
         with patch("builtins.input", side_effect=["neplatne", "1"]), \
              patch("game.lov.random.random", side_effect=[1.0, 0.0]), \
+             patch("game.lov.vyber_charakter", return_value="amazonka"), \
              redirect_stdout(vystup):
             otrok = lov_otrokyn(hra)
 

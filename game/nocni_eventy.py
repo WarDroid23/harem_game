@@ -2,6 +2,76 @@
 import random
 from utils.vypis import tisk_ok, tisk_chyba, tisk_info
 from config import MAGENTA, RED, GOLD, CYAN, NC
+from data.charaktery import CHARAKTERY, normalizuj_charakter
+
+
+SCENY_OSOBNOSTI = {
+    "badatelka": (
+        "ti ukáže poznámku, kterou celý den rozvíjela, a zeptá se, co si o ní myslíš.",
+        "vysvětluje, proč ji zaujala stará mapa. Několik dalších členek se zastaví a poslouchá.",
+        "navrhne malý pokus a sama si připraví seznam bezpečných podmínek.",
+    ),
+    "diplomatka": (
+        "pomáhá dvěma členkám najít společnou řeč a pak se zeptá, zda se obě cítily vyslyšené.",
+        "přinese návrh, jak rozdělit společnou práci spravedlivěji.",
+        "vypráví veselou historku z jednání, které málem skončilo hádkou.",
+    ),
+    "ochranitelka": (
+        "kontroluje, zda má každá v domě bezpečné místo, a nabídne pomoc bez naléhání.",
+        "učí dobrovolnice jednoduchý obranný cvik a nechává každou zvolit si vlastní tempo.",
+        "si všimne, že je někdo zamlklý, a nabídne jí klidnou společnost.",
+    ),
+    "umelkyne": (
+        "si v salonku zkouší novou melodii a pozve ostatní, aby přidaly vlastní nápad.",
+        "ukáže nedokončenou kresbu a řekne, že ji chce ještě chvíli nechat jen pro sebe.",
+        "připraví improvizovanou výstavu drobností, které si členky samy vybraly.",
+    ),
+    "cartografka": (
+        "rozkládá na stole mapu a nechává ostatní doplnit místa, která mají rády.",
+        "objevila bezpečnější cestu do města a připíše k ní doporučení od místních.",
+        "si zapisuje, kam by každá chtěla jednou vyrazit.",
+    ),
+    "lekarka": (
+        "připravuje bylinkový čaj a připomíná, že odpočinek je stejně důležitý jako práce.",
+        "se ptá, zda někoho něco netrápí, a nabídne soukromý rozhovor bez nátlaku.",
+        "ukazuje ostatním, jak připravit hojivou mast z běžných bylin.",
+    ),
+    "veteranka": (
+        "vypráví o chvíli, kdy jí nejvíc pomohla spolupráce, ne síla.",
+        "vede krátké cvičení a před každou částí se ujistí, že se všichni cítí bezpečně.",
+        "navrhne hlídku, která chrání zahradu, ale nikoho zbytečně neomezuje.",
+    ),
+    "amazonka": (
+        "vyzve ostatní na přátelský turnaj, ve kterém si každá sama zvolí disciplínu.",
+        "předvádí nové kroky s mečem a trpělivě pomáhá začátečnicím.",
+        "s úsměvem přizná, že dnes prohrála v šachu s někým, koho podcenila.",
+    ),
+    "carodejka": (
+        "zkouší drobné světelné kouzlo a nechá ostatní navrhnout jeho barvu.",
+        "připravuje ochranný talisman pro společenskou místnost.",
+        "vypráví o zvláštním snu a sama rozhodne, které části chce sdílet.",
+    ),
+    "kurtizana": (
+        "učí dobrovolnice, jak se sebejistě představit a slušně odmítnout nepříjemnou nabídku.",
+        "vypráví o šatech, které si kdysi navrhla sama, a plánuje nové.",
+        "navrhuje večer poezie, kde si každý může vybrat, zda vystoupí, nebo jen poslouchá.",
+    ),
+    "zlodejka": (
+        "předvádí karetní trik a nechává ostatní hádat, jak ho provedla.",
+        "vymyslela hru s hledáním drobných předmětů po domě.",
+        "se vrací z trhu s příběhem o obchodníkovi, který prodával falešné mapy.",
+    ),
+    "vampirka": (
+        "si v klidné místnosti čte při tlumeném světle a nabídne ostatním společnost.",
+        "připravuje noční čajový dýchánek pro ty, kterým se nechce spát.",
+        "se svěří, že našla místo, kde se jí dobře přemýšlí.",
+    ),
+    "templarka": (
+        "navrhuje pravidla společné služby, která jsou stejná pro všechny.",
+        "opravuje starou výstroj a vypráví, proč ji chce používat jen k ochraně.",
+        "připravuje seznam věcí, které by pomohly lidem v nejchudší čtvrti.",
+    ),
+}
 
 
 def _aktivni(hra):
@@ -37,8 +107,8 @@ def spust_nocni_eventy(hra):
     if z:
         zpravy.extend(z)
 
-    if random.random() < 0.45:
-        z = _nahodna_scena(hra, aktivni)
+    if random.random() < 0.7:
+        z = _scena_osobnosti(hra, aktivni)
         if z:
             zpravy.extend(z)
 
@@ -66,6 +136,44 @@ def spust_nocni_eventy(hra):
         except Exception:
             pass
     return zpravy
+
+
+def _scena_osobnosti(hra, aktivni):
+    dostupne = [
+        otrok for otrok in aktivni
+        if not getattr(otrok, "na_najmu", False)
+    ]
+    if not dostupne:
+        return []
+
+    def posledni_scena_den(otrok):
+        for zaznam in reversed(getattr(otrok, "historie_voleb", [])):
+            if isinstance(zaznam, dict) and zaznam.get("typ") == "noční_scéna":
+                try:
+                    return int(zaznam.get("den", 0))
+                except (TypeError, ValueError):
+                    return 0
+        return 0
+
+    nejmene_videne = min(posledni_scena_den(otrok) for otrok in dostupne)
+    kandidatky = [
+        otrok for otrok in dostupne
+        if posledni_scena_den(otrok) == nejmene_videne
+    ]
+    otrok = random.choice(kandidatky)
+    charakter = normalizuj_charakter(getattr(otrok, "charakter", ""))
+    sceny = SCENY_OSOBNOSTI.get(charakter)
+    if sceny:
+        scena = random.choice(sceny)
+    else:
+        scena = (
+            f"si vybere vlastní činnost podle své povahy "
+            f"({CHARAKTERY[charakter]['nazev'].lower()}) a pozve ostatní, "
+            "aby se přidaly, pokud chtějí."
+        )
+    otrok.zvysit_stat("duvera", 1)
+    otrok.zaznamenej_volbu("noční_scéna", "Spontánní chvíle v harému", hra.hrac.den)
+    return [f"🌙 {otrok.jmeno} {scena}"]
 
 
 def _zarlivost_star_manzelka(hra, aktivni):
