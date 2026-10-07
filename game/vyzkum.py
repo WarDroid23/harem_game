@@ -136,6 +136,24 @@ VYZKUM = {
         850, lambda h: _zvys_schopnost(h, "boj", 4),
         ("disciplinovana_legie",), body=25,
     ),
+    "teplarny_smyk": _technologie(
+        "⚔️ Válečnictví", 3, "Tepelný smyk",
+        "Zvyšuje všechny útoky o 6 a dává bonus k přesným zásahům.",
+        1200, lambda h: (_zvys_schopnost(h, "boj", 3), _zvys_schopnost(h, "strelba", 2)),
+        ("ocelova_elita",), body=35,
+    ),
+    "vypalovaci_inkvizice": _technologie(
+        "🕯️ Infiltrace", 4, "Výpalová inkvizice",
+        "Zvýší zisk temné energie z boje a sníží odolnost protivníka."
+        , 1500, lambda h: (_zvys_schopnost(h, "temnota", 4), _zvys_schopnost(h, "vyjednavani", 1)),
+        ("sit_informatoru",), body=40,
+    ),
+    "metalurgie_tmy": _technologie(
+        "🪙 Hospodářství", 4, "Metalurgie tmy",
+        "Vylepší výrobu zbraní i kovových relikvií: +20 zlata denně a +3 k útočné síle při boji.",
+        1600, lambda h: (_zvys_schopnost(h, "boj", 2), _zvys_schopnost(h, "obrana", 1)),
+        ("ucty_podsveti",), body=45, denni_prijem=20,
+    ),
 }
 
 

@@ -7,6 +7,9 @@ SCHOPNOSTI = {
     "diplomatka": "Při důvěře 50+ posílí kladné diplomatické zisky o 20 %.",
     "ochranitelka": "Jako bojová společnice s důvěrou 50+ přidá +5 obrany.",
     "umelkyne": "Při důvěře 40+ přidá +5 zlata k dennímu příjmu harému.",
+    "cartografka": "Při důvěře 40+ přidá +2 síly týmu na výpravě.",
+    "lekarka": "Při důvěře 50+ pomáhá členkám harému zotavit se při odpočinku.",
+    "veteranka": "Jako bojová společnice s důvěrou 50+ přidá +3 obrany.",
 }
 
 
@@ -48,9 +51,29 @@ def bonus_obrany(hra, jmeno_partnerky):
         ),
         None,
     )
-    return 5 if partnerka else 0
+    if partnerka:
+        return 5
+    veteranka = next(
+        (
+            otrok for otrok in aktivni_s_archetypem(hra, "veteranka", 50)
+            if otrok.jmeno == jmeno_partnerky
+        ),
+        None,
+    )
+    return 3 if veteranka else 0
 
 
 def bonus_prijmu_haremu(hra):
     pocet = len(aktivni_s_archetypem(hra, "umelkyne", 40))
     return min(20, pocet * 5)
+
+
+def bonus_vypravy(hra, jmena):
+    return 2 if any(
+        otrok.jmeno in jmena
+        for otrok in aktivni_s_archetypem(hra, "cartografka", 40)
+    ) else 0
+
+
+def bonus_leceni_haremu(hra):
+    return 3 if aktivni_s_archetypem(hra, "lekarka", 50) else 0

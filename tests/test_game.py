@@ -353,6 +353,111 @@ class HraTesty(unittest.TestCase):
             specializace.assert_called_once_with(hra)
             frakce_menu.assert_called_once_with(hra)
 
+    def test_story_quest_progression_prida_odmenu_a_vzdelava_pouto(self):
+        hra = Hra()
+        otrok = Otrokyně("Liora", charakter="diplomatka", duvera=40, loajalita=35)
+        hra.harem.pridat(otrok)
+
+        quest = hra.rozsireni_haremu.vyrob_quest(otrok)
+        self.assertEqual(quest["faze"], 1)
+        self.assertEqual(quest["stav"], "aktivni")
+
+        gold_pred = hra.hrac.gold
+        pred_duvera = otrok.duvera
+        pred_loajalita = otrok.loajalita
+
+        postup = hra.rozsireni_haremu.postup_quest(hra, otrok, quest, "soucit")
+        self.assertIsNotNone(postup)
+        self.assertIn(postup["stav"], {"aktivni", "dokonceno"})
+
+        if postup["stav"] == "dokonceno":
+            self.assertGreater(hra.hrac.gold, gold_pred)
+            self.assertGreater(otrok.duvera, pred_duvera)
+            self.assertGreater(otrok.loajalita, pred_loajalita)
+
+    def test_story_quest_volby_tvori_trvalou_vetev_a_neopakuji_odmenu(self):
+        hra = Hra()
+        otrok = Otrokyně("Talia", charakter="cartografka", duvera=50, loajalita=45)
+        hra.harem.pridat(otrok)
+        system = hra.rozsireni_haremu
+
+        quest = system.vyrob_quest(otrok)
+        quest_id = quest["id"]
+        self.assertEqual(system.vyrob_quest(otrok)["id"], quest_id)
+        self.assertEqual(quest["nazev"], "Mapa bezpečných cest")
+        nactena = Otrokyně.from_dict(otrok.to_dict())
+        self.assertEqual(nactena.rozsireni_questy[0]["id"], quest_id)
+        gold_pred = hra.hrac.gold
+        for _ in range(3):
+            quest = system.postup_quest(hra, otrok, quest, "naslouchat")
+            self.assertIsNotNone(quest)
+        self.assertEqual(quest["stav"], "dokonceno")
+        self.assertEqual(quest["zaver"], "Její vlastní plán")
+        self.assertEqual(len(quest["volby_zvolene"]), 3)
+        self.assertGreater(hra.hrac.gold, gold_pred)
+        gold_po_odmene = hra.hrac.gold
+        self.assertIsNone(system.postup_quest(hra, otrok, quest, "naslouchat"))
+        self.assertEqual(hra.hrac.gold, gold_po_odmene)
+
+    def test_mestska_krize_uplatni_volbu_a_neposouva_den(self):
+        hra = Hra()
+        hra.hrac.gold = 0
+        otrok = Otrokyně("Nora", duvera=30)
+        hra.harem.pridat(otrok)
+        krizovy_system = hra.mestska_krize
+        krizovy_system.nova_krize(hra)
+        den_pred = hra.hrac.den
+
+        with redirect_stdout(io.StringIO()):
+            self.assertFalse(krizovy_system.vyresit(hra, volba="haseni"))
+        self.assertIsNotNone(krizovy_system.aktivni)
+        hra.hrac.gold = 500
+        reputace_pred = hra.hrac.reputace_mesta
+        duvera_pred = otrok.duvera
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(krizovy_system.vyresit(hra, volba="haseni"))
+
+        self.assertEqual(hra.hrac.den, den_pred)
+        self.assertEqual(hra.hrac.gold, 488)
+        self.assertEqual(hra.hrac.reputace_mesta, reputace_pred + 8)
+        self.assertEqual(otrok.duvera, duvera_pred + 3)
+        self.assertIsNone(krizovy_system.aktivni)
+        self.assertEqual(krizovy_system.historie[-1]["vysledek"], "haseni")
+
+    def test_nevyresena_mestska_krize_ma_dusledky_a_zapise_historii(self):
+        hra = Hra()
+        krizovy_system = hra.mestska_krize
+        krizovy_system.nova_krize(hra)
+        reputace_pred = hra.hrac.reputace_mesta
+        frakce_id = krizovy_system.aktivni["frakce"]
+        vztah_pred = hra.mestske_frakce.vztahy[frakce_id]
+
+        for _ in range(3):
+            vysledek = krizovy_system.posun_den(hra)
+
+        self.assertEqual(vysledek["vysledek"], "bez zásahu")
+        self.assertEqual(hra.hrac.reputace_mesta, reputace_pred - 5)
+        self.assertEqual(hra.mestske_frakce.vztahy[frakce_id], vztah_pred - 8)
+        self.assertIsNone(krizovy_system.aktivni)
+
+    def test_nove_archetypy_pridavaji_bonusy_vyprav_a_pece(self):
+        from game.charakter_bonusy import (
+            bonus_leceni_haremu,
+            bonus_obrany,
+            bonus_vypravy,
+        )
+
+        hra = Hra()
+        cartografka = Otrokyně("Mara", charakter="cartografka", duvera=40)
+        lekarka = Otrokyně("Sára", charakter="lekarka", duvera=50)
+        veteranka = Otrokyně("Ilma", charakter="veteranka", duvera=50)
+        for otrok in (cartografka, lekarka, veteranka):
+            hra.harem.pridat(otrok)
+
+        self.assertEqual(bonus_vypravy(hra, [cartografka.jmeno]), 2)
+        self.assertEqual(bonus_leceni_haremu(hra), 3)
+        self.assertEqual(bonus_obrany(hra, veteranka.jmeno), 3)
+
     def test_vyzkum_ma_vetve_predpoklady_slevy_a_ulozitelne_bonusy(self):
         hra = Hra()
         hra.hrac.gold = 5000

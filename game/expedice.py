@@ -126,6 +126,8 @@ class ExpeditionSystem:
         pevnost = getattr(hra, "pevnost", None)
         if pevnost:
             sila += pevnost.bonusy().get("vybava", 0)
+        from game.charakter_bonusy import bonus_vypravy
+        sila += bonus_vypravy(hra, jmena)
         return sila, postavy
 
     def zahaj(self, hra, expedice_id, jmena):

@@ -422,6 +422,87 @@ CHARAKTERY = {
         "reakce_na_odmenu": 1.25,
         "utek_sance": 0.08
     },
+    "vampirka": {
+        "nazev": "Vampýrka",
+        "popis": "Mladá upírka s hladovějícími instinkty, která se těší na mlčenlivé samoty a podmanivou tmu.",
+        "modifikatory": {
+            "touha": 1.5,
+            "submisivita": 1.1,
+            "duvera": 0.85,
+            "loajalita": 1.1,
+            "strach": 0.7
+        },
+        "reakce_na_trest": 0.9,
+        "reakce_na_odmenu": 1.35,
+        "utek_sance": 0.05
+    },
+    "templarka": {
+        "nazev": "Templářka",
+        "popis": "Vytrvalá bojovnice s přísným kodexem, která po zlomení hledá jediného pána a službu věrně zastává.",
+        "modifikatory": {
+            "loajalita": 1.4,
+            "poslusnost": 1.1,
+            "tolerance_bolesti": 1.3,
+            "strach": 0.8,
+            "duvera": 1.15
+        },
+        "reakce_na_trest": 0.7,
+        "reakce_na_odmenu": 1.15,
+        "utek_sance": 0.12
+    },
+    "mecenaska": {
+        "nazev": "Mecenáška",
+        "popis": "Vysoká dáma, která umí rozkazovat a výhodně vyjednávat; přitom v samotě touží po tichém podřízení.",
+        "modifikatory": {
+            "duvera": 1.2,
+            "poslusnost": 0.85,
+            "submisivita": 1.0,
+            "loajalita": 1.2,
+            "touha": 1.05
+        },
+        "reakce_na_trest": 0.8,
+        "reakce_na_odmenu": 1.3,
+        "utek_sance": 0.07
+    },
+    "cartografka": {
+        "nazev": "Kartografka",
+        "popis": "Pozorná cestovatelka, která si pamatuje cesty i příběhy lidí, jež na nich potkala.",
+        "modifikatory": {
+            "duvera": 1.15,
+            "loajalita": 1.05,
+            "strach": 0.85,
+            "vyjednavani": 1.1,
+        },
+        "reakce_na_trest": 0.65,
+        "reakce_na_odmenu": 1.15,
+        "utek_sance": 0.08,
+    },
+    "lekarka": {
+        "nazev": "Lékařka",
+        "popis": "Praktická léčitelka, která věří v péči, informovaný souhlas a soukromí pacientů.",
+        "modifikatory": {
+            "duvera": 1.25,
+            "loajalita": 1.1,
+            "strach": 0.75,
+            "poslusnost": 0.9,
+        },
+        "reakce_na_trest": 0.6,
+        "reakce_na_odmenu": 1.2,
+        "utek_sance": 0.06,
+    },
+    "veteranka": {
+        "nazev": "Veteránka",
+        "popis": "Zkušená obránkyně, která upřednostňuje promyšlenou ochranu před zbytečným střetem.",
+        "modifikatory": {
+            "duvera": 0.95,
+            "loajalita": 1.15,
+            "tolerance_bolesti": 1.25,
+            "strach": 0.7,
+        },
+        "reakce_na_trest": 0.7,
+        "reakce_na_odmenu": 1.05,
+        "utek_sance": 0.1,
+    },
 }
 
 
@@ -442,6 +523,13 @@ def normalizuj_charakter(charakter):
             "svůdnice": "touha",
             "zvrácená": "posedla",
             "zvracena": "posedla",
+            "vampýrka": "vampirka",
+            "vampirka": "vampirka",
+            "templářka": "templarka",
+            "mecenáška": "mecenaska",
+            "kartografka": "cartografka",
+            "lékařka": "lekarka",
+            "veteránka": "veteranka",
         }
         if klic in aliasy:
             return aliasy[klic]

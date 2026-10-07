@@ -66,6 +66,7 @@ class Otrokyně:
     osobni_pribeh_dokonceno: bool = False
     osobni_pribeh_volby: List[Dict[str, Any]] = field(default_factory=list)
     osobni_pribeh_zaver: str = ""
+    rozsireni_questy: List[Dict[str, Any]] = field(default_factory=list)
     historie_statistik: List[Dict[str, Any]] = field(default_factory=list)
     manzelstvi: Dict[str, Any] = field(default_factory=dict)
     je_manzelkou: bool = False
@@ -161,6 +162,11 @@ class Otrokyně:
             otrok.historie_voleb = []
         if not isinstance(otrok.osobni_pribeh_volby, list):
             otrok.osobni_pribeh_volby = []
+        if not isinstance(otrok.rozsireni_questy, list):
+            otrok.rozsireni_questy = []
+        otrok.rozsireni_questy = [
+            quest for quest in otrok.rozsireni_questy if isinstance(quest, dict)
+        ]
         if not isinstance(otrok.osobni_pribeh_zaver, str):
             otrok.osobni_pribeh_zaver = ""
         if not isinstance(otrok.osobni_pribeh_dokonceno, bool):

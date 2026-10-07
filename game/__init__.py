@@ -1,3 +1,8 @@
 # game/__init__.py
 
-from .rozsireni import MestskaKrizeSystem, MestskeFrakceSystem, RozsireniHarlemuSystem
+from .rozsireni import (
+    MestskyMesicSystem,
+    MestskaKrizeSystem,
+    MestskeFrakceSystem,
+    RozsireniHarlemuSystem,
+)

@@ -252,6 +252,54 @@ PRIBEHY = {
             "Dílo je hotové. Sama určí, zda zůstane soukromé, nebo bude vystaveno.",
         ),
     },
+    "vampirka": {
+        "cil": "Naučit se ovládat vlastní hlad a chránit si místo, které si sama zvolila.",
+        "sceny": (
+            "Přizná, že její hlad ji někdy přiměje jednat bez přemýšlení.",
+            "Vybírá si bezpečný režim, který ji pomůže zůstat v klidu i po setmění.",
+            "Rozhoduje se, kdo smí vidět její skutečnou tvář a kdo zůstane jen ve stínu.",
+        ),
+    },
+    "templarka": {
+        "cil": "Najít nový cíl služby, který neporušuje její vlastní svědomí.",
+        "sceny": (
+            "Vzpomene na vlastní přísahu a na okamžik, kdy jí zničila vrcholná jistota.",
+            "Zkouší rozdíl mezi poslušností a skutečnou ochranou těch, které má chránit.",
+            "Sestaví nový kodex, podle kterého bude sloužit i bez cizích rozkazů.",
+        ),
+    },
+    "mecenaska": {
+        "cil": "Vytvořit si vlastní standard lásky a síly bez výčitek z minulého života.",
+        "sceny": (
+            "Vypráví o předchozím světě výhod, přízně a závazků, které jí nikdy nepřinesly klid.",
+            "Rozhoduje, co od vztahů skutečně chce a čeho se nehodlá vzdát.",
+            "Pořádá si vlastní pravidla pro rovnost, důstojnost a laskavost ve vztahu.",
+        ),
+    },
+    "cartografka": {
+        "cil": "Vytvořit mapu města, která zachová i místních obyvatel známost o bezpečných cestách.",
+        "sceny": (
+            "Našla starý plánek, na kterém někdo pečlivě označil zapomenuté studny a průchody.",
+            "Vyslechne místní průvodce a rozhodne, které informace smějí být veřejné.",
+            "Dokončí mapu a sama zvolí, komu ji předá a které části ponechá soukromé.",
+        ),
+    },
+    "lekarka": {
+        "cil": "Otevřít léčebnu s péčí založenou na důvěrnosti a svobodném rozhodování pacientů.",
+        "sceny": (
+            "Vzpomene na svou první lékařskou praxi a na pacienta, kterému nemohla pomoci.",
+            "Sepíše pravidla soukromí a zjišťuje, jaké vybavení lidé skutečně potřebují.",
+            "Léčebna je připravena; sama určí její provozní dobu i vlastní roli.",
+        ),
+    },
+    "veteranka": {
+        "cil": "Předat své zkušenosti nové hlídce, aniž by opakovala chyby starého velení.",
+        "sceny": (
+            "Vypráví o těžké službě, která ji naučila, že rozkaz bez vysvětlení může uškodit.",
+            "Navrhne výcvik, kde se ochrana civilistů a možnost odmítnout nebezpečný úkol berou vážně.",
+            "Hlídka je připravena; sama se rozhodne, zda chce vést, radit, nebo odejít do klidu.",
+        ),
+    },
 }
 
 BRANY = ((0, 0), (30, 20), (50, 40))

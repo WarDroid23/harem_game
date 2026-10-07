@@ -25,6 +25,9 @@ JMENA = [
     "Octavia", "Rosalind", "Serena", "Tatiana", "Vivienne", "Yvette",
     "Amina", "Farah", "Inaya", "Layla", "Nour", "Samira", "Zahra",
     "Akari", "Emi", "Kaori", "Natsuki", "Rin", "Tomoe", "Umiko",
+    "Apolena", "Běla", "Ctirada", "Dobromila", "Evelína", "Frída", "Gita",
+    "Hanae", "Jarmila", "Květa", "Ludmila", "Maruška", "Naděžda", "Radmila",
+    "Sára", "Vlasta", "Yelena", "Zdislava",
 ]
 
 JMENA.extend([
@@ -34,6 +37,16 @@ JMENA.extend([
     "Mirela", "Nika", "Oksana", "Petra", "Rhea", "Sabina", "Talia", "Varya",
     "Xenia", "Yara", "Zoraida", "Amara", "Briar", "Cleo", "Evelyn", "Isla",
     "Mara", "Nerina", "Sienna", "Tamsin", "Violetta", "Zarina",
+    "Anika", "Berenika", "Carmen", "Daria", "Elodie", "Faye", "Gwen", "Hortensie",
+    "Ivana", "Johana", "Karmen", "Leonie", "Mireya", "Nadya", "Oona", "Priscilla",
+    "Querida", "Roxana", "Selene", "Tivora", "Uriela", "Valentina", "Willa", "Yvona",
+    "Zuzana", "Astra", "Briar", "Coralie", "Delia", "Euridice", "Flora", "Gorana",
+    "Hestia", "Iris", "Juno", "Kalliope", "Lucia", "Mavie", "Nox", "Odette",
+    "Paula", "Quinn", "Rhea", "Sofia", "Thea", "Uma", "Vera", "Wren",
+    "Ysa", "Zora", "Adriana", "Bianka", "Celine", "Diana", "Elara", "Fiona",
+    "Grazia", "Helene", "Inez", "Jasmine", "Kira", "Lysandra", "Mila", "Nora",
+    "Orla", "Petrina", "Qiana", "Rin", "Sabrina", "Tatiana", "Ulana", "Vespera",
+    "Wulan", "Xandra", "Ylva", "Zafira",
 ])
 JMENA[:] = list(dict.fromkeys(JMENA))
 
@@ -55,4 +68,9 @@ def vyber_nove_jmeno(obsazena_jmena=()):
     return f"{zaklad} {cislo}"
 
 
-JMENA_AGENTU = ["Shadow", "Vesper", "Cinder", "Raven", "Silas", "Nyx", "Ash", "Wraith", "Echo"]
+JMENA_AGENTU = [
+    "Shadow", "Vesper", "Cinder", "Raven", "Silas", "Nyx", "Ash", "Wraith", "Echo",
+    "Morrow", "Sable", "Acheron", "Noctis", "Vale", "Thorn", "Kestrel", "Valkyr", "Onyx",
+    "Mira", "Sera", "Iris", "Nox", "Astra", "Cael", "Dusk", "Haze", "Rogue",
+    "Tichá sova", "Modrý havran", "Stříbrný list", "Noční lucerna", "Šedý kompas",
+]

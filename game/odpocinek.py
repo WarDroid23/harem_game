@@ -107,6 +107,13 @@ def odpocinek(hra, rezim=None):
     hrac.den += 1
     if hasattr(hra, "kalendar"):
         hra.kalendar.dalsi_den(hrac.den - 1)
+    if getattr(hra, "mestska_krize", None) is not None:
+        vysledek_krize = hra.mestska_krize.posun_den(hra)
+        if vysledek_krize:
+            tisk_info(
+                f"Neřešená krize «{vysledek_krize['nazev']}» odezněla bez zásahu. "
+                "Pověst dominia ve městě utrpěla."
+            )
     vztahove = _bonus_energie_ze_vztahu(hra)
     for z in vztahove:
         tisk_ok(z)
@@ -120,6 +127,16 @@ def odpocinek(hra, rezim=None):
     else:
         hrac.hp = min(hrac.max_hp, hrac.hp + 20)
         tisk_ok("Klidný spánek. Probudil ses s plnou energií.")
+    from game.charakter_bonusy import bonus_leceni_haremu
+    leceni_haremu = bonus_leceni_haremu(hra)
+    if leceni_haremu:
+        zotavene = 0
+        for otrok in hra.harem.vsechny_aktivni():
+            pred = otrok.hp
+            otrok.hp = min(otrok.max_hp, otrok.hp + leceni_haremu)
+            zotavene += otrok.hp - pred
+        if zotavene:
+            tisk_info(f"Zdravotní péče: členky harému obnovily celkem {zotavene} HP.")
     dokoncene_najmy = zpracuj_den(hra)
     prijem_harem = hra.harem.pasivni_prijem()
     prijem_mafie = hra.mafie.vypocet_prijmu()

@@ -422,7 +422,6 @@ class Souboj:
         zaklad = self.hrac.skill_body * 2 + self.hrac.skilly.get("boj", 0) * 3 + self.hrac.skilly.get("strelba", 0) * 2
         for zbran in self.hrac.inventar.zbrane:
             zaklad += getattr(zbran, "poskozeni", 0)
-        # Bonus z budov pevnosti (Kasárna a Kovárna)
         if self.hra is not None and getattr(self.hra, "pevnost", None):
             zaklad += self.hra.pevnost.bonusy().get("utok", 0)
         return zaklad + self.hrac.bojovy_bonus_vybavy() + bonus
@@ -436,7 +435,6 @@ class Souboj:
                 getattr(self.hra, "pevnost", None), "bojova_partnerka", ""
             )
             zaklad += bonus_obrany(self.hra, jmeno_partnerky)
-        # Bonus z budov pevnosti (Hradby a Strážní věž)
         if self.hra is not None and getattr(self.hra, "pevnost", None):
             zaklad += self.hra.pevnost.bonusy().get("obrana", 0)
         return zaklad
@@ -472,8 +470,7 @@ class Souboj:
             part_akce_txt = f"  {MAGENTA}5){NC} 💃 Asistence ({partnerka.jmeno})" if partnerka else ""
             print(f"\n  {GREEN}1){NC} Útok  {CYAN}2){NC} Přesný útok  {YELLOW}3){NC} Obrana  "
                   f"{MAGENTA}4){NC} Temný vampirismus{part_akce_txt}\n"
-                  f"  {BLUE}6){NC} Předmět  {RED}7){NC} Zastrašení  {DIM}8/Útěk){NC} Útěk"
-            )
+                  f"  {BLUE}6){NC} Předmět  {RED}7){NC} Zastrašení  {DIM}8/Útěk){NC} Útěk  {WHITE}9){NC} Taktika a zbraň")
 
             try:
                 volba = input("> ").strip().lower()
@@ -482,11 +479,14 @@ class Souboj:
 
             # Mapování původních voleb pro 100% zpětnou kompatibilitu testů:
             if not partnerka and volba == "5":
-                volba = "6"  # Původní volba 5 byl předmět
+                volba = "6"
             elif not partnerka and volba == "6":
-                volba = "7"  # Původní volba 6 bylo zastrašení
+                volba = "7"
             elif volba in ("7", "u", "utek") and not partnerka:
                 volba = "8"
+            if volba == "9":
+                self._zobraz_taktiku_a_zbrane()
+                continue
 
             obranny_bonus = 0
             preskocit_utok_nepritele = False
@@ -666,6 +666,25 @@ class Souboj:
             pass
         return vysledek
 
+    def _zobraz_taktiku_a_zbrane(self):
+        clear()
+        hlavicka("Taktika & zbraně")
+        print("Dostupné zbraně v inventáři:")
+        if not self.hrac.inventar.zbrane:
+            print("  - žádné zbraně")
+        else:
+            for idx, zbran in enumerate(self.hrac.inventar.zbrane, 1):
+                print(f"  {idx}) {zbran.nazev} [{zbran.typ}] — +{zbran.poskozeni} dmg")
+        print("\nTaktické rady:")
+        print("  1) Získávat přesné útoky a léčit po temném vampirismu je lepší než bojovat ve frontě.")
+        print("  2) Těžké zbraně srážejí HP, ale dělají nejvíc škody až po obranném postoji.")
+        print("  3) Magické zbraně a výzkum se dají kombinovat pro vyšší útočnou stabilitu.")
+        print("  4) Zbraně typu 'dlouha' se hodí při první vlně útoku, 'meč' je vyvážený a 'těžký' zabírá v závěru.")
+        try:
+            input("Enter...")
+        except EOFError:
+            pass
+
     def _pouzij_predmet(self):
         dostupne = []
         for predmet_id, data in PREDMETY.items():
@@ -697,18 +716,17 @@ class Souboj:
             self.hrac.hp = min(self.hrac.max_hp, self.hrac.hp + data["hodnota"])
             tisk_ok(f"Použil jsi {data['nazev']}. HP: {self.hrac.hp}.")
         elif data["boj"] == "temnota":
-            self.hrac.dark_energy = min(100, self.hrac.dark_energy + data["hodnota"])
+            self.hrac.dark_energy = min(self.hrac.max_temno(), self.hrac.dark_energy + data["hodnota"])
             tisk_ok(f"Použil jsi {data['nazev']}. Temná energie: {self.hrac.dark_energy}.")
         elif data["boj"] == "leceni_temnota":
             self.hrac.hp = min(self.hrac.max_hp, self.hrac.hp + data["hodnota"])
-            self.hrac.dark_energy = min(100, self.hrac.dark_energy + 8)
+            self.hrac.dark_energy = min(self.hrac.max_temno(), self.hrac.dark_energy + 8)
             tisk_ok(
                 f"Použil jsi {data['nazev']}. "
                 f"HP: {self.hrac.hp}, temná energie: {self.hrac.dark_energy}."
             )
         elif data["boj"] == "utek":
-            bonus_uteku = 0.2
-            self._bonus_uteku = bonus_uteku
+            self._bonus_uteku = 0.2
             tisk_ok("Dýmovnice naplnila bojiště kouřem.")
         elif data["boj"] == "obrana":
             self._bonus_obrany = data["hodnota"]
