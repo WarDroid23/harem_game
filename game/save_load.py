@@ -21,6 +21,7 @@ from game.osudy import zajisti_osudy
 from game.settings import NastaveniHry, aplikuj_nastaveni
 from game.expedice import ExpeditionSystem
 from game.npc_questy import NPCQuestSystem
+from game.rozsireni import MestskaKrizeSystem, RozsireniHarlemuSystem
 from models.calendar import CalendarSystem
 from models.fortress import FortressDevelopment
 from models.achievements import AchievementSystem
@@ -56,6 +57,8 @@ class Hra:
         self.kalendar = CalendarSystem(self.hrac.den)
         self.achievementy = AchievementSystem()
         self.nevestinec = Nevestinec()
+        self.mestska_krize = MestskaKrizeSystem()
+        self.rozsireni_haremu = RozsireniHarlemuSystem()
         self.marriage_system = {}
         self.kronika = None
         try:
@@ -103,6 +106,8 @@ class Hra:
             "kalendar": self.kalendar.to_dict(),
             "achievementy": self.achievementy.to_dict(),
             "nevestinec": self.nevestinec.to_dict(),
+            "mestska_krize": self.mestska_krize.to_dict(),
+            "rozsireni_haremu": self.rozsireni_haremu.to_dict(),
             "nastaveni": self.nastaveni.to_dict(),
             "marriage_system": {k: v.to_dict() for k, v in self.marriage_system.items()},
             "kronika": self.kronika.to_dict() if getattr(self, "kronika", None) else {"zaznamy": []},
@@ -151,6 +156,10 @@ class Hra:
             hra.achievementy = AchievementSystem.from_dict(data["achievementy"])
         if isinstance(data.get("nevestinec"), dict):
             hra.nevestinec = Nevestinec.from_dict(data["nevestinec"])
+        if isinstance(data.get("mestska_krize"), dict):
+            hra.mestska_krize = MestskaKrizeSystem.from_dict(data["mestska_krize"])
+        if isinstance(data.get("rozsireni_haremu"), dict):
+            hra.rozsireni_haremu = RozsireniHarlemuSystem.from_dict(data["rozsireni_haremu"])
         try:
             from game.kronika import Kronika
             hra.kronika = Kronika.from_dict(data.get("kronika", {}))

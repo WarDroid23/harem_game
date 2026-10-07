@@ -138,15 +138,14 @@ def zobraz_menu(hra):
         f"Temno: {hrac.dark_energy}/{_max_pro(hrac, 'dark_energy')} | Zlato: {hrac.gold}"
     )
     moznosti = [("1", "Meditace (zdarma, 1x denně)")]
-    if True:
-        moznosti.append(("2", "Hostinec (35 zlata, energie a HP)"))
-        moznosti.append(("3", "Lázně (60 zlata, energie a HP)"))
+    moznosti.append(("2", "Hostinec (35 zlata, energie a HP)"))
+    moznosti.append(("3", "Lázně (60 zlata, energie a HP)"))
     moznosti.append(("4", "Alchymie (lektvary z vyrobených surovin)"))
-    if lokace in ("pevnost", "zahrada", "") or True:
+    if lokace in ("pevnost", "zahrada", "sklenena_zahrada", ""):
         moznosti.append(("5", "Klidný rozhovor v zahradě (1x denně)"))
-    if lokace in ("haj_soumraku", "") or True:
+    if lokace in ("haj_soumraku", "observator", ""):
         moznosti.append(("6", "Pozorování oblohy (1x denně)"))
-    if lokace in ("pristav", "molo", "") or True:
+    if lokace in ("pristav", "molo", "molo_mesicniho_pristavu", ""):
         moznosti.append(("7", "Směna na molu (25 zlata, 1x denně)"))
     for cislo, popis in moznosti:
         print(f"{cislo}) {popis}")

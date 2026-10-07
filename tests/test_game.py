@@ -336,6 +336,20 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(hra.hrac.dark_energy, 12)
         self.assertFalse(meditace(hra))
 
+    def test_extra_menu_obsluhuje_rozsireni_hry(self):
+        from game.menu_extra import obsluz_extra_volbu
+
+        hra = Hra()
+        with patch.object(hra.mestska_krize, "menu") as krize_menu, \
+             patch.object(hra.rozsireni_haremu, "zobraz_menu") as story_menu, \
+             patch("game.rozsireni.menu_specializace_ctvrti") as specializace:
+            self.assertTrue(obsluz_extra_volbu("33", hra))
+            self.assertTrue(obsluz_extra_volbu("34", hra))
+            self.assertTrue(obsluz_extra_volbu("35", hra))
+        krize_menu.assert_called_once_with(hra)
+        story_menu.assert_called_once_with(hra)
+        specializace.assert_called_once_with(hra)
+
     def test_vyzkum_ma_vetve_predpoklady_slevy_a_ulozitelne_bonusy(self):
         hra = Hra()
         hra.hrac.gold = 5000
@@ -1227,10 +1241,11 @@ class HraTesty(unittest.TestCase):
         self.assertEqual(normalizuj_volbu("t"), "test")
         self.assertEqual(normalizuj_volbu("10"), "11")
         self.assertEqual(normalizuj_volbu("31"), "32")
+        self.assertEqual(normalizuj_volbu("34"), "35")
         self.assertEqual(normalizuj_volbu("s"), "26")
         self.assertEqual(
             list(MAPOVANI_CISEL_MENU),
-            [str(cislo) for cislo in range(1, 32)],
+            [str(cislo) for cislo in range(1, 35)],
         )
         self.assertEqual(normalizuj_volbu("$"), "cheat")
         self.assertEqual(normalizuj_volbu("&"), "cheat_suroviny")

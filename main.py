@@ -560,9 +560,6 @@ def _obsluz_volbu_hlavniho_menu(
         from game.pruvodce import zobraz_pruvodce
         zobraz_pruvodce(hra)
         _pockej_na_enter()
-    elif volba == "32":
-        from game.kalendar import zobraz_kalendar
-        _bezpecne_volba("Kalendář", zobraz_kalendar, hra)
     elif volba == "23":
         menu_haremu(hra)
     elif volba == "24":
@@ -571,7 +568,7 @@ def _obsluz_volbu_hlavniho_menu(
         menu_energie(hra)
     elif volba == "28":
         menu_manzelstvi(hra)
-    elif volba in ("29", "30", "31"):
+    elif volba in ("29", "30", "31", "32", "33", "34", "35"):
         obsluz_extra_volbu(volba, hra)
     elif volba == "26":
         vysledek = menu_meta_hlavni(hra)

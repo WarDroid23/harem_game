@@ -41,6 +41,9 @@ POLOZKY_HLAVNIHO_MENU = (
     ("30", "📋 Denní rozkazy harému"),
     ("31", "🎭 Veřejný výkon"),
     ("32", "📅 Kalendář a události"),
+    ("33", "🏙️ Městské krize & drama"),
+    ("34", "💬 Story questy harému"),
+    ("35", "🏭 Specializace čtvrtí"),
 )
 
 ZKRATKY_HLAVNIHO_MENU = {

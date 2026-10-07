@@ -827,12 +827,109 @@ NPC = {
 
 
 @dataclass
+class DistrictSpecializationSystem:
+    specializace: dict = field(default_factory=dict)
+
+    TYPY = {
+        "obecna": {
+            "nazev": "Obecná",
+            "popis": "Čtvrť přináší neutrální výhody a odměnu za každodenní provoz.",
+            "bonus": {},
+        },
+        "zahradni": {
+            "nazev": "Zahradní",
+            "popis": "Vytváří klidný prostor pro obnovu, důvěru a měkké, důvěrné vztahy.",
+            "bonus": {"duvera": 8, "loajalita": 5, "sex_energy": 8, "dark_energy": 4},
+        },
+        "vodni": {
+            "nazev": "Vodní",
+            "popis": "Přináší rychlejší zásobování, obchodní tok a lepší odhad příležitostí.",
+            "bonus": {"gold": 12, "sex_energy": 6, "dark_energy": 6},
+        },
+        "kupecká": {
+            "nazev": "Kupecká",
+            "popis": "Posílí ekonomiku, výnosy a obchodní vliv v městské čtvrti.",
+            "bonus": {"gold": 18, "vliv": 5},
+        },
+    }
+
+    def __post_init__(self):
+        if not isinstance(self.specializace, dict):
+            self.specializace = {}
+
+    def _normalizuj_typ(self, typ):
+        if not typ:
+            return "obecna"
+        text = str(typ).strip().lower()
+        mapa = {
+            "obecna": "obecna",
+            "obecny": "obecna",
+            "zahradni": "zahradni",
+            "zahradní": "zahradni",
+            "vodni": "vodni",
+            "vodní": "vodni",
+            "kupecka": "kupecká",
+            "kupecká": "kupecká",
+            "kupecky": "kupecká",
+        }
+        return mapa.get(text, text)
+
+    def ziskej(self, lokace_id, default="obecna"):
+        if lokace_id in self.specializace:
+            return self.specializace[lokace_id]
+        if lokace_id in LOKACE:
+            typ = LOKACE[lokace_id].get("typ_ctvrti")
+            if typ:
+                typ = self._normalizuj_typ(typ)
+                self.specializace[lokace_id] = typ
+                return typ
+        return self._normalizuj_typ(default)
+
+    def nastav(self, lokace_id, typ):
+        if lokace_id not in LOKACE:
+            return None
+        if not typ:
+            return None
+        normalizovany = self._normalizuj_typ(typ)
+        self.specializace[lokace_id] = normalizovany
+        return self.specializace[lokace_id]
+
+    def bonusy(self, lokace_id):
+        typ = self.ziskej(lokace_id)
+        data = self.TYPY.get(typ, self.TYPY["obecna"])
+        return dict(data.get("bonus", {}))
+
+    def popis_typu(self, typ):
+        normalizovany = self._normalizuj_typ(typ)
+        data = self.TYPY.get(normalizovany, self.TYPY["obecna"])
+        return {
+            "typ": normalizovany,
+            "nazev": data["nazev"],
+            "popis": data["popis"],
+            "bonus": dict(data.get("bonus", {})),
+        }
+
+    def to_dict(self):
+        return dict(self.specializace)
+
+    @classmethod
+    def from_dict(cls, data):
+        obj = cls()
+        if isinstance(data, dict):
+            obj.specializace = {
+                str(k): obj._normalizuj_typ(v) for k, v in data.items() if isinstance(k, str) and isinstance(v, str)
+            }
+        return obj
+
+
+@dataclass
 class SvetSystem:
     aktualni_lokace: str = "pevnost"
     odhalene_lokace: list = field(default_factory=lambda: list(VYCHOZI_ODHALENE))
     navstiveno: dict = field(default_factory=dict)
     vztahy_npc: dict = field(default_factory=lambda: {k: 0 for k in NPC})
     lokacni_odmeny: dict = field(default_factory=dict)
+    specializace_ctvrti: DistrictSpecializationSystem = field(default_factory=DistrictSpecializationSystem)
 
     def __post_init__(self):
         if not isinstance(self.aktualni_lokace, str) or self.aktualni_lokace not in LOKACE:
@@ -872,6 +969,10 @@ class SvetSystem:
                 self.lokacni_odmeny[klic] = max(0, int(den))
             except (TypeError, ValueError):
                 continue
+        if not isinstance(self.specializace_ctvrti, DistrictSpecializationSystem):
+            self.specializace_ctvrti = DistrictSpecializationSystem.from_dict(
+                self.specializace_ctvrti if isinstance(self.specializace_ctvrti, dict) else {}
+            )
 
     def odhal_lokaci(self, lokace):
         if lokace in LOKACE and lokace not in self.odhalene_lokace:
@@ -891,6 +992,15 @@ class SvetSystem:
 
     def zaznamenej_lokacni_odmenu(self, lokace_id, akce_id, den):
         self.lokacni_odmeny[f"{lokace_id}:{akce_id}"] = max(0, int(den))
+
+    def ziskat_specializaci(self, lokace_id, default="obecna"):
+        return self.specializace_ctvrti.ziskej(lokace_id, default)
+
+    def nastav_specializaci(self, lokace_id, typ):
+        return self.specializace_ctvrti.nastav(lokace_id, typ)
+
+    def bonus_specializace(self, lokace_id):
+        return self.specializace_ctvrti.bonusy(lokace_id)
 
     def _format_uzel(self, lok_id, hra, sirka=11):
         """Naformátuje uzel na mapě s pevně zarovnanou šířkou a ikonami statusu."""
@@ -1348,18 +1458,23 @@ class SvetSystem:
             "navstiveno": self.navstiveno,
             "vztahy_npc": self.vztahy_npc,
             "lokacni_odmeny": self.lokacni_odmeny,
+            "specializace_ctvrti": self.specializace_ctvrti.to_dict(),
         }
 
     @classmethod
     def from_dict(cls, data):
         if not isinstance(data, dict):
             return cls()
+        specializace = data.get("specializace_ctvrti", {})
+        if not isinstance(specializace, dict):
+            specializace = {}
         return cls(
             aktualni_lokace=data.get("aktualni_lokace", "pevnost"),
             odhalene_lokace=data.get("odhalene_lokace", VYCHOZI_ODHALENE),
             navstiveno=data.get("navstiveno", {}) if isinstance(data.get("navstiveno", {}), dict) else {},
             vztahy_npc=data.get("vztahy_npc", {}) if isinstance(data.get("vztahy_npc", {}), dict) else {},
             lokacni_odmeny=data.get("lokacni_odmeny", {}),
+            specializace_ctvrti=DistrictSpecializationSystem.from_dict(specializace),
         )
 
     def dekorace_mesta_atmosfera(self, hra):
