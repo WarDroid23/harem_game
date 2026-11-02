@@ -2020,6 +2020,23 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Deník úkolů", text)
         self.assertEqual(hra.to_dict(), stav_pred)
 
+    def test_pruvodce_zapocte_pruzkum_az_po_prozkoumani_lokace(self):
+        from game.pruvodce import _rychly_start
+
+        hra = Hra()
+        hra.svet.navstiveno["trh"] = 1
+        self.assertFalse(_rychly_start(hra)[0][0])
+
+        hra.svet.aktualni_lokace = "trh"
+        with patch("game.svet.random.random", return_value=0.1), \
+             patch("game.svet.random.randint", return_value=25), \
+             patch("builtins.input", return_value=""), \
+             redirect_stdout(io.StringIO()):
+            hra.svet.pruzkum_lokace(hra)
+
+        self.assertTrue(_rychly_start(hra)[0][0])
+        self.assertIn("trh", Hra.from_dict(hra.to_dict()).svet.prozkoumane_lokace)
+
     def test_nahodne_udalosti_se_ridi_lokaci_a_zapisuji_do_kalendare(self):
         from game.udalosti import spust_nahodnou_udalost
 
@@ -2174,7 +2191,7 @@ class HraTesty(unittest.TestCase):
         reputace_pred = hra.hrac.reputace_mesta
         vystup = io.StringIO()
 
-        with redirect_stdout(vystup):
+        with patch("builtins.input", return_value="0"), redirect_stdout(vystup):
             self.assertTrue(spust_denni_udalost(hra))
             gold_po_udalosti = hra.hrac.gold
             self.assertFalse(spust_denni_udalost(hra))

@@ -1072,6 +1072,7 @@ class SvetSystem:
     aktualni_lokace: str = "pevnost"
     odhalene_lokace: list = field(default_factory=lambda: list(VYCHOZI_ODHALENE))
     navstiveno: dict = field(default_factory=dict)
+    prozkoumane_lokace: list = field(default_factory=list)
     vztahy_npc: dict = field(default_factory=lambda: {k: 0 for k in NPC})
     lokacni_odmeny: dict = field(default_factory=dict)
     specializace_ctvrti: DistrictSpecializationSystem = field(default_factory=DistrictSpecializationSystem)
@@ -1093,6 +1094,14 @@ class SvetSystem:
             self.odhalene_lokace = ["pevnost"]
         if "pevnost" not in self.odhalene_lokace:
             self.odhalene_lokace.insert(0, "pevnost")
+        prozkoumane = (
+            self.prozkoumane_lokace
+            if isinstance(self.prozkoumane_lokace, list) else []
+        )
+        self.prozkoumane_lokace = list(dict.fromkeys(
+            lokace for lokace in prozkoumane
+            if isinstance(lokace, str) and lokace in LOKACE
+        ))
         puvodni_vztahy = self.vztahy_npc if isinstance(self.vztahy_npc, dict) else {}
         vztahy = {}
         for npc_id in NPC:
@@ -1519,6 +1528,9 @@ class SvetSystem:
                 tisk_info("Okolí je důkladně zmapované. Nalezl jsi pár starých mincí (+15 🪙).")
                 hra.hrac.gold += 15
 
+        if self.aktualni_lokace not in self.prozkoumane_lokace:
+            self.prozkoumane_lokace.append(self.aktualni_lokace)
+
         try:
             input("Enter...")
         except EOFError:
@@ -1637,6 +1649,7 @@ class SvetSystem:
             "aktualni_lokace": self.aktualni_lokace,
             "odhalene_lokace": self.odhalene_lokace,
             "navstiveno": self.navstiveno,
+            "prozkoumane_lokace": self.prozkoumane_lokace,
             "vztahy_npc": self.vztahy_npc,
             "lokacni_odmeny": self.lokacni_odmeny,
             "specializace_ctvrti": self.specializace_ctvrti.to_dict(),
@@ -1653,6 +1666,7 @@ class SvetSystem:
             aktualni_lokace=data.get("aktualni_lokace", "pevnost"),
             odhalene_lokace=data.get("odhalene_lokace", VYCHOZI_ODHALENE),
             navstiveno=data.get("navstiveno", {}) if isinstance(data.get("navstiveno", {}), dict) else {},
+            prozkoumane_lokace=data.get("prozkoumane_lokace", []),
             vztahy_npc=data.get("vztahy_npc", {}) if isinstance(data.get("vztahy_npc", {}), dict) else {},
             lokacni_odmeny=data.get("lokacni_odmeny", {}),
             specializace_ctvrti=DistrictSpecializationSystem.from_dict(specializace),

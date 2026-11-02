@@ -8,7 +8,7 @@ from utils.vypis import clear, hlavicka, menu_cara
 
 def _rychly_start(hra):
     """Vrátí stavové kroky úvodu bez změny uložené hry."""
-    navstivil_lokaci = any(hra.svet.navstiveno.values())
+    prozkoumal_lokaci = bool(hra.svet.prozkoumane_lokace)
     vybral_spojence = any(
         isinstance(volba, dict)
         and volba.get("kapitola") == 1
@@ -18,7 +18,7 @@ def _rychly_start(hra):
     posunul_den = hra.hrac.den > 1
     return (
         (
-            navstivil_lokaci,
+            prozkoumal_lokaci,
             "Prozkoumej první lokaci",
             f"Mapa ({_cislo_volby('8')}) → vyber odhalenou lokaci a prozkoumej ji.",
         ),
