@@ -2,14 +2,46 @@
 
 from config import CYAN, DIM, GOLD, GREEN, MAGENTA, NC, YELLOW
 from game.kampan import KAPITOLY
-from game.cile_hry import doporuceni_pro_pruvodce
+from game.cile_hry import _cislo_volby, doporuceni_pro_pruvodce
 from utils.vypis import clear, hlavicka, menu_cara
+
+
+def _rychly_start(hra):
+    """Vrátí stavové kroky úvodu bez změny uložené hry."""
+    navstivil_lokaci = any(hra.svet.navstiveno.values())
+    vybral_spojence = any(
+        isinstance(volba, dict)
+        and volba.get("kapitola") == 1
+        and volba.get("volba") in ("mira", "radan")
+        for volba in hra.kampan.volby
+    )
+    posunul_den = hra.hrac.den > 1
+    return (
+        (
+            navstivil_lokaci,
+            "Prozkoumej první lokaci",
+            f"Mapa ({_cislo_volby('8')}) → vyber odhalenou lokaci a prozkoumej ji.",
+        ),
+        (
+            vybral_spojence,
+            "Získej prvního spojence",
+            f"Kampaň ({_cislo_volby('9')}) → v kapitole „Cena spojenectví“ si vyber Miru nebo Radana.",
+        ),
+        (
+            posunul_den,
+            "Poprvé posuň herní den",
+            f"Odpočinek ({_cislo_volby('12')}) obnoví síly a posune svět o den; hra se při tom automaticky uloží.",
+        ),
+    )
 
 
 def _doporuceni(hra):
     doporuceni = doporuceni_pro_pruvodce(hra)
     if not hra.mafie.uzemi:
-        doporuceni.append("Pro stabilní příjem prozkoumej mafii a území ve volbě 3.")
+        doporuceni.append(
+            f"Pro stabilní příjem prozkoumej mafii a území "
+            f"(ve volbě {_cislo_volby('3')})."
+        )
     return doporuceni
 
 
@@ -18,18 +50,28 @@ def zobraz_pruvodce(hra):
     clear()
     hlavicka("Průvodce dominiem", "Rychlý start a doporučení pro tvou hru")
 
-    print(f"{GOLD}Jak začít{NC}")
-    print("  1. Prohlédni si harém a dostupné interakce (volba 1).")
-    print("  2. Navštěvuj mapu (8), mluv s NPC a postupuj v kampani (9).")
-    print("  3. Přijímej úkoly (14), vylepšuj postavu (4) a buduj své území (3, 16).")
-    print("  4. Odpočinek (12) obnoví síly, posune den a může spustit událost.")
+    kroky = _rychly_start(hra)
+    hotovo = sum(dokonceno for dokonceno, _, _ in kroky)
+    print(f"{GOLD}Rychlý start — {hotovo}/{len(kroky)} kroků{NC}")
+    for dokonceno, nazev, instrukce in kroky:
+        stav = f"{GREEN}✓{NC}" if dokonceno else f"{YELLOW}○{NC}"
+        print(f"  {stav} {nazev}: {instrukce}")
 
     menu_cara()
     print(f"\n{CYAN}Důležité systémy{NC}")
-    print("  • Volba 22 shrnuje běžné úkoly, úkoly NPC a hlavní kampaň.")
-    print("  • Volba 29 uchovává kroniku rozhodnutí a významných událostí.")
-    print("  • Volba 26 otevře ukládání, načítání a nastavení.")
-    print("  • Volba 27 zobrazí tohoto průvodce; nápověda nemění stav hry.")
+    print(
+        f"  • Deník úkolů (volba {_cislo_volby('22')}) shrnuje běžné "
+        "úkoly, úkoly NPC a hlavní kampaň."
+    )
+    print(
+        f"  • Kronika dominia (volba {_cislo_volby('29')}) uchovává "
+        "rozhodnutí a významné události."
+    )
+    print(f"  • Volba {_cislo_volby('26')} otevře ukládání a nastavení.")
+    print(
+        f"  • Volba {_cislo_volby('27')} zobrazí tohoto průvodce; "
+        "nápověda nemění stav hry."
+    )
 
     menu_cara()
     print(f"\n{MAGENTA}Doporučení pro tuto hru{NC}")
@@ -47,8 +89,11 @@ def zobraz_pruvodce(hra):
         print(f"\n{GREEN}Hlavní kampaň je dokončena. Prozkoumej vedlejší systémy.{NC}")
 
     print(f"\n{YELLOW}Ovládání{NC}")
-    print("  Zadej číslo volby a potvrď Enterem. Zkratky S/L/M otevřou hlavní menu.")
+    print("  Zadej číslo zobrazené v menu a potvrď Enterem. S/L/M otevřou ukládání.")
     if hra.nastaveni.vyvojarsky_rezim:
         print(f"  {DIM}Vývojářské volby T a $ jsou zapnuté v nastavení.{NC}")
     else:
-        print(f"  {DIM}Vývojářské volby lze zapnout v nastavení (26 → 3 → 6).{NC}")
+        print(
+            f"  {DIM}Vývojářské volby lze zapnout v nastavení "
+            f"(volba {_cislo_volby('26')}).{NC}"
+        )

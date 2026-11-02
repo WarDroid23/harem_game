@@ -66,6 +66,12 @@ rozložení hlavního menu: kategorie, seznam, dva sloupce, sekce, mřížka a j
 sloupec. Náhled ukazuje aktivní vzhled a volba obnovy vrátí pouze vzhledové
 volby na výchozí hodnoty. Nastavení hry se ukládají spolu s uloženou hrou.
 
+Průvodce dominiem obsahuje stavový rychlý start, který sleduje první průzkum,
+volbu spojence a posun herního dne. Čísla voleb v nápovědě odpovídají právě
+zobrazenému menu. Volba spojence v kampani se později projeví při návštěvě
+Skleněné zahrady na stavu Starého města, reputaci frakce, vztahu s NPC
+a v kronice.
+
 V hlavním menu se zobrazuje také podpis **Tvůrce: #LordRusty23**.
 
 ## Živý svět 2.0
