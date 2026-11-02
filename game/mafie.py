@@ -568,14 +568,17 @@ def vydirani_a_korupce(hrac, mafie, hra=None):
     clear()
     print(f"{RED}--- Vydírání hodnostářů & Podplácení městských stráží ---{NC}\n")
     print(f"Informátoři: {getattr(mafie, 'informatori', 0)} | Korupce: {mafie.korupce}% | Vliv: {getattr(mafie, 'vliv_ve_meste', 0)}%\n")
-    vytiskni_volbu('1', 'Vydírat zkorumpovaného radního (Vyžaduje 1 informátora, zisk 150-300 zl)')
+    vytiskni_volbu('1', 'Vydírat zkorumpovaného radního (1× denně, vyžaduje 1 informátora, zisk 150-320 zl)')
     vytiskni_volbu('2', 'Uplatit velitele hlídky (Cena 120 zl, sníží vliv inkvizice o 10%)')
     vytiskni_volbu('3', 'Kompromitovat církevního soudce (Vyžaduje 2 informátory a 30% korupce)')
     vytiskni_volbu('0', 'Zpět')
 
     volba = input("> ").strip()
     if volba == "1":
-        if getattr(mafie, "informatori", 0) < 1:
+        den = max(1, int(getattr(hrac, "den", 1)))
+        if mafie.posledni_den_vydirani == den:
+            tisk_chyba("Radního lze vydírat pouze jednou za herní den.")
+        elif getattr(mafie, "informatori", 0) < 1:
             tisk_chyba("Potřebuješ alespoň 1 informátora ke shromáždění kompromateriálů.")
         else:
             import random
@@ -583,6 +586,7 @@ def vydirani_a_korupce(hrac, mafie, hra=None):
             zisk = random.randint(150, 320)
             hrac.gold += zisk
             mafie.vliv_ve_meste = min(100, getattr(mafie, "vliv_ve_meste", 0) + 4)
+            mafie.posledni_den_vydirani = den
             tisk_ok(f"Radní zaplatil {zisk} 🪙 ze strachu ze zveřejnění svých hříchů!")
     elif volba == "2":
         if hrac.gold < 120:

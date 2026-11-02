@@ -15,6 +15,61 @@ from utils.decision_ai import vzdalenosti_od_cilu, vyber_nejlepsi_uzitek
 
 
 class ZivySvetTesty(unittest.TestCase):
+    def test_investice_do_mesta_maji_stupnujici_cenu_a_ukladaji_se(self):
+        hra = Hra()
+        hra.hrac.gold = 2000
+        sveta = hra.zivy_svet
+        mesto = sveta.mesta["stare_mesto"]
+        zlato_pred = hra.hrac.gold
+        prosperita_pred = mesto.prosperita
+
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(sveta.investuj_do_mesta(hra, "stare_mesto", "obchod"))
+        self.assertEqual(hra.hrac.gold, zlato_pred - 250)
+        self.assertEqual(mesto.prosperita, prosperita_pred + 5)
+
+        zlato_pred = hra.hrac.gold
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(sveta.investuj_do_mesta(hra, "stare_mesto", "obchod"))
+        self.assertEqual(hra.hrac.gold, zlato_pred - 500)
+        self.assertEqual(sveta.rozvoj_mesta["stare_mesto"]["obchod"], 2)
+
+        nactena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(
+            nactena.zivy_svet.rozvoj_mesta["stare_mesto"]["obchod"],
+            2,
+        )
+        self.assertEqual(
+            nactena.zivy_svet.mesta["stare_mesto"].prosperita,
+            prosperita_pred + 10,
+        )
+
+    def test_investice_do_mesta_neutrati_zlato_pri_chybejicich_fondech_nebo_maximu(self):
+        hra = Hra()
+        hra.hrac.gold = 249
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            self.assertFalse(
+                hra.zivy_svet.investuj_do_mesta(hra, "stare_mesto", "obchod")
+            )
+        self.assertEqual(hra.hrac.gold, 249)
+
+        hra.hrac.gold = 250
+        mesto = hra.zivy_svet.mesta["stare_mesto"]
+        mesto.prosperita = 100
+        with redirect_stdout(io.StringIO()):
+            self.assertFalse(
+                hra.zivy_svet.investuj_do_mesta(hra, "stare_mesto", "obchod")
+            )
+        self.assertEqual(hra.hrac.gold, 250)
+
+    def test_menu_rozvoje_mesta_odmita_zaporne_indexy(self):
+        hra = Hra()
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["-1"]), redirect_stdout(vystup):
+            hra.zivy_svet._menu_rozvoje_mesta(hra)
+        self.assertIn("Neplatná volba města.", vystup.getvalue())
+
     def test_vsechny_frakce_maji_unikatni_starost_pribeh_a_zbozi(self):
         hra = Hra()
         self.assertEqual(set(FRAKCNI_PROFILY), set(hra.frakce.frakce))

@@ -1167,6 +1167,69 @@ class HraTesty(unittest.TestCase):
         hra.kampan.volby = [{"volba": "vyuzit"}]
         self.assertEqual(hra.kampan.urci_zaver(hra), "Vláda stínů")
 
+    def test_volba_spojence_zmeni_mesto_a_frakci_po_navsteve_zahrady(self):
+        for spojenec in ("mira", "radan"):
+            hra = Hra()
+            hra.kampan.kapitola = 3
+            hra.kampan.volby = [{"kapitola": 1, "volba": spojenec}]
+            hra.svet.navstiveno["sklenena_zahrada"] = 1
+            mesto = hra.zivy_svet.mesta["stare_mesto"]
+            puvodni_stav = (
+                mesto.prosperita,
+                mesto.bezpeci,
+                mesto.stabilita,
+            )
+            frakce_id = "policie" if spojenec == "mira" else "podsveti"
+            reputace_frakce = hra.frakce.frakce[frakce_id].reputace
+            vztah = hra.svet.vztahy_npc[spojenec]
+            with redirect_stdout(io.StringIO()):
+                hra.kampan.zkontroluj_postup(hra)
+
+            if spojenec == "mira":
+                self.assertEqual(mesto.bezpeci, puvodni_stav[1] + 3)
+                self.assertEqual(mesto.stabilita, puvodni_stav[2] + 2)
+            else:
+                self.assertEqual(mesto.prosperita, puvodni_stav[0] + 3)
+                self.assertEqual(hra.mafie.vliv_ve_meste, 3)
+            self.assertEqual(
+                hra.frakce.frakce[frakce_id].reputace,
+                reputace_frakce + 3,
+            )
+            self.assertEqual(hra.svet.vztahy_npc[spojenec], vztah + 5)
+            self.assertTrue(any("Staré město" in zaznam["text"] for zaznam in hra.kronika.zaznamy))
+
+            nactena = Hra.from_dict(hra.to_dict())
+            self.assertEqual(nactena.kampan.volby, hra.kampan.volby)
+            self.assertEqual(
+                nactena.zivy_svet.mesta["stare_mesto"].to_dict(),
+                mesto.to_dict(),
+            )
+
+    def test_kampan_zobrazi_vsechny_podporovane_zavery(self):
+        for zaver, uprav, index in (
+            (
+                "Pevnost otevřených dveří",
+                lambda hra: (
+                    setattr(hra.pevnost, "uroven", 3),
+                    setattr(hra.hrac, "reputace_mesta", 35),
+                ),
+                0,
+            ),
+            (
+                "Putující spojenci",
+                lambda hra: setattr(hra.expedice, "dokoncene", 3),
+                1,
+            ),
+        ):
+            hra = Hra()
+            hra.kampan.kapitola = 4
+            hra.kampan.boss_porazeni.append("strazce_hvezdne_brany")
+            hra.svet.aktualni_lokace = "observator"
+            uprav(hra)
+            with redirect_stdout(io.StringIO()):
+                self.assertTrue(hra.kampan.zvol(hra, index))
+            self.assertEqual(hra.kampan.zaver, zaver)
+
     def test_barvy_terminalu_se_promitnou_do_vypisu(self):
         puvodni = config.USE_COLORS
         try:
@@ -1363,6 +1426,41 @@ class HraTesty(unittest.TestCase):
         self.assertIn("50%", text)
         self.assertIn("Tajné drogové doupě", text)
         self.assertIn("+45 zl/den", text)
+
+    def test_vydirani_radniho_ma_denni_limit_ktery_prezije_save_load(self):
+        from game.mafie import vydirani_a_korupce
+
+        hra = Hra()
+        hra.hrac.den = 4
+        hra.hrac.gold = 0
+        hra.mafie.informatori = 1
+        with patch("builtins.input", return_value="1"), \
+             patch("random.randint", return_value=200), \
+             redirect_stdout(io.StringIO()):
+            vydirani_a_korupce(hra.hrac, hra.mafie, hra)
+
+        self.assertEqual(hra.hrac.gold, 200)
+        self.assertEqual(hra.mafie.informatori, 0)
+        self.assertEqual(hra.mafie.posledni_den_vydirani, 4)
+
+        hra.mafie.informatori = 1
+        zlato_pred = hra.hrac.gold
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value="1"), redirect_stdout(vystup):
+            vydirani_a_korupce(hra.hrac, hra.mafie, hra)
+        self.assertIn("pouze jednou za herní den", vystup.getvalue())
+        self.assertEqual(hra.hrac.gold, zlato_pred)
+        self.assertEqual(hra.mafie.informatori, 1)
+
+        hra = Hra.from_dict(hra.to_dict())
+        self.assertEqual(hra.mafie.posledni_den_vydirani, 4)
+        hra.hrac.den += 1
+        with patch("builtins.input", return_value="1"), \
+             patch("random.randint", return_value=200), \
+             redirect_stdout(io.StringIO()):
+            vydirani_a_korupce(hra.hrac, hra.mafie, hra)
+        self.assertEqual(hra.hrac.gold, zlato_pred + 200)
+        self.assertEqual(hra.mafie.informatori, 0)
 
     def test_cerny_trh_okovy_a_ametyst(self):
         from game.obchod import cerny_trh
@@ -1917,7 +2015,27 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Průvodce dominiem", text)
         self.assertIn("Doporučení pro tuto hru", text)
         self.assertIn("volbě 3", text)
+        self.assertIn("Rychlý start — 0/3 kroků", text)
+        self.assertIn("Odpočinek (11)", text)
+        self.assertIn("Deník úkolů", text)
         self.assertEqual(hra.to_dict(), stav_pred)
+
+    def test_pruvodce_zapocte_pruzkum_az_po_prozkoumani_lokace(self):
+        from game.pruvodce import _rychly_start
+
+        hra = Hra()
+        hra.svet.navstiveno["trh"] = 1
+        self.assertFalse(_rychly_start(hra)[0][0])
+
+        hra.svet.aktualni_lokace = "trh"
+        with patch("game.svet.random.random", return_value=0.1), \
+             patch("game.svet.random.randint", return_value=25), \
+             patch("builtins.input", return_value=""), \
+             redirect_stdout(io.StringIO()):
+            hra.svet.pruzkum_lokace(hra)
+
+        self.assertTrue(_rychly_start(hra)[0][0])
+        self.assertIn("trh", Hra.from_dict(hra.to_dict()).svet.prozkoumane_lokace)
 
     def test_nahodne_udalosti_se_ridi_lokaci_a_zapisuji_do_kalendare(self):
         from game.udalosti import spust_nahodnou_udalost
@@ -2073,7 +2191,7 @@ class HraTesty(unittest.TestCase):
         reputace_pred = hra.hrac.reputace_mesta
         vystup = io.StringIO()
 
-        with redirect_stdout(vystup):
+        with patch("builtins.input", return_value="0"), redirect_stdout(vystup):
             self.assertTrue(spust_denni_udalost(hra))
             gold_po_udalosti = hra.hrac.gold
             self.assertFalse(spust_denni_udalost(hra))

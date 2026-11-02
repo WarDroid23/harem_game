@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 
 from game.svet import LOKACE
 from utils.vypis import clear, hlavicka, tisk_chyba, tisk_info, tisk_ok, vytiskni_volbu
+from game.kronika import zaznamenej
 
 KAPITOLY = (
     {
@@ -62,11 +63,49 @@ class KampanSystem:
             tisk_ok("Kapitola dokončena. Přístav je nyní dostupný.")
             self.kapitola += 1
         elif kapitola["cil"] == "navstiv_zahradu" and hra.svet.navstiveno.get("sklenena_zahrada", 0):
+            self._uplatni_dusledky_spojence(hra)
             hra.svet.odhal_lokaci("observator")
             self.splnene_cile.append(kapitola["cil"])
             hra.hrac.pridej_xp(55)
             tisk_ok("Zahrada odhalila cestu k observatoři. Nová kapitola začíná.")
             self.kapitola += 1
+
+    def _uplatni_dusledky_spojence(self, hra):
+        """Promítne dřívější spojenectví do města při návštěvě zahrady."""
+        volba = next(
+            (
+                zaznam.get("volba")
+                for zaznam in reversed(self.volby)
+                if isinstance(zaznam, dict)
+                and zaznam.get("kapitola") == 1
+                and zaznam.get("volba") in ("mira", "radan")
+            ),
+            None,
+        )
+        if not volba:
+            return
+
+        mesto = hra.zivy_svet.mesta.get("stare_mesto")
+        if volba == "mira":
+            dopad = "Mira přivedla do zahrady léčitele a dobrovolníky. Staré město je bezpečnější a soudržnější."
+            if mesto:
+                mesto.uprav(bezpeci=3, stabilita=2)
+            frakce_id = "policie"
+            npc_id = "mira"
+        else:
+            dopad = "Radan otevřel zahradu obchodním kontaktům. Staré město získalo zásoby, ale podsvětí posílilo."
+            if mesto:
+                mesto.uprav(prosperita=3)
+            hra.mafie.vliv_ve_meste = min(100, hra.mafie.vliv_ve_meste + 3)
+            frakce_id = "podsveti"
+            npc_id = "radan"
+
+        frakce = hra.frakce.frakce.get(frakce_id)
+        if frakce:
+            frakce.zmenit(3)
+        hra.svet.zmen_vztah(npc_id, 5)
+        zaznamenej(hra, dopad)
+        tisk_info(dopad)
 
     def urci_zaver(self, hra):
         """Vyhodnotí reputaci, vztahy a zásadní rozhodnutí kampaně."""
@@ -156,6 +195,7 @@ class KampanSystem:
             if not hra.svet.navstiveno.get("sklenena_zahrada", 0):
                 tisk_chyba("Nejdřív navštiv Skleněnou zahradu.")
                 return False
+            self._uplatni_dusledky_spojence(hra)
             hra.svet.odhal_lokaci("observator")
             self.splnene_cile.append(kapitola["cil"])
             hra.hrac.pridej_xp(55)
@@ -187,6 +227,8 @@ class KampanSystem:
             popisy = {
                 "Sjednocené město": "Spojenci vytvořili městskou alianci založenou na důvěře.",
                 "Vláda stínů": "Město se uklonilo síti vlivu a pevnost ovládá podsvětí.",
+                "Pevnost otevřených dveří": "Silná pevnost a důvěra města z ní udělaly útočiště pro nové spojence.",
+                "Putující spojenci": "Spojenci si zachovali samostatnost a společně vyrážejí za novými výpravami.",
                 "Křehký mír": "Podařilo se odvrátit nejhorší, ale důvěra se bude teprve stavět.",
             }
             tisk_ok(f"Hvězdný tribunál je uzavřen. Konec: {self.zaver}.")
