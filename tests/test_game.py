@@ -189,15 +189,67 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Postup XP", vystup.getvalue())
 
     def test_osobni_rozhovor_respektuje_volbu_a_zaznamena_historii(self):
-        from game.harem_interakce import _osobni_akce
+        from game.harem_interakce import _osobni_akce, _rozhovor_o_osobnosti
+        from game.osobni_pribehy import PRIBEHY
 
         hra = Hra()
         otrok = Otrokyně("Mira", charakter="badatelka", duvera=50, strach=20)
-        with patch("builtins.input", side_effect=["11", "3", ""]), redirect_stdout(io.StringIO()):
+        tema = PRIBEHY["badatelka"]["sceny"][0]
+        cil = PRIBEHY["badatelka"]["cil"]
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["11", "3", ""]), redirect_stdout(
+            vystup
+        ):
             _osobni_akce(hra, otrok)
         self.assertGreater(otrok.duvera, 50)
         self.assertEqual(otrok.strach, 15)
         self.assertEqual(otrok.historie_voleb[-1]["typ"], "rozhovor")
+        self.assertIn(f"Její osobní cíl: {cil}", vystup.getvalue())
+        self.assertIn("sama určit tempo", vystup.getvalue())
+        self.assertEqual(otrok.historie_voleb[-1]["tema"], tema)
+
+        ulozena = Otrokyně.from_dict(otrok.to_dict())
+        navazujici = io.StringIO()
+        with patch("builtins.input", return_value="1"), redirect_stdout(navazujici):
+            _rozhovor_o_osobnosti(hra, ulozena)
+        self.assertIn("Navazujete na předchozí rozhovor", navazujici.getvalue())
+        self.assertIn(f"Navazujete na předchozí rozhovor: {tema}", navazujici.getvalue())
+
+        ulozena.historie_voleb[-1]["tema"] = f"\x1b[31m{tema}\x07"
+        osetreny_vystup = io.StringIO()
+        with patch("builtins.input", return_value="1"), redirect_stdout(osetreny_vystup):
+            _rozhovor_o_osobnosti(hra, ulozena)
+        self.assertNotIn("\x1b[31m", osetreny_vystup.getvalue())
+        self.assertNotIn("\x07", osetreny_vystup.getvalue())
+
+    def test_npc_rozhovory_zvladaji_nekonecne_cislo_v_savu(self):
+        from game.svet import SvetSystem
+
+        svet = SvetSystem.from_dict({"rozhovory_npc": {"lyra": float("inf")}})
+        self.assertEqual(svet.rozhovory_npc["lyra"], 0)
+
+    def test_mestsky_rozhovor_navazuje_a_uklada_pocet_rozhovoru(self):
+        hra = Hra()
+        hra.svet.aktualni_lokace = "sklenena_zahrada"
+        lyra = hra.svet.npc_v_lokaci()[0][1]
+        prvni = io.StringIO()
+        with patch("builtins.input", side_effect=["1", "1", "1", ""]), redirect_stdout(
+            prvni
+        ):
+            hra.svet.menu_npc(hra)
+
+        self.assertEqual(hra.svet.rozhovory_npc["lyra"], 1)
+        self.assertIn(lyra["dialogy"][0], prvni.getvalue())
+
+        ulozena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(ulozena.svet.rozhovory_npc["lyra"], 1)
+        druha = io.StringIO()
+        with patch("builtins.input", side_effect=["1", "1", "1", ""]), redirect_stdout(
+            druha
+        ):
+            ulozena.svet.menu_npc(ulozena)
+        self.assertEqual(ulozena.svet.rozhovory_npc["lyra"], 2)
+        self.assertIn(lyra["dialogy"][1], druha.getvalue())
 
     def test_intimni_chvile_vyžaduji_souhlas_a_aplikuji_vztahove_efekty(self):
         from game.harem_interakce import _osobni_akce
