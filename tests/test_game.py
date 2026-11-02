@@ -1427,6 +1427,41 @@ class HraTesty(unittest.TestCase):
         self.assertIn("Tajné drogové doupě", text)
         self.assertIn("+45 zl/den", text)
 
+    def test_vydirani_radniho_ma_denni_limit_ktery_prezije_save_load(self):
+        from game.mafie import vydirani_a_korupce
+
+        hra = Hra()
+        hra.hrac.den = 4
+        hra.hrac.gold = 0
+        hra.mafie.informatori = 1
+        with patch("builtins.input", return_value="1"), \
+             patch("random.randint", return_value=200), \
+             redirect_stdout(io.StringIO()):
+            vydirani_a_korupce(hra.hrac, hra.mafie, hra)
+
+        self.assertEqual(hra.hrac.gold, 200)
+        self.assertEqual(hra.mafie.informatori, 0)
+        self.assertEqual(hra.mafie.posledni_den_vydirani, 4)
+
+        hra.mafie.informatori = 1
+        zlato_pred = hra.hrac.gold
+        vystup = io.StringIO()
+        with patch("builtins.input", return_value="1"), redirect_stdout(vystup):
+            vydirani_a_korupce(hra.hrac, hra.mafie, hra)
+        self.assertIn("pouze jednou za herní den", vystup.getvalue())
+        self.assertEqual(hra.hrac.gold, zlato_pred)
+        self.assertEqual(hra.mafie.informatori, 1)
+
+        hra = Hra.from_dict(hra.to_dict())
+        self.assertEqual(hra.mafie.posledni_den_vydirani, 4)
+        hra.hrac.den += 1
+        with patch("builtins.input", return_value="1"), \
+             patch("random.randint", return_value=200), \
+             redirect_stdout(io.StringIO()):
+            vydirani_a_korupce(hra.hrac, hra.mafie, hra)
+        self.assertEqual(hra.hrac.gold, zlato_pred + 200)
+        self.assertEqual(hra.mafie.informatori, 0)
+
     def test_cerny_trh_okovy_a_ametyst(self):
         from game.obchod import cerny_trh
         hra = Hra()

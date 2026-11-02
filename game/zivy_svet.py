@@ -312,6 +312,12 @@ MOZNOSTI_ZASAHU = (
     {"text": "Postavit se plánu a oslabit vliv frakce", "cena": 0, "frakce": -6, "mesto": -1},
 )
 
+ROZVOJOVE_PROJEKTY = {
+    "obchod": ("Obnova tržiště", "prosperita"),
+    "hlidky": ("Městské hlídky", "bezpeci"),
+    "rada": ("Místní rada", "stabilita"),
+}
+
 UDALOSTI_MESTA = {
     "karavana": {
         "frakce": "obchodnici",
@@ -407,6 +413,7 @@ class ZivySvetSystem:
     vztahy_frakci: dict = field(default_factory=dict)
     karavany: list = field(default_factory=list)
     trziste_sklady: dict = field(default_factory=dict)
+    rozvoj_mesta: dict = field(default_factory=dict)
     dalsi_frakce: int = 0
     dalsi_postava: int = 0
 
@@ -484,6 +491,16 @@ class ZivySvetSystem:
             )
             for mesto_id, definice in MESTA.items()
         }
+        ulozeny_rozvoj = self.rozvoj_mesta if isinstance(self.rozvoj_mesta, dict) else {}
+        self.rozvoj_mesta = {}
+        for mesto_id in MESTA:
+            projekty = ulozeny_rozvoj.get(mesto_id, {})
+            if not isinstance(projekty, dict):
+                continue
+            self.rozvoj_mesta[mesto_id] = {
+                projekt_id: min(20, _kladne_cislo(projekty.get(projekt_id, 0)))
+                for projekt_id in ROZVOJOVE_PROJEKTY
+            }
         ulozene_sklady = (
             self.trziste_sklady if isinstance(self.trziste_sklady, dict) else {}
         )
@@ -701,6 +718,7 @@ class ZivySvetSystem:
             "vztahy_frakci": deepcopy(self.vztahy_frakci),
             "karavany": deepcopy(self.karavany),
             "trziste_sklady": deepcopy(self.trziste_sklady),
+            "rozvoj_mesta": deepcopy(self.rozvoj_mesta),
             "dalsi_frakce": self.dalsi_frakce,
             "dalsi_postava": self.dalsi_postava,
         }
@@ -720,6 +738,7 @@ class ZivySvetSystem:
         vztahy_frakci = data.get("vztahy_frakci", {})
         karavany = data.get("karavany", [])
         trziste_sklady = data.get("trziste_sklady", {})
+        rozvoj_mesta = data.get("rozvoj_mesta", {})
         if not isinstance(cile, dict) or not isinstance(postavy, list):
             raise ValueError("Uložený živý svět má neplatný formát.")
         if (
@@ -732,6 +751,7 @@ class ZivySvetSystem:
             or not isinstance(vztahy_frakci, dict)
             or not isinstance(karavany, list)
             or not isinstance(trziste_sklady, dict)
+            or not isinstance(rozvoj_mesta, dict)
         ):
             raise ValueError("Uložené události živého světa mají neplatný formát.")
         return cls(
@@ -747,6 +767,7 @@ class ZivySvetSystem:
             vztahy_frakci=deepcopy(vztahy_frakci),
             karavany=deepcopy(karavany[-3:]),
             trziste_sklady=deepcopy(trziste_sklady),
+            rozvoj_mesta=deepcopy(rozvoj_mesta),
             dalsi_frakce=_kladne_cislo(data.get("dalsi_frakce", 0)),
             dalsi_postava=_kladne_cislo(data.get("dalsi_postava", 0)),
         )
@@ -1587,6 +1608,7 @@ class ZivySvetSystem:
                 "6",
                 f"Setkat se s NPC v této lokaci ({len(pobliz)})",
             )
+            vytiskni_volbu("7", "Investovat do rozvoje města")
             vytiskni_volbu("0", "Zpět")
             try:
                 volba = input("> ").strip()
@@ -1605,8 +1627,96 @@ class ZivySvetSystem:
                     input("Enter pro návrat...")
                 elif volba == "6":
                     self._menu_setkani_npc(hra)
+                elif volba == "7":
+                    self._menu_rozvoje_mesta(hra)
             except EOFError:
                 return
+
+    def investuj_do_mesta(self, hra, mesto_id, projekt_id):
+        """Vymění zlato za trvalé, omezené zlepšení městského ukazatele."""
+        projekt = ROZVOJOVE_PROJEKTY.get(projekt_id)
+        mesto = self.mesta.get(mesto_id)
+        if not projekt or not mesto:
+            tisk_chyba("Neplatné město nebo rozvojový projekt.")
+            return False
+        ukazatel = projekt[1]
+        if getattr(mesto, ukazatel) >= 100:
+            tisk_info(f"{mesto.nazev} už dosáhlo maxima: {ukazatel} 100.")
+            return False
+
+        uroven = self.rozvoj_mesta[mesto_id][projekt_id]
+        cena = 250 * (uroven + 1)
+        if hra.hrac.gold < cena:
+            tisk_chyba(f"Investice stojí {cena} zlata.")
+            return False
+
+        pred = getattr(mesto, ukazatel)
+        hra.hrac.gold -= cena
+        mesto.uprav(**{ukazatel: 5})
+        zisk = getattr(mesto, ukazatel) - pred
+        self.rozvoj_mesta[mesto_id][projekt_id] = uroven + 1
+        text = (
+            f"{projekt[0]} v {mesto.nazev}: {ukazatel} "
+            f"+{zisk} za {cena} zlata."
+        )
+        self.historie.append({"den": hra.hrac.den, "text": text})
+        if len(self.historie) > 30:
+            self.historie = self.historie[-30:]
+        from game.kronika import zaznamenej
+        zaznamenej(hra, text)
+        tisk_ok(text)
+        return True
+
+    def _menu_rozvoje_mesta(self, hra):
+        print("\n=== ROZVOJ MĚSTA ===")
+        for index, (mesto_id, mesto) in enumerate(self.mesta.items(), 1):
+            print(
+                f"  {index}) {mesto.nazev}: prosperita {mesto.prosperita}, "
+                f"bezpečí {mesto.bezpeci}, stabilita {mesto.stabilita}"
+            )
+        vytiskni_volbu("0", "Zpět")
+        try:
+            vyber = input("Město: ").strip()
+            if vyber == "0":
+                return
+            index = int(vyber) - 1
+            if not 0 <= index < len(self.mesta):
+                raise ValueError
+            mesto_id = tuple(self.mesta)[index]
+            mesto = self.mesta[mesto_id]
+        except (EOFError, ValueError):
+            tisk_chyba("Neplatná volba města.")
+            return
+
+        print(f"\nInvestice: {mesto.nazev} | pokladna {hra.hrac.gold} zl.")
+        for index, (projekt_id, (nazev, ukazatel)) in enumerate(
+            ROZVOJOVE_PROJEKTY.items(), 1
+        ):
+            uroven = self.rozvoj_mesta[mesto_id][projekt_id]
+            cena = 250 * (uroven + 1)
+            stav = getattr(mesto, ukazatel)
+            dostupnost = (
+                "maximum dosaženo"
+                if stav >= 100
+                else f"{stav} → {min(100, stav + 5)}"
+            )
+            vytiskni_volbu(
+                str(index),
+                f"{nazev} — {ukazatel}: {dostupnost}, {cena} zl.",
+            )
+        vytiskni_volbu("0", "Zpět")
+        try:
+            vyber = input("> ").strip()
+            if vyber == "0":
+                return
+            index = int(vyber) - 1
+            if not 0 <= index < len(ROZVOJOVE_PROJEKTY):
+                raise ValueError
+            projekt_id = tuple(ROZVOJOVE_PROJEKTY)[index]
+        except (EOFError, ValueError):
+            tisk_chyba("Neplatná volba investice.")
+            return
+        self.investuj_do_mesta(hra, mesto_id, projekt_id)
 
     def _postavy_v_lokaci(self, hra):
         lokace = getattr(getattr(hra, "svet", None), "aktualni_lokace", "")

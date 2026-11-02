@@ -72,6 +72,11 @@ zobrazenému menu. Volba spojence v kampani se později projeví při návštěv
 Skleněné zahrady na stavu Starého města, reputaci frakce, vztahu s NPC
 a v kronice.
 
+V živém světě lze investovat do prosperity, bezpečí nebo stability města.
+Každý další projekt stejného typu ve stejném městě stojí více zlata a ukazatele
+se zastaví na 100. Vydírání radního spotřebuje informátora a lze ho provést
+nejvýše jednou za herní den; tento limit se ukládá do save.
+
 V hlavním menu se zobrazuje také podpis **Tvůrce: #LordRusty23**.
 
 ## Živý svět 2.0

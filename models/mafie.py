@@ -56,6 +56,7 @@ class Mafie:
     rozkaz_armady: str = "hlidkovat"
     moral_armady: int = 0
     placena_armada: bool = False
+    posledni_den_vydirani: int = 0
 
     def vypocet_prijmu(self):
         zaklad = sum(u.prijem * u.kontrola // 100 for u in self.uzemi if u.obsazeno)
@@ -83,6 +84,7 @@ class Mafie:
             "rozkaz_armady": self.rozkaz_armady,
             "moral_armady": self.moral_armady,
             "placena_armada": self.placena_armada,
+            "posledni_den_vydirani": self.posledni_den_vydirani,
         }
 
     @classmethod
@@ -106,6 +108,12 @@ class Mafie:
         except (TypeError, ValueError):
             m.moral_armady = 0
         m.placena_armada = bool(data.get("placena_armada", False))
+        try:
+            m.posledni_den_vydirani = max(
+                0, int(data.get("posledni_den_vydirani", 0))
+            )
+        except (TypeError, ValueError):
+            m.posledni_den_vydirani = 0
         porazeni = data.get("bossove_porazeni", [])
         if isinstance(porazeni, list):
             m.bossove_porazeni = list(dict.fromkeys(
