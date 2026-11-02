@@ -226,10 +226,26 @@ def _osobni_akce(hra, otrok):
 
 
 def _rozhovor_o_osobnosti(hra, otrok):
+    from game.osobni_pribehy import PRIBEHY
+
     charakter = CHARAKTERY[normalizuj_charakter(otrok.charakter)]
     modifikatory = charakter.get("modifikatory", {})
+    pribeh = PRIBEHY[normalizuj_charakter(otrok.charakter)]
+    krok = min(getattr(otrok, "osobni_pribeh_krok", 0), 2)
+    tema = pribeh["sceny"][krok]
     print(f"\n{CYAN}Rozhovor s {otrok.jmeno}{NC}")
     print(f"„{charakter['popis']}“")
+    print(f"Téma: {tema}")
+    print(f"Její osobní cíl: {pribeh['cil']}")
+    posledni_rozhovor = next(
+        (
+            zaznam for zaznam in reversed(getattr(otrok, "historie_voleb", []))
+            if isinstance(zaznam, dict) and zaznam.get("typ") == "rozhovor"
+        ),
+        None,
+    )
+    if posledni_rozhovor and posledni_rozhovor.get("tema"):
+        print(f"Navazujete na předchozí rozhovor: {posledni_rozhovor['tema']}")
     vytiskni_volbu("1", "Naslouchat bez přerušování (+7 důvěra, +3 loajalita)")
     vytiskni_volbu("2", "Povzbudit její silnou stránku (+5 vybraný vztahový rys, +3 důvěra)")
     vytiskni_volbu("3", "Domluvit si jasné hranice (+5 důvěra, -5 strach)")
@@ -243,6 +259,7 @@ def _rozhovor_o_osobnosti(hra, otrok):
         otrok.zvysit_stat("duvera", duvera)
         otrok.zvysit_stat("loajalita", loajalita)
         vysledek = f"Důvěra +{duvera}, loajalita +{loajalita}."
+        reakce_text = "Nechala tě domluvit a svěřila ti víc ze svých myšlenek."
     elif volba == "2":
         rysy = ("duvera", "loajalita", "touha")
         rys = max(rysy, key=lambda stat: modifikatory.get(stat, 1.0))
@@ -252,11 +269,13 @@ def _rozhovor_o_osobnosti(hra, otrok):
         otrok.zvysit_stat("duvera", duvera)
         popisy = {"duvera": "důvěra", "loajalita": "loajalita", "touha": "nadšení"}
         vysledek = f"{popisy[rys]} +{hodnota}, důvěra +{duvera}."
+        reakce_text = "Přijala povzbuzení, ale další krok si chce zvolit sama."
     elif volba == "3":
         duvera = max(1, int(5 * modifikatory.get("duvera", 1.0) * reakce))
         otrok.zvysit_stat("duvera", duvera)
         otrok.zvysit_stat("strach", -5)
         vysledek = f"Důvěra +{duvera}, strach -5."
+        reakce_text = "Ulevilo se jí, že může sama určit tempo a říct, co potřebuje."
     elif volba == "0":
         tisk_info("Rozhovor byl odložen; její rozhodnutí i soukromí respektuješ.")
         return
@@ -265,7 +284,14 @@ def _rozhovor_o_osobnosti(hra, otrok):
         return
 
     otrok.nalada = "klidná"
-    otrok.zaznamenej_volbu("rozhovor", "Naslouchání osobním přáním", hra.hrac.den)
+    print(f"\n{otrok.jmeno}: „{reakce_text}“")
+    otrok.zaznamenej_volbu(
+        "rozhovor",
+        "Rozhovor o osobních přáních",
+        hra.hrac.den,
+        tema=tema,
+        reakce=reakce_text,
+    )
     tisk_ok(f"{otrok.jmeno} ocenila, že jsi jí věnoval čas. {vysledek}")
 
 

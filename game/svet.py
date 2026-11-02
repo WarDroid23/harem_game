@@ -1073,6 +1073,7 @@ class SvetSystem:
     odhalene_lokace: list = field(default_factory=lambda: list(VYCHOZI_ODHALENE))
     navstiveno: dict = field(default_factory=dict)
     vztahy_npc: dict = field(default_factory=lambda: {k: 0 for k in NPC})
+    rozhovory_npc: dict = field(default_factory=dict)
     lokacni_odmeny: dict = field(default_factory=dict)
     specializace_ctvrti: DistrictSpecializationSystem = field(default_factory=DistrictSpecializationSystem)
 
@@ -1102,6 +1103,16 @@ class SvetSystem:
                 hodnota = 0
             vztahy[npc_id] = max(-100, min(100, hodnota))
         self.vztahy_npc = vztahy
+        puvodni_rozhovory = (
+            self.rozhovory_npc if isinstance(self.rozhovory_npc, dict) else {}
+        )
+        self.rozhovory_npc = {}
+        for npc_id in NPC:
+            try:
+                pocet = max(0, int(puvodni_rozhovory.get(npc_id, 0)))
+            except (TypeError, ValueError):
+                pocet = 0
+            self.rozhovory_npc[npc_id] = pocet
         puvodni_odmeny = (
             self.lokacni_odmeny
             if isinstance(self.lokacni_odmeny, dict) else {}
@@ -1638,6 +1649,7 @@ class SvetSystem:
             "odhalene_lokace": self.odhalene_lokace,
             "navstiveno": self.navstiveno,
             "vztahy_npc": self.vztahy_npc,
+            "rozhovory_npc": self.rozhovory_npc,
             "lokacni_odmeny": self.lokacni_odmeny,
             "specializace_ctvrti": self.specializace_ctvrti.to_dict(),
         }
@@ -1654,6 +1666,7 @@ class SvetSystem:
             odhalene_lokace=data.get("odhalene_lokace", VYCHOZI_ODHALENE),
             navstiveno=data.get("navstiveno", {}) if isinstance(data.get("navstiveno", {}), dict) else {},
             vztahy_npc=data.get("vztahy_npc", {}) if isinstance(data.get("vztahy_npc", {}), dict) else {},
+            rozhovory_npc=data.get("rozhovory_npc", {}) if isinstance(data.get("rozhovory_npc", {}), dict) else {},
             lokacni_odmeny=data.get("lokacni_odmeny", {}),
             specializace_ctvrti=DistrictSpecializationSystem.from_dict(specializace),
         )
@@ -2319,22 +2332,42 @@ class SvetSystem:
         else:
             # Obecný příběhový dialog s větvením pro ostatní NPC
             dialogy = npc.get("dialogy", ["Tvé dominium roste a město si o tobě šeptá."])
-            print(f"„{dialogy[0]}“\n")
-            print(f"  {BOLD}1){NC} Přátelsky a s úctou rozvinout hovor o dění v kraji (+vztah, +reputace)")
-            print(f"  {BOLD}2){NC} Projevit temnou autoritu vládce dominia (+respekt, +temno)")
+            if not isinstance(dialogy, (list, tuple)) or not dialogy:
+                dialogy = ["Tvé dominium roste a město si o tobě šeptá."]
+            pocet_rozhovoru = self.rozhovory_npc.get(npc_id, 0)
+            vztah = self.vztahy_npc[npc_id]
+            repliky = (
+                "se s tebou po chvíli rozhovoru uvolní"
+                if vztah >= 25
+                else "odpovídá opatrně a drží si odstup"
+                if vztah < 0
+                else "naslouchá a zvědavě čeká na tvoji odpověď"
+            )
+            print(f"„{dialogy[pocet_rozhovoru % len(dialogy)]}“")
+            print(f"{npc['jmeno']} {repliky}.\n")
+            print(f"  {BOLD}1){NC} Zeptat se na zkušenosti a pozorně naslouchat (+vztah, +reputace)")
+            print(f"  {BOLD}2){NC} Sdílet svůj pohled na dění v kraji (+respekt, +temno)")
             print(f"  {BOLD}0){NC} Zpět")
             v = input("\n> ").strip()
             if v == "1":
+                self.rozhovory_npc[npc_id] = pocet_rozhovoru + 1
                 self.zmen_vztah(npc_id, 6)
                 hra.hrac.reputace_mesta += 2
-                tisk_ok(f"Rozhovor s {npc['jmeno']} prohloubil vaše porozumění (vztah +6, reputace +2).")
+                tisk_ok(
+                    f"Pozorně jsi naslouchal. Vztah +6, reputace +2; "
+                    f"rozhovor {pocet_rozhovoru + 1}."
+                )
             elif v == "2":
+                self.rozhovory_npc[npc_id] = pocet_rozhovoru + 1
                 self.zmen_vztah(npc_id, 4)
                 hra.hrac.dark_energy = min(
                     hra.hrac.max_temno() if hasattr(hra.hrac, "max_temno") else 100,
                     hra.hrac.dark_energy + 8
                 )
-                tisk_ok(f"{npc['jmeno']} cítí tvou sílu a sklání hlavu (vztah +4, temná energie +8).")
+                tisk_ok(
+                    f"Podělil ses o svůj pohled. Vztah +4, temná energie +8; "
+                    f"rozhovor {pocet_rozhovoru + 1}."
+                )
 
         input("\nEnter...")
 
