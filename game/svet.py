@@ -1110,7 +1110,7 @@ class SvetSystem:
         for npc_id in NPC:
             try:
                 pocet = max(0, int(puvodni_rozhovory.get(npc_id, 0)))
-            except (TypeError, ValueError):
+            except (OverflowError, TypeError, ValueError):
                 pocet = 0
             self.rozhovory_npc[npc_id] = pocet
         puvodni_odmeny = (

@@ -190,9 +190,12 @@ class HraTesty(unittest.TestCase):
 
     def test_osobni_rozhovor_respektuje_volbu_a_zaznamena_historii(self):
         from game.harem_interakce import _osobni_akce, _rozhovor_o_osobnosti
+        from game.osobni_pribehy import PRIBEHY
 
         hra = Hra()
         otrok = Otrokyně("Mira", charakter="badatelka", duvera=50, strach=20)
+        tema = PRIBEHY["badatelka"]["sceny"][0]
+        cil = PRIBEHY["badatelka"]["cil"]
         vystup = io.StringIO()
         with patch("builtins.input", side_effect=["11", "3", ""]), redirect_stdout(
             vystup
@@ -201,15 +204,29 @@ class HraTesty(unittest.TestCase):
         self.assertGreater(otrok.duvera, 50)
         self.assertEqual(otrok.strach, 15)
         self.assertEqual(otrok.historie_voleb[-1]["typ"], "rozhovor")
-        self.assertIn("Její osobní cíl", vystup.getvalue())
+        self.assertIn(f"Její osobní cíl: {cil}", vystup.getvalue())
         self.assertIn("sama určit tempo", vystup.getvalue())
-        self.assertIn("tema", otrok.historie_voleb[-1])
+        self.assertEqual(otrok.historie_voleb[-1]["tema"], tema)
 
         ulozena = Otrokyně.from_dict(otrok.to_dict())
         navazujici = io.StringIO()
         with patch("builtins.input", return_value="1"), redirect_stdout(navazujici):
             _rozhovor_o_osobnosti(hra, ulozena)
         self.assertIn("Navazujete na předchozí rozhovor", navazujici.getvalue())
+        self.assertIn(f"Navazujete na předchozí rozhovor: {tema}", navazujici.getvalue())
+
+        ulozena.historie_voleb[-1]["tema"] = f"\x1b[31m{tema}\x07"
+        osetreny_vystup = io.StringIO()
+        with patch("builtins.input", return_value="1"), redirect_stdout(osetreny_vystup):
+            _rozhovor_o_osobnosti(hra, ulozena)
+        self.assertNotIn("\x1b[31m", osetreny_vystup.getvalue())
+        self.assertNotIn("\x07", osetreny_vystup.getvalue())
+
+    def test_npc_rozhovory_zvladaji_nekonecne_cislo_v_savu(self):
+        from game.svet import SvetSystem
+
+        svet = SvetSystem.from_dict({"rozhovory_npc": {"lyra": float("inf")}})
+        self.assertEqual(svet.rozhovory_npc["lyra"], 0)
 
     def test_mestsky_rozhovor_navazuje_a_uklada_pocet_rozhovoru(self):
         hra = Hra()

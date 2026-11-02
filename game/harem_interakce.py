@@ -245,7 +245,13 @@ def _rozhovor_o_osobnosti(hra, otrok):
         None,
     )
     if posledni_rozhovor and posledni_rozhovor.get("tema"):
-        print(f"Navazujete na předchozí rozhovor: {posledni_rozhovor['tema']}")
+        predchozi_tema = posledni_rozhovor["tema"]
+        if isinstance(predchozi_tema, str):
+            bezpecna_tema = "".join(
+                znak for znak in predchozi_tema if znak.isprintable()
+            )
+            if bezpecna_tema:
+                print(f"Navazujete na předchozí rozhovor: {bezpecna_tema}")
     vytiskni_volbu("1", "Naslouchat bez přerušování (+7 důvěra, +3 loajalita)")
     vytiskni_volbu("2", "Povzbudit její silnou stránku (+5 vybraný vztahový rys, +3 důvěra)")
     vytiskni_volbu("3", "Domluvit si jasné hranice (+5 důvěra, -5 strach)")
