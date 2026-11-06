@@ -417,6 +417,7 @@ class ZivySvetSystem:
     trziste_sklady: dict = field(default_factory=dict)
     dalsi_frakce: int = 0
     dalsi_postava: int = 0
+    posledni_slavnosti: dict = field(default_factory=dict)
 
     def __post_init__(self):
         for frakce_id, (nazev, popis) in FRAKCNI_CILE.items():
@@ -692,6 +693,14 @@ class ZivySvetSystem:
         ][-30:]
         self.dalsi_frakce %= len(FRAKCNI_CILE)
         self.dalsi_postava %= max(1, len(self.postavy))
+        ulozene_slavnosti = (
+            self.posledni_slavnosti
+            if isinstance(self.posledni_slavnosti, dict) else {}
+        )
+        self.posledni_slavnosti = {
+            mesto_id: _kladne_cislo(ulozene_slavnosti.get(mesto_id, 0))
+            for mesto_id in MESTA
+        }
 
     def to_dict(self):
         return {
@@ -712,6 +721,7 @@ class ZivySvetSystem:
             "trziste_sklady": deepcopy(self.trziste_sklady),
             "dalsi_frakce": self.dalsi_frakce,
             "dalsi_postava": self.dalsi_postava,
+            "posledni_slavnosti": deepcopy(self.posledni_slavnosti),
         }
 
     @classmethod
@@ -729,6 +739,7 @@ class ZivySvetSystem:
         vztahy_frakci = data.get("vztahy_frakci", {})
         karavany = data.get("karavany", [])
         trziste_sklady = data.get("trziste_sklady", {})
+        posledni_slavnosti = data.get("posledni_slavnosti", {})
         if not isinstance(cile, dict) or not isinstance(postavy, list):
             raise ValueError("Uložený živý svět má neplatný formát.")
         if (
@@ -741,6 +752,7 @@ class ZivySvetSystem:
             or not isinstance(vztahy_frakci, dict)
             or not isinstance(karavany, list)
             or not isinstance(trziste_sklady, dict)
+            or not isinstance(posledni_slavnosti, dict)
         ):
             raise ValueError("Uložené události živého světa mají neplatný formát.")
         return cls(
@@ -758,6 +770,7 @@ class ZivySvetSystem:
             trziste_sklady=deepcopy(trziste_sklady),
             dalsi_frakce=_kladne_cislo(data.get("dalsi_frakce", 0)),
             dalsi_postava=_kladne_cislo(data.get("dalsi_postava", 0)),
+            posledni_slavnosti=deepcopy(posledni_slavnosti),
         )
 
     def posun_den(self, hra):
@@ -1631,6 +1644,7 @@ class ZivySvetSystem:
                 "6",
                 f"Setkat se s NPC v této lokaci ({len(pobliz)})",
             )
+            vytiskni_volbu("7", "Uspořádat městskou slavnost")
             vytiskni_volbu("0", "Zpět")
             try:
                 volba = input("> ").strip()
@@ -1649,8 +1663,150 @@ class ZivySvetSystem:
                     input("Enter pro návrat...")
                 elif volba == "6":
                     self._menu_setkani_npc(hra)
+                elif volba == "7":
+                    self._menu_slavnosti(hra)
             except EOFError:
                 return
+
+    def _dostupne_slavnosti(self, hra):
+        den = max(1, int(hra.hrac.den))
+        nabidky = []
+        for mesto_id, mesto in self.mesta.items():
+            posledni_den = self.posledni_slavnosti.get(mesto_id, 0)
+            if posledni_den and den - posledni_den < 7:
+                continue
+            if mesto.prosperita >= 55:
+                nabidky.append((mesto_id, "trh"))
+            if mesto.stabilita >= 50:
+                nabidky.append((mesto_id, "slavnost"))
+        return nabidky
+
+    def _menu_slavnosti(self, hra):
+        print("\n=== MĚSTSKÉ SLAVNOSTI ===")
+        nabidky = self._dostupne_slavnosti(hra)
+        if not nabidky:
+            tisk_info(
+                "Žádné město zatím nesplňuje podmínky nebo ještě trvá "
+                "sedmidenní odpočinek po poslední slavnosti."
+            )
+            return
+
+        print("Vyber město a událost:")
+        for index, (mesto_id, typ) in enumerate(nabidky, 1):
+            mesto = self.mesta[mesto_id]
+            nazev = "Kupecký trh" if typ == "trh" else "Městský festival"
+            podminka = (
+                f"prosperita {mesto.prosperita}"
+                if typ == "trh" else f"stabilita {mesto.stabilita}"
+            )
+            print(f"  {index}) {mesto.nazev} — {nazev} ({podminka})")
+        vytiskni_volbu("0", "Zpět")
+        try:
+            volba = input("> ").strip()
+            if volba == "0":
+                return
+            index = int(volba) - 1
+            if not 0 <= index < len(nabidky):
+                raise ValueError
+        except (EOFError, ValueError):
+            tisk_chyba("Neplatná slavnost.")
+            return
+
+        mesto_id, typ = nabidky[index]
+        mesto = self.mesta[mesto_id]
+        print("Rozpočet: 1) Skromný (30 zl.)  2) Velkolepý (70 zl.)")
+        print("Zajištění: 1) Dobrovolníci (zdarma)  2) Městská hlídka (25 zl.)")
+        try:
+            rozpocet_volba = input("Rozpočet: ").strip()
+            zajisteni_volba = input("Zajištění: ").strip()
+        except EOFError:
+            return
+        if rozpocet_volba not in ("1", "2") or zajisteni_volba not in ("1", "2"):
+            tisk_chyba("Neplatná volba rozpočtu nebo zajištění.")
+            return
+
+        velkolepa = rozpocet_volba == "2"
+        hlidka = zajisteni_volba == "2"
+        naklady = (70 if velkolepa else 30) + (25 if hlidka else 0)
+        if hra.hrac.gold < naklady:
+            tisk_chyba(f"Na tuto slavnost potřebuješ {naklady} zlata.")
+            return
+        hra.hrac.gold -= naklady
+
+        if typ == "trh":
+            vydelek = 100 if velkolepa else 60
+            mesto.uprav(prosperita=5 if velkolepa else 3)
+            sklad = self.trziste_sklady[mesto_id]
+            sklad["zasoby"] = min(
+                60, sklad["zasoby"] + (5 if velkolepa else 2)
+            )
+            frakce_id = "obchodnici"
+            typ_nazev = "kupecký trh"
+        else:
+            vydelek = 65 if velkolepa else 35
+            mesto.uprav(stabilita=6 if velkolepa else 4)
+            frakce_id = (
+                "cech_kurtizan" if mesto_id == "stare_mesto" else "policie"
+            )
+            typ_nazev = "městský festival"
+
+        mesto.uprav(bezpeci=3 if hlidka else 0)
+        incident = not hlidka and mesto.bezpeci < 30
+        if incident:
+            vydelek = max(0, vydelek - 25)
+            mesto.uprav(stabilita=-2)
+            tisk_info("Slabé hlídky způsobily během slavnosti menší nepokoj.")
+
+        hra.hrac.gold += vydelek
+        frakce = hra.frakce.frakce.get(frakce_id)
+        if frakce:
+            frakce.zmenit(6 if velkolepa else 3)
+        mesto_id_postav = [
+            postava for postava in self.postavy
+            if _mesto_lokace(postava.get("lokace", "")) == mesto_id
+        ]
+        if mesto_id_postav:
+            vztah = 5 if velkolepa else 3
+            for postava in mesto_id_postav:
+                postava["vztah_hraci"] = min(
+                    100, postava.get("vztah_hraci", 0) + vztah
+                )
+                hra.svet.zmen_vztah(postava.get("id"), vztah)
+
+        den = max(1, int(hra.hrac.den))
+        self.posledni_slavnosti[mesto_id] = den
+        typ_pokracovani = (
+            "trzni_oziveni" if typ == "trh" else "bezpecna_ctvrt"
+        )
+        naplanovano = len(self.navazujici_udalosti) < 5
+        if naplanovano:
+            self.navazujici_udalosti.append({
+                "den": den + 2,
+                "mesto_id": mesto_id,
+                "typ": typ_pokracovani,
+                "retizec": f"slavnost-{mesto_id}-{den}",
+            })
+        zaznam = {
+            "den": den,
+            "text": (
+                f"{mesto.nazev}: uspořádán {typ_nazev}; "
+                f"příjem +{vydelek} zl."
+            ),
+        }
+        self.historie.append(zaznam)
+        self.historie = self.historie[-30:]
+        from game.kronika import zaznamenej
+        zaznamenej(hra, f"Živý svět: {zaznam['text']}")
+        tisk_ok(
+            f"{typ_nazev.capitalize()} v {mesto.nazev} přilákal návštěvníky: "
+            f"+{vydelek} zl., přízeň frakce +{6 if velkolepa else 3}."
+        )
+        if naplanovano:
+            tisk_info(
+                "Za dva dny naváže další událost: "
+                + UDALOSTI_MESTA[typ_pokracovani]["nazev"]
+                + "."
+            )
 
     def _postavy_v_lokaci(self, hra):
         lokace = getattr(getattr(hra, "svet", None), "aktualni_lokace", "")

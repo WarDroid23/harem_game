@@ -577,6 +577,72 @@ class ZivySvetTesty(unittest.TestCase):
         self.assertGreater(mesto.bezpeci, 10)
         self.assertTrue(any("bezpečně dorazila" in zprava for zprava in zpravy))
 
+    def test_slavnost_zohledni_rozpocet_bezpecnost_npc_a_ochlazeni(self):
+        hra = Hra()
+        hra.hrac.gold = 200
+        svet = hra.zivy_svet
+        mesto = svet.mesta["stare_mesto"]
+        stabilita_pred = mesto.stabilita
+        bezpeci_pred = mesto.bezpeci
+        reputace_pred = hra.frakce.frakce["cech_kurtizan"].reputace
+        npc_pred = next(
+            postava for postava in svet.postavy
+            if postava["id"] == "mira_lecitelka"
+        )["vztah_hraci"]
+
+        with patch("builtins.input", side_effect=["2", "2", "2"]), redirect_stdout(
+            io.StringIO()
+        ):
+            svet._menu_slavnosti(hra)
+
+        self.assertEqual(hra.hrac.gold, 170)
+        self.assertEqual(mesto.stabilita, stabilita_pred + 6)
+        self.assertEqual(mesto.bezpeci, bezpeci_pred + 3)
+        self.assertEqual(
+            hra.frakce.frakce["cech_kurtizan"].reputace,
+            reputace_pred + 6,
+        )
+        self.assertEqual(
+            next(
+                postava for postava in svet.postavy
+                if postava["id"] == "mira_lecitelka"
+            )["vztah_hraci"],
+            npc_pred + 5,
+        )
+        self.assertEqual(svet.posledni_slavnosti["stare_mesto"], 1)
+        obnovena = Hra.from_dict(hra.to_dict()).zivy_svet
+        self.assertEqual(obnovena.posledni_slavnosti["stare_mesto"], 1)
+        self.assertEqual(len(obnovena.navazujici_udalosti), 1)
+        self.assertEqual(
+            obnovena.navazujici_udalosti[0]["typ"], "bezpecna_ctvrt"
+        )
+        self.assertEqual(obnovena.navazujici_udalosti[0]["den"], 3)
+        self.assertFalse(any(
+            mesto_id == "stare_mesto"
+            for mesto_id, _ in obnovena._dostupne_slavnosti(
+                Hra.from_dict(hra.to_dict())
+            )
+        ))
+
+        zpravy = []
+        obnovena._aktivuj_nasledne_udalosti(3, zpravy)
+        self.assertEqual(
+            obnovena.udalosti_mesta[-1]["typ"], "bezpecna_ctvrt"
+        )
+        self.assertIn("Pokračuje městská linka", zpravy[0])
+
+    def test_slavnost_zustane_zamcena_pro_mesto_v_krizi(self):
+        hra = Hra()
+        for mesto in hra.zivy_svet.mesta.values():
+            mesto.prosperita = 30
+            mesto.stabilita = 30
+
+        self.assertEqual(hra.zivy_svet._dostupne_slavnosti(hra), [])
+        vystup = io.StringIO()
+        with redirect_stdout(vystup):
+            hra.zivy_svet._menu_slavnosti(hra)
+        self.assertIn("Žádné město", vystup.getvalue())
+
     def test_navazujici_udalost_se_aktivuje_a_ulozi(self):
         hra = Hra()
         hra.zivy_svet.navazujici_udalosti.append({
