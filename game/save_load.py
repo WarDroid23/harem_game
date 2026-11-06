@@ -345,7 +345,8 @@ def uloz_hru(hra: Hra, soubor=SAVE_FILE):
             os.fsync(f.fileno())
         if cesta.exists():
             for index in range(3, 1, -1):
-                starsi = cesta.with_name(cesta.name + f".bak{index - 1}")
+                starsi_suffix = ".bak" if index == 2 else f".bak{index - 1}"
+                starsi = cesta.with_name(cesta.name + starsi_suffix)
                 novejsi = cesta.with_name(cesta.name + f".bak{index}")
                 if starsi.exists():
                     shutil.copy2(starsi, novejsi)

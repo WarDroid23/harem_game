@@ -238,6 +238,29 @@ NPC_QUESTY = {
             },
         },
     },
+    "sara_signalistka": {
+        "nazev": "Ztracené říční signály",
+        "popis": "Sára potřebuje obnovit světelné značky, podle kterých karavany poznají bezpečný vjezd do přístavu.",
+        "pozadavek": 8, "odmena": 180, "xp": 45, "reputace": 8,
+        "frakce_dopad": {"obchodnici": 4, "policie": 2},
+        "temna_varianta": {
+            "odmena": 250, "xp": 30, "reputace": -6, "dark": 10,
+            "frakce_dopad": {"syndikat_stinu": 5, "obchodnici": -4},
+        },
+        "navazujici": {
+            "nazev": "Světla přes řeku",
+            "popis": "Zajisti dohodu mezi přístavními hlídkami a kupci, aby nové signály platily na obou březích.",
+            "pozadavek": 15, "odmena": 340, "xp": 85, "reputace": 12,
+            "odmena_predmet": "signalni_roh",
+            "frakce_dopad": {"obchodnici": 6, "policie": 4},
+            "temna_varianta": {
+                "odmena": 480, "xp": 50, "reputace": -9, "dark": 16,
+                "frakce_dopad": {"syndikat_stinu": 8, "obchodnici": -6},
+                "vliv_mafie": 5,
+            },
+        },
+        "jednorazovy": True,
+    },
 }
 
 

@@ -872,6 +872,16 @@ NPC = {
             "Když se komíny odmlčí, město poslouchá. Dnes v noci slyším něco, co se mi nelíbí.",
         ],
     },
+    "sara_signalistka": {
+        "jmeno": "Sára, výpravčí říčních tras",
+        "popis": "Spravuje světelné signály v přístavu a pomáhá karavanám bezpečně vplout do města.",
+        "lokace": "vychodni_pristav",
+        "vek": 32,
+        "dialogy": [
+            "Jedno světlo navede loď. Dohoda mezi lidmi ji dostane bezpečně až na molo.",
+            "Když kupci i hlídky sdílejí stejnou mapu, řeka nemusí být hranicí.",
+        ],
+    },
     "mira_vychodni": {
         "jmeno": "Mira, léčitelka Východního Brodu",
         "popis": "Terénní léčitelka, která organizuje pomoc v osadách za řekou.",
@@ -1824,6 +1834,8 @@ class SvetSystem:
             vytiskni_volbu('4', f"🎯 Dokončit úkol: {quest['nazev']}")
         elif stav_ukolu == "dostupny":
             vytiskni_volbu('4', f"🎯 Přijmout úkol: {quest['nazev']}")
+        if npc_id == "sara_signalistka":
+            vytiskni_volbu('5', "⛵ Zajistit doprovod jedné karavaně (25 zl.)")
         vytiskni_volbu('0', 'Zpět')
         akce = input("> ").strip()
         vztah = self.vztahy_npc[npc_id]
@@ -1860,6 +1872,11 @@ class SvetSystem:
                     tisk_chyba("Úkol zůstává aktivní.")
             else:
                 tisk_info("Tento NPC ti zatím žádný úkol nenabízí.")
+            input("Enter...")
+            return
+
+        elif akce == "5" and npc_id == "sara_signalistka":
+            hra.zivy_svet.zajisti_doprovod_karavany(hra)
             input("Enter...")
             return
 
@@ -2035,6 +2052,14 @@ class SvetSystem:
                     tisk_ok("Dozorce Krag vypravil povoz s těžkým kamenem do tvého dominia (+60 kamene)!")
                 else:
                     tisk_chyba("Krag požaduje 45 🪙 za povoz kamene.")
+            elif npc_id == "sara_signalistka":
+                if hra.hrac.gold >= 10:
+                    hra.hrac.gold -= 10
+                    hra.zivy_svet.mesta["vychodni_brod"].uprav(bezpeci=1)
+                    self.zmen_vztah(npc_id, 8)
+                    tisk_ok("Pomohl jsi Sáře opravit přístavní signál. Bezpečí +1, vztah +8.")
+                else:
+                    tisk_chyba("Sára potřebuje 10 zlata na světelné značky.")
 
         elif akce == "3":
             if vztah < -20:

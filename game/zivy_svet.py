@@ -304,6 +304,14 @@ VYCHOZI_POSTAVY = (
             "Spojuje umělce s komunitními dobrovolníky.",
         ),
     },
+    {
+        "id": "sara_signalistka", "jmeno": "Sára", "role": "Výpravčí říčních tras",
+        "frakce": "obchodnici", "lokace": "vychodni_pristav", "duvera": 0,
+        "akce": (
+            "Kontroluje světelné značky pro karavany.",
+            "Domlouvá s hlídkami bezpečný příjezd do přístavu.",
+        ),
+    },
 )
 
 MOZNOSTI_ZASAHU = (
@@ -644,6 +652,7 @@ class ZivySvetSystem:
                 "pozice": pozice,
                 "stav": "na_ceste",
                 "odeslano": _kladne_cislo(karavana.get("odeslano")),
+                "doprovod": karavana.get("doprovod") is True,
             })
         self.karavany = platne_karavany[:3]
         if not isinstance(self.navazujici_udalosti, list):
@@ -893,6 +902,7 @@ class ZivySvetSystem:
                 "pozice": 0,
                 "stav": "na_ceste",
                 "odeslano": den,
+                "doprovod": False,
             }
             self.karavany.append(karavana)
             zpravy.append(
@@ -913,14 +923,20 @@ class ZivySvetSystem:
                 pokracujici.append(karavana)
                 continue
             mesto = self.mesta[mesto_id]
-            if mesto.bezpeci >= 20 and mesto.stabilita >= 20:
-                prijem = 12 + mesto.prosperita // 5
+            doprovod = karavana.get("doprovod", False) is True
+            if (mesto.bezpeci >= 20 and mesto.stabilita >= 20) or doprovod:
+                prijem = 12 + mesto.prosperita // 5 + (25 if doprovod else 0)
                 hra.hrac.gold += prijem
-                mesto.uprav(prosperita=1, stabilita=1)
+                mesto.uprav(
+                    prosperita=1,
+                    stabilita=2 if doprovod else 1,
+                    bezpeci=1 if doprovod else 0,
+                )
                 self._uprav_vliv_lokace(lokace_id, "obchodnici", 3)
                 zpravy.append(
                     f"Karavana bezpečně dorazila do města {mesto.nazev}: "
-                    f"+{prijem} zl., prosperita +1."
+                    f"+{prijem} zl., prosperita +1"
+                    f"{', doprovod posílil bezpečí a stabilitu' if doprovod else ''}."
                 )
             else:
                 mesto.uprav(stabilita=-1)
@@ -930,6 +946,34 @@ class ZivySvetSystem:
                 )
         self.karavany = pokracujici
         return zpravy
+
+    def zajisti_doprovod_karavany(self, hra):
+        """Zaplatí doprovod pro jednu dosud nechráněnou karavanu."""
+        if hra.npc_questy.dokoncene.get("sara_signalistka", 0) < 1:
+            tisk_info("Nejdřív dokonči Sářin první úkol, aby ti svěřila karavany.")
+            return False
+        karavana = next(
+            (
+                polozka for polozka in self.karavany
+                if polozka.get("stav") == "na_ceste"
+                and polozka.get("doprovod") is not True
+            ),
+            None,
+        )
+        if karavana is None:
+            tisk_info("Není tu žádná karavana, která by potřebovala doprovod.")
+            return False
+        cena = 25
+        if hra.hrac.gold < cena:
+            tisk_chyba("Na zajištění doprovodu potřebuješ 25 zlata.")
+            return False
+        hra.hrac.gold -= cena
+        karavana["doprovod"] = True
+        tisk_ok(
+            f"Karavana {karavana.get('id', '')} dostala říční doprovod "
+            "a při příjezdu přiveze bezpečnější zásilku."
+        )
+        return True
 
     def _vykonej_cil_fakce(self, frakce_id):
         """Nechá frakci vykonat malý, průběžný krok jejího městského cíle."""
@@ -1799,6 +1843,20 @@ class ZivySvetSystem:
             "Ukazuje, jak její práce mění životy místních obyvatel.",
             "Rozhoduje se, jakou budoucnost chce pro sebe i své město.",
         )
+        pribehy_sary = (
+            (
+                "Světlo, které nikdo neviděl",
+                "Sára vypráví o karavaně, která minula přístav, protože staré signální lampy zhasly.",
+            ),
+            (
+                "Mapa na obou březích",
+                "Kupci a hlídky používají různé značky. Sára hledá způsob, jak je přimět sdílet jednu mapu.",
+            ),
+            (
+                "Bezpečná cesta domů",
+                "Sára chce, aby se přístav stal místem, kam se karavany vracejí bez strachu i bez výpalného.",
+            ),
+        )
         if postava["pribeh"] >= 3:
             print(
                 f"{postava['jmeno']} už uzavřela svůj příběh. "
@@ -1811,11 +1869,14 @@ class ZivySvetSystem:
             return
         kapitola = postava["pribeh"]
         profil = FRAKCNI_PROFILY.get(postava.get("frakce"))
-        pribehova_kapitola = (
-            profil["kapitoly"][kapitola]
-            if profil and kapitola < len(profil["kapitoly"])
-            else (f"Kapitola {kapitola + 1}", kapitoly[kapitola])
-        )
+        if postava.get("id") == "sara_signalistka":
+            pribehova_kapitola = pribehy_sary[kapitola]
+        else:
+            pribehova_kapitola = (
+                profil["kapitoly"][kapitola]
+                if profil and kapitola < len(profil["kapitoly"])
+                else (f"Kapitola {kapitola + 1}", kapitoly[kapitola])
+            )
         starosti_mesta = MESTSKE_STAROSTI[mesto_id]
         nejpalcivejsi = min(
             ("prosperita", "bezpeci", "stabilita"),

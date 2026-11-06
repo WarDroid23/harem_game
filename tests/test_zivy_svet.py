@@ -528,6 +528,55 @@ class ZivySvetTesty(unittest.TestCase):
             3,
         )
 
+    def test_sara_ma_vlastni_pribehovou_linku(self):
+        hra = Hra()
+        sara = next(
+            postava for postava in hra.zivy_svet.postavy
+            if postava["id"] == "sara_signalistka"
+        )
+        index = hra.zivy_svet.postavy.index(sara) + 1
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=[str(index), "2"]), redirect_stdout(
+            vystup
+        ):
+            hra.zivy_svet._menu_pribehu_npc(hra)
+
+        self.assertIn("Světlo, které nikdo neviděl", vystup.getvalue())
+        self.assertEqual(sara["pribeh"], 1)
+
+    def test_doprovod_karavany_persistuje_a_zachrani_nejistou_zasilku(self):
+        hra = Hra()
+        hra.hrac.gold = 100
+        hra.npc_questy.dokoncene["sara_signalistka"] = 1
+        hra.zivy_svet.karavany = [{
+            "id": "testovaci-karavana",
+            "cesta": ["trh", "pristav", "vychodni_pristav", "vychodni_trziste"],
+            "pozice": 2,
+            "stav": "na_ceste",
+            "odeslano": 1,
+            "doprovod": False,
+        }]
+
+        with redirect_stdout(io.StringIO()):
+            self.assertTrue(hra.zivy_svet.zajisti_doprovod_karavany(hra))
+        self.assertEqual(hra.hrac.gold, 75)
+        obnovena = Hra.from_dict(hra.to_dict())
+        self.assertTrue(obnovena.zivy_svet.karavany[0]["doprovod"])
+
+        mesto = obnovena.zivy_svet.mesta["vychodni_brod"]
+        mesto.bezpeci = 10
+        mesto.stabilita = 10
+        zlato_pred = obnovena.hrac.gold
+        with redirect_stdout(io.StringIO()):
+            zpravy = obnovena.zivy_svet._posun_karavany(
+                obnovena, obnovena.hrac.den
+            )
+
+        self.assertFalse(obnovena.zivy_svet.karavany)
+        self.assertGreater(obnovena.hrac.gold, zlato_pred)
+        self.assertGreater(mesto.bezpeci, 10)
+        self.assertTrue(any("bezpečně dorazila" in zprava for zprava in zpravy))
+
     def test_navazujici_udalost_se_aktivuje_a_ulozi(self):
         hra = Hra()
         hra.zivy_svet.navazujici_udalosti.append({

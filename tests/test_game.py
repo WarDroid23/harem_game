@@ -412,6 +412,56 @@ class HraTesty(unittest.TestCase):
             self.assertEqual(nactena.hrac.gold, 321)
             self.assertTrue(cesta.exists())
 
+    def test_nacteni_obnovi_hlubsi_zalozni_kopie(self):
+        import json
+
+        hra = Hra()
+        hra.hrac.gold = 654
+        platny_save = json.dumps(hra.to_dict(), ensure_ascii=False)
+        with tempfile.TemporaryDirectory() as slozka:
+            cesta = Path(slozka) / "save.json"
+            for suffix in (".bak2", ".bak3"):
+                with self.subTest(zaloha=suffix):
+                    cesta.write_text("{poškozený", encoding="utf-8")
+                    cesta.with_name(cesta.name + ".bak").write_text(
+                        "{poškozený", encoding="utf-8"
+                    )
+                    cesta.with_name(cesta.name + ".bak2").write_text(
+                        "{poškozený", encoding="utf-8"
+                    )
+                    cesta.with_name(cesta.name + suffix).write_text(
+                        platny_save, encoding="utf-8"
+                    )
+                    with redirect_stdout(io.StringIO()):
+                        nactena = nacti_hru(cesta)
+
+                    self.assertIsNotNone(nactena)
+                    self.assertEqual(nactena.hrac.gold, 654)
+                    self.assertTrue(cesta.exists())
+
+    def test_ulozeni_rotuje_dve_zalozni_kopie(self):
+        import json
+
+        with tempfile.TemporaryDirectory() as slozka:
+            cesta = Path(slozka) / "save.json"
+            for zlato in (111, 222, 333):
+                hra = Hra()
+                hra.hrac.gold = zlato
+                with redirect_stdout(io.StringIO()):
+                    self.assertTrue(uloz_hru(hra, cesta))
+
+            for suffix, ocekavane_zlato in (
+                ("", 333),
+                (".bak", 222),
+                (".bak2", 111),
+            ):
+                with self.subTest(zaloha=suffix):
+                    soubor = cesta if not suffix else cesta.with_name(
+                        cesta.name + suffix
+                    )
+                    data = json.loads(soubor.read_text(encoding="utf-8"))
+                    self.assertEqual(data["hrac"]["gold"], ocekavane_zlato)
+
     def test_nacti_volbu_opakuje_neplatne_vstupy_a_normalizuje(self):
         from utils.vypis import nacti_volbu
 
@@ -1042,6 +1092,27 @@ class HraTesty(unittest.TestCase):
             "normal",
         )
         self.assertEqual(hra.vyzkum.body, body_pred + 3)
+
+    def test_sara_nabizi_navazujici_ukoly_o_rijnich_signalnich_trasach(self):
+        hra = Hra()
+        self.assertIn("sara_signalistka", hra.svet.vztahy_npc)
+        hra.svet.zmen_vztah("sara_signalistka", 8)
+
+        dostupne = dict(hra.npc_questy.dostupne(hra))
+        self.assertEqual(dostupne["sara_signalistka"]["nazev"], "Ztracené říční signály")
+        self.assertTrue(hra.npc_questy.prijmi(hra, "sara_signalistka"))
+        self.assertEqual(
+            hra.npc_questy.dokoncit(hra, "sara_signalistka"),
+            "normal",
+        )
+
+        dalsi = dict(hra.npc_questy.dostupne(hra))
+        self.assertEqual(dalsi["sara_signalistka"]["nazev"], "Světla přes řeku")
+        obnovena = Hra.from_dict(hra.to_dict())
+        self.assertEqual(
+            dict(obnovena.npc_questy.dostupne(obnovena))["sara_signalistka"]["nazev"],
+            "Světla přes řeku",
+        )
 
     def test_lokacni_odmeny_maji_denni_limit_a_preziji_save_load(self):
         hra = Hra()
