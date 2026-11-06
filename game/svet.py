@@ -882,6 +882,26 @@ NPC = {
             "Když kupci i hlídky sdílejí stejnou mapu, řeka nemusí být hranicí.",
         ],
     },
+    "nora_kartografka": {
+        "jmeno": "Nora, městská kartografka",
+        "popis": "Dospělá mapářka, která zakresluje přístupné a bezpečné trasy mezi městskými čtvrtěmi.",
+        "lokace": "akademicke_namesti",
+        "vek": 29,
+        "dialogy": [
+            "Dobrá mapa nemá lidi vést tam, kam nechtějí. Má jim ukázat možnosti.",
+            "Chci, aby se podle mých cest mohl bezpečně rozhodnout každý, nejen kupci.",
+        ],
+    },
+    "zora_bylinkarka": {
+        "jmeno": "Zora, bylinkářka komunitní zahrady",
+        "popis": "Dospělá zahradnice, která pěstuje léčivé byliny a učí místní, jak o ně pečovat.",
+        "lokace": "botanicke_zahrady",
+        "vek": 33,
+        "dialogy": [
+            "Zahrada je užitečná teprve tehdy, když se o její úrodu může podělit i soused.",
+            "Lidé si nejlépe odpočinou, když mohou sami rozhodnout, co chtějí pěstovat.",
+        ],
+    },
     "mira_vychodni": {
         "jmeno": "Mira, léčitelka Východního Brodu",
         "popis": "Terénní léčitelka, která organizuje pomoc v osadách za řekou.",

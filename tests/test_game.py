@@ -99,6 +99,75 @@ class HraTesty(unittest.TestCase):
         self.assertNotIn("Něžnost", text)
         self.assertNotIn("Forced orgasm", text)
 
+    def test_osobni_projekt_podporuje_jeji_volbu_a_ma_denni_limit(self):
+        from game.harem_interakce import _osobni_akce, podporit_vlastni_projekt
+
+        hra = Hra()
+        hra.hrac.gold = 100
+        otrok = Otrokyně("Mira", charakter="cartografka", duvera=40, loajalita=30)
+        body_pred = hra.vyzkum.body
+
+        vystup = io.StringIO()
+        with patch("builtins.input", side_effect=["16", "2", "a", ""]), redirect_stdout(
+            vystup
+        ):
+            _osobni_akce(hra, otrok)
+
+        self.assertIn("Podpořit její vlastní plán", vystup.getvalue())
+        self.assertEqual(hra.hrac.gold, 85)
+        self.assertEqual(hra.vyzkum.body, body_pred + 2)
+        self.assertEqual(otrok.duvera, 45)
+        self.assertEqual(otrok.loajalita, 33)
+        self.assertEqual(otrok.historie_voleb[-1]["typ"], "osobní projekt")
+
+        xp_pred = hra.hrac.xp
+        with patch("builtins.input") as vstup, redirect_stdout(io.StringIO()):
+            self.assertFalse(podporit_vlastni_projekt(hra, otrok))
+        vstup.assert_not_called()
+        self.assertEqual(hra.hrac.gold, 85)
+        self.assertEqual(hra.hrac.xp, xp_pred)
+
+    def test_odmitnuty_osobni_projekt_nestoji_zlato(self):
+        from game.harem_interakce import podporit_vlastni_projekt
+
+        hra = Hra()
+        otrok = Otrokyně("Nela", charakter="umelkyne")
+        zlato_pred = hra.hrac.gold
+        duvera_pred = otrok.duvera
+
+        with patch("builtins.input", side_effect=["1", "n"]), redirect_stdout(
+            io.StringIO()
+        ):
+            self.assertFalse(podporit_vlastni_projekt(hra, otrok))
+
+        self.assertEqual(hra.hrac.gold, zlato_pred)
+        self.assertEqual(otrok.duvera, duvera_pred)
+        self.assertEqual(
+            otrok.historie_voleb[-1]["typ"], "osobní projekt odmítnut"
+        )
+
+    def test_komunitni_projekt_zlepsi_mesto_a_schopnost_postavy(self):
+        from game.harem_interakce import podporit_vlastni_projekt
+
+        hra = Hra()
+        hra.hrac.gold = 100
+        hra.svet.aktualni_lokace = "vychodni_zahrady"
+        otrok = Otrokyně("Nora", charakter="cartografka")
+        mesto = hra.zivy_svet.mesta["vychodni_brod"]
+        bezpeci_pred = mesto.bezpeci
+        bezpeci_stare_mesto = hra.zivy_svet.mesta["stare_mesto"].bezpeci
+
+        with patch("builtins.input", side_effect=["3", "a"]), redirect_stdout(
+            io.StringIO()
+        ):
+            self.assertTrue(podporit_vlastni_projekt(hra, otrok))
+
+        self.assertEqual(mesto.bezpeci, bezpeci_pred + 2)
+        self.assertEqual(
+            hra.zivy_svet.mesta["stare_mesto"].bezpeci,
+            bezpeci_stare_mesto,
+        )
+
     def test_vztahove_combo_prida_bonus_po_spravne_sekvenci(self):
         from game.interakce import proved_interakci
 

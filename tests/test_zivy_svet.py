@@ -43,6 +43,40 @@ class ZivySvetTesty(unittest.TestCase):
         self.assertIn("Městská starost:", vystup.getvalue())
         self.assertEqual(hra.zivy_svet.postavy[6]["pribeh"], 1)
 
+    def test_nove_dospele_npc_maji_osobni_ukoly_a_ulozitelny_postup(self):
+        from game.svet import NPC
+
+        hra = Hra()
+        for npc_id, prvni_ukol, dalsi_ukol in (
+            (
+                "nora_kartografka",
+                "Mapa bezpečných cest",
+                "Atlas otevřených cest",
+            ),
+            (
+                "zora_bylinkarka",
+                "Semena pro komunitní zahradu",
+                "Ošetřovna pod širým nebem",
+            ),
+        ):
+            with self.subTest(npc=npc_id):
+                self.assertIn(npc_id, NPC)
+                self.assertIn(npc_id, hra.svet.vztahy_npc)
+                self.assertGreaterEqual(NPC[npc_id]["vek"], 18)
+                hra.svet.vztahy_npc[npc_id] = 8
+                self.assertEqual(
+                    dict(hra.npc_questy.dostupne(hra))[npc_id]["nazev"],
+                    prvni_ukol,
+                )
+                self.assertTrue(hra.npc_questy.prijmi(hra, npc_id))
+                self.assertEqual(hra.npc_questy.dokoncit(hra, npc_id), "normal")
+
+                obnovena = Hra.from_dict(hra.to_dict())
+                self.assertEqual(
+                    dict(obnovena.npc_questy.dostupne(obnovena))[npc_id]["nazev"],
+                    dalsi_ukol,
+                )
+
     def test_setkani_npc_zobrazi_postavy_pouze_v_aktualni_lokaci(self):
         hra = Hra()
         sveta = hra.zivy_svet

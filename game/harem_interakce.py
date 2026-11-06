@@ -7,6 +7,39 @@ from data.charaktery import CHARAKTERY, nazev_charakteru, normalizuj_charakter
 from game.tresty_odmeny import nastav_oblibenou, menu_odmen
 
 
+OSOBNI_CILE = {
+    "amazonka": "založit výcvikový kruh podle vlastních pravidel",
+    "badatelka": "zpřístupnit své poznatky a pokračovat ve výzkumu",
+    "cartografka": "dokončit mapu bezpečných cest",
+    "carodejka": "bezpečně rozvíjet vlastní magické schopnosti",
+    "diplomatka": "připravit dohodu, ve které bude vyslyšen každý hlas",
+    "knezka_temnoty": "vytvořit obřad, jehož účast je dobrovolná",
+    "lekarka": "vybudovat dostupné místo pro péči a zotavení",
+    "umelkyne": "dokončit vlastní dílo a sama rozhodnout, komu ho ukáže",
+    "veteranka": "předat své zkušenosti lidem, kteří o výcvik stojí",
+    "zlodejka": "vybudovat síť bezpečných zpráv pro místní obyvatele",
+}
+
+OSOBNI_PROJEKT_METRIKY = {
+    "amazonka": "bezpeci",
+    "badatelka": "prosperita",
+    "cartografka": "bezpeci",
+    "carodejka": "stabilita",
+    "diplomatka": "stabilita",
+    "knezka_temnoty": "stabilita",
+    "lekarka": "bezpeci",
+    "umelkyne": "prosperita",
+    "veteranka": "bezpeci",
+    "zlodejka": "stabilita",
+}
+
+NAZVY_METRIK_MESTA = {
+    "bezpeci": "bezpečí",
+    "prosperita": "prosperita",
+    "stabilita": "stabilita",
+}
+
+
 def _vyber_otrokyni(hra):
     aktivni = hra.harem.vsechny_aktivni()
     if not aktivni:
@@ -65,6 +98,7 @@ def _osobni_akce(hra, otrok):
     vytiskni_volbu('13', 'Otevřít její osobní deník')
     vytiskni_volbu('14', 'Graf vývoje jejích statistik')
     vytiskni_volbu('15', 'Smyslné chvíle a intimita (dospělé postavy, se souhlasem)')
+    vytiskni_volbu('16', 'Podpořit její vlastní plán (15 zl., dobrovolně)')
     vytiskni_volbu('0', 'Zpět')
     volba = input("> ").strip()
     if volba == "1":
@@ -219,10 +253,100 @@ def _osobni_akce(hra, otrok):
     elif volba == "15":
         from game.intimita_rozsireni import nabidnout_intimni_chvili
         nabidnout_intimni_chvili(hra, otrok)
+    elif volba == "16":
+        podporit_vlastni_projekt(hra, otrok)
     elif volba != "0":
         tisk_chyba("Neplatná volba.")
     if volba != "4":
         input("Enter...")
+
+
+def podporit_vlastni_projekt(hra, otrok):
+    """Podpoří dobrovolně zvolený osobní cíl jednou za herní den."""
+    if otrok.na_najmu:
+        tisk_chyba("Nejdřív musí skončit její pracovní závazek.")
+        return False
+
+    den = max(1, int(hra.hrac.den))
+    if any(
+        zaznam.get("typ") == "osobní projekt"
+        and zaznam.get("den") == den
+        for zaznam in otrok.historie_voleb
+    ):
+        tisk_info("Dnes už jsi její osobní plán podpořil.")
+        return False
+
+    charakter = normalizuj_charakter(otrok.charakter)
+    cil = OSOBNI_CILE.get(
+        charakter,
+        "rozvíjet dovednost, kterou si sama vybrala",
+    )
+    print(f"\n{otrok.jmeno} by ráda mohla {cil}.")
+    vytiskni_volbu("1", "Trénink: společná příprava (+15 XP)")
+    vytiskni_volbu("2", "Studium: podpora výzkumu (+2 body)")
+    metrika = OSOBNI_PROJEKT_METRIKY.get(charakter, "stabilita")
+    vytiskni_volbu(
+        "3",
+        f"Komunita: podpořit místní {NAZVY_METRIK_MESTA[metrika]} (+2)",
+    )
+    vytiskni_volbu("0", "Plán odložit")
+    try:
+        volba = input("> ").strip()
+    except EOFError:
+        return False
+    if volba == "0":
+        return False
+    if volba not in ("1", "2", "3"):
+        tisk_chyba("Neplatný osobní plán.")
+        return False
+    if hra.hrac.gold < 15:
+        tisk_chyba("Na podporu projektu potřebuješ 15 zlata.")
+        return False
+    try:
+        souhlas = input(
+            f"Nabídnout {otrok.jmeno} podporu jejího plánu za 15 zl.? (a/n): "
+        ).strip().lower()
+    except EOFError:
+        return False
+    if souhlas not in ("a", "ano"):
+        tisk_info(f"{otrok.jmeno} dnes podporu odmítla; její rozhodnutí respektuješ.")
+        otrok.zaznamenej_volbu(
+            "osobní projekt odmítnut",
+            "Respektována volba nepřijmout nabídku",
+            den,
+        )
+        return False
+
+    hra.hrac.gold -= 15
+    otrok.zvysit_stat("duvera", 5)
+    otrok.zvysit_stat("loajalita", 3)
+    if volba == "1":
+        hra.hrac.pridej_xp(15)
+        projekt = "Společný trénink"
+        odmena = "+15 XP"
+    elif volba == "2":
+        hra.vyzkum.pridej_body(2)
+        projekt = "Podpora studia"
+        odmena = "+2 výzkumné body"
+    else:
+        from game.svet import LOKACE
+
+        lokace = getattr(hra.svet, "aktualni_lokace", "pevnost")
+        mesto_id = LOKACE.get(lokace, {}).get("mesto", "stare_mesto")
+        mesto = hra.zivy_svet.mesta.get(mesto_id)
+        if mesto is None:
+            raise ValueError(f"Neznámé město osobního projektu: {mesto_id}")
+        mesto.uprav(**{metrika: 2})
+        projekt = "Komunitní iniciativa"
+        odmena = (
+            f"{NAZVY_METRIK_MESTA[metrika]} města {mesto.nazev} +2"
+        )
+    otrok.zaznamenej_volbu("osobní projekt", projekt, den)
+    tisk_ok(
+        f"{otrok.jmeno} vedla projekt podle vlastních představ; "
+        f"důvěra +5, loajalita +3, {odmena}."
+    )
+    return True
 
 
 def _rozhovor_o_osobnosti(hra, otrok):
@@ -320,6 +444,13 @@ def zobraz_profil(otrok):
     charakter = CHARAKTERY[charakter_id]
     print(f"Charakter: {charakter['nazev']} | Osud: {otrok.popis_osudu()}")
     print(f"  {charakter['popis']}")
+    print(
+        "Osobní cíl: "
+        + OSOBNI_CILE.get(
+            charakter_id,
+            "rozvíjet dovednost, kterou si sama vybrala",
+        )
+    )
     from game.charakter_bonusy import schopnost_postavy
     print(f"Schopnost: {schopnost_postavy(otrok)}")
     krok_pribehu = min(3, int(getattr(otrok, "osobni_pribeh_krok", 0)))

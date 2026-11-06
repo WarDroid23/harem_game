@@ -47,6 +47,10 @@ JMENA.extend([
     "Grazia", "Helene", "Inez", "Jasmine", "Kira", "Lysandra", "Mila", "Nora",
     "Orla", "Petrina", "Qiana", "Rin", "Sabrina", "Tatiana", "Ulana", "Vespera",
     "Wulan", "Xandra", "Ylva", "Zafira",
+    "Alžběta", "Anděla", "Božidara", "Drahomíra", "Emilie", "Jolana",
+    "Lada", "Mariana", "Matylda", "Milena", "Rostislava", "Slavěna",
+    "Tamara", "Věra", "Zora", "Žaneta", "Dorota", "Ester", "Olga",
+    "Sabina",
 ])
 JMENA[:] = list(dict.fromkeys(JMENA))
 

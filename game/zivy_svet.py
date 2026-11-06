@@ -151,6 +151,18 @@ NPC_POMOC = {
         "cena": 10,
         "mesto": {"prosperita": 2, "stabilita": 1},
     },
+    "nora_kartografka": {
+        "zadost": "potřebuje ověřit bezpečnou trasu mezi akademií a tržištěm",
+        "cena": 10,
+        "mesto": {"stabilita": 2},
+        "vyzkum": 1,
+    },
+    "zora_bylinkarka": {
+        "zadost": "shání pomoc se semeny pro komunitní léčivou zahradu",
+        "cena": 10,
+        "mesto": {"bezpeci": 1, "prosperita": 1},
+        "trziste": {"zasoby": 1},
+    },
     "mira_vychodni": {
         "zadost": "zajišťuje první pomoc pro říční osadu",
         "cena": 10,
@@ -250,6 +262,22 @@ VYCHOZI_POSTAVY = (
             "Připravuje večerní vystoupení pro dobrovolné hosty.",
             "Domlouvá se s mecenáši na podmínkách večerní akce.",
             "Rozšiřuje síť bezpečných a dobrovolných společenských setkání.",
+        ),
+    },
+    {
+        "id": "nora_kartografka", "jmeno": "Nora", "role": "Městská kartografka",
+        "frakce": "cyberpunkaci", "lokace": "akademicke_namesti", "duvera": 0,
+        "akce": (
+            "Ověřuje pěší cesty mezi akademickým náměstím a tržištěm.",
+            "Vyznačuje na mapě místa, kde mohou cestovatelé požádat o pomoc.",
+        ),
+    },
+    {
+        "id": "zora_bylinkarka", "jmeno": "Zora", "role": "Bylinkářka komunitní zahrady",
+        "frakce": "nymfomanky", "lokace": "botanicke_zahrady", "duvera": 0,
+        "akce": (
+            "Pěstuje léčivé byliny pro místní ošetřovnu.",
+            "Učí zahradníky, jak bezpečně uchovávat semena.",
         ),
     },
     {

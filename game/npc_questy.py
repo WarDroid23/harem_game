@@ -261,6 +261,55 @@ NPC_QUESTY = {
         },
         "jednorazovy": True,
     },
+    "nora_kartografka": {
+        "nazev": "Mapa bezpečných cest",
+        "popis": "Nora chce zakreslit bezpečné pěší trasy mezi akademickým náměstím a okolními čtvrtěmi.",
+        "pozadavek": 8, "odmena": 170, "xp": 45, "reputace": 8,
+        "odmena_vyzkum": 3,
+        "frakce_dopad": {"cyberpunkaci": 4, "obchodnici": 2},
+        "temna_varianta": {
+            "odmena": 250, "xp": 30, "reputace": -5, "dark": 8,
+            "frakce_dopad": {"syndikat_stinu": 5, "cyberpunkaci": -3},
+        },
+        "navazujici": {
+            "nazev": "Atlas otevřených cest",
+            "popis": "Rozhodni, zda bude Norin atlas volně dostupný, nebo zda jeho kopie nabídneš za úplatu obchodním domům.",
+            "pozadavek": 15, "odmena": 320, "xp": 80, "reputace": 12,
+            "odmena_vyzkum": 5,
+            "frakce_dopad": {"cyberpunkaci": 6, "obchodnici": 4},
+            "temna_varianta": {
+                "odmena": 460, "xp": 50, "reputace": -8, "dark": 14,
+                "odmena_vyzkum": 3,
+                "frakce_dopad": {"syndikat_stinu": 7, "obchodnici": -5},
+                "vliv_mafie": 4,
+            },
+        },
+        "jednorazovy": True,
+    },
+    "zora_bylinkarka": {
+        "nazev": "Semena pro komunitní zahradu",
+        "popis": "Zora shání semena a dobrovolníky pro zahradu, kde si mohou obyvatelé vypěstovat léčivé byliny.",
+        "pozadavek": 8, "odmena": 160, "xp": 40, "reputace": 8,
+        "frakce_dopad": {"nymfomanky": 3, "obchodnici": 2},
+        "temna_varianta": {
+            "odmena": 230, "xp": 25, "reputace": -5, "dark": 8,
+            "frakce_dopad": {"podsveti": 4, "nymfomanky": -3},
+        },
+        "navazujici": {
+            "nazev": "Ošetřovna pod širým nebem",
+            "popis": "Pomoz Zoře otevřít zahradní ošetřovnu, nebo prodej její sklizeň soukromému alchymistovi.",
+            "pozadavek": 15, "odmena": 310, "xp": 75, "reputace": 12,
+            "odmena_vyzkum": 4,
+            "frakce_dopad": {"nymfomanky": 5, "policie": 3},
+            "temna_varianta": {
+                "odmena": 440, "xp": 45, "reputace": -8, "dark": 12,
+                "odmena_vyzkum": 2,
+                "frakce_dopad": {"podsveti": 6, "nymfomanky": -5},
+                "vliv_mafie": 4,
+            },
+        },
+        "jednorazovy": True,
+    },
 }
 
 
